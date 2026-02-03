@@ -1,0 +1,9 @@
+@* Port of PlanetEventControl placeholder *@
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public DateOnly? Date { get; set; }
+}
+<div class="card">
+  <h3>@(Title ?? "Planet Event")</h3>
+  <p>@(Date?.ToString() ?? "")</p>
+</div>

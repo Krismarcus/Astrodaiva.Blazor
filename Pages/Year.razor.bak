@@ -1,0 +1,792 @@
+﻿@page "/year"
+@inject Astrodaiva.Blazor.Services.AstroDataService Data
+@using Astrodaiva.Data.Enums
+@using Astrodaiva.Data.Models
+@using System.Globalization
+
+<div class="year-switcher">
+    <button class="year-arrow" @onclick="PrevYear">&#8592;</button>
+    <span class="year-label">@_year</span>
+    <button class="year-arrow" @onclick="NextYear">&#8594;</button>
+</div>
+<h2>Year Overview</h2>
+<div class="card">
+    @if (_db is null)
+    {
+        <div>Loading astro database…</div>
+    }
+    else
+    {
+        <div class="timeline-container">
+            <!-- Month labels container -->
+            <div class="month-labels-container">
+                <div class="planet-label-spacer"></div>
+                <div class="month-bar">
+                    @foreach (var month in _monthSegments)
+                    {
+                        <span class="month-label @(IsMonthHighlighted(month) ? "highlighted" : "")"
+                              style="width:@(month.WidthPercentage)%">
+                            @CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(month.MonthStartDate.Month)
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <!-- Planet Rows -->
+            @foreach (var planetRow in _planetRows)
+            {
+                <div class="planet-row">
+                    <div class="planet-label">@planetRow.PlanetName</div>
+                    <div class="planet-bar-container">
+                        <!-- Main Zodiac Bar -->
+                        <div class="year-bar">
+                            @foreach (var segment in planetRow.Segments)
+                            {
+                                <span class="zodiac-bar @(IsSegmentSelected(planetRow.PlanetName, segment) ? "selected" : "")"
+                                      style="background:@GetZodiacColor(segment.ZodiacSign);width:@(segment.WidthPercentage)%"
+                                      title="@($"{planetRow.PlanetName}: {GetSignName((int)segment.ZodiacSign)} {segment.ZodiacStartDate:MMM d} - {segment.ZodiacEndDate:MMM d}")"
+                                      @onclick="() => SelectSegment(planetRow.PlanetName, segment)"
+                                      @onmouseover="() => OnSegmentHover(segment)"
+                                      @onmouseout="OnSegmentHoverOut">
+                                    <span class="bar-content">
+                                        <span class="start-day">@segment.ZodiacStartDate.Day</span>
+                                        <img class="zodiac-symbol" src="@GetZodiacImage(segment.ZodiacSign)" alt="@GetSignName((int)segment.ZodiacSign)" />
+                                    </span>
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Retrograde Bar -->
+                        <div class="retrograde-bar-container">
+                            @foreach (var retroSegment in GetRetrogradeSegments(planetRow.PlanetName))
+                            {
+                                <span class="retrograde-bar"
+                                      style="width:@(retroSegment.WidthPercentage)%; left:@(retroSegment.LeftPosition)%"
+                                      title="@($"{planetRow.PlanetName} Retrograde: {retroSegment.StartDate:MMM d} - {retroSegment.EndDate:MMM d}")">
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Event Details Panel -->
+        @if (_showEventDetails)
+        {
+            <div class="event-details-panel" @onclick="HideEventDetails">
+                <div class="event-details-content" @onclick:stopPropagation="true">
+                    <div class="event-details-header">
+                        <h3>@_selectedPlanetInZodiacText</h3>
+                        <button class="close-button" @onclick="HideEventDetails">&times;</button>
+                    </div>
+                    <div class="event-dates">
+                        <span class="date-range">@_selectedStartDateText</span>
+                        <span class="date-range">@_selectedEndDateText</span>
+                    </div>
+                    <div class="event-info">
+                        @_selectedPlanetInfo
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private AppDB? _db;
+    private int _year = DateTime.Now.Year;
+    private List<PlanetRow> _planetRows = new();
+    private List<MonthSegment> _monthSegments = new();
+    private bool _showEventDetails = false;
+    private string _selectedPlanetInZodiacText = "";
+    private string _selectedStartDateText = "";
+    private string _selectedEndDateText = "";
+    private string _selectedPlanetInfo = "";
+
+    // Track the currently selected segment
+    private string? _selectedPlanetName;
+    private ZodiacSegment? _selectedSegment;
+
+    // Track hover state
+    private ZodiacSegment? _hoveredSegment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _db = await Data.LoadAsync();
+        GenerateCalendar();
+    }
+
+    private void PrevYear()
+    {
+        _year--;
+        ClearSelection();
+        GenerateCalendar();
+        StateHasChanged();
+    }
+
+    private void NextYear()
+    {
+        _year++;
+        ClearSelection();
+        GenerateCalendar();
+        StateHasChanged();
+    }
+
+    private void SelectSegment(string planetName, ZodiacSegment segment)
+    {
+        if (segment == null) return;
+
+        // If clicking the same segment again, toggle selection off
+        if (_selectedPlanetName == planetName && AreSegmentsEqual(_selectedSegment, segment))
+        {
+            ClearSelection();
+            StateHasChanged();
+            return;
+        }
+
+        // Find the planet info from PlanetInZodiacsDB
+        var planet = GetPlanetFromName(planetName);
+        var infoSourceItem = _db?.PlanetInZodiacsDB?.FirstOrDefault(p =>
+            p.Planet == planet && p.ZodiacSign == segment.ZodiacSign);
+
+        _selectedPlanetInZodiacText = $"{planetName} in {GetSignName((int)segment.ZodiacSign)}";
+        _selectedStartDateText = $"From {segment.ZodiacStartDate:MMMM d, HH:mm}";
+        _selectedEndDateText = $"To {segment.ZodiacEndDate:MMMM d, HH:mm}";
+        _selectedPlanetInfo = infoSourceItem?.PlanetInZodiacInfo ?? "No information available.";
+
+        _selectedPlanetName = planetName;
+        _selectedSegment = segment;
+        _showEventDetails = true;
+        StateHasChanged();
+    }
+
+    private void OnSegmentHover(ZodiacSegment segment)
+    {
+        _hoveredSegment = segment;
+        StateHasChanged();
+    }
+
+    private void OnSegmentHoverOut()
+    {
+        _hoveredSegment = null;
+        StateHasChanged();
+    }
+
+    private bool IsMonthHighlighted(MonthSegment month)
+    {
+        if (_hoveredSegment == null) return false;
+
+        // Check if the hovered segment overlaps with this month
+        return _hoveredSegment.ZodiacStartDate <= month.MonthEndDate &&
+               _hoveredSegment.ZodiacEndDate >= month.MonthStartDate;
+    }
+
+    private List<RetrogradeSegment> GetRetrogradeSegments(string planetName)
+    {
+        var segments = new List<RetrogradeSegment>();
+        var activeAstroEvents = _db?.AstroEventsDB?
+            .Where(e => e.Date.Year == _year && e.Date.Month >= 1 && e.Date.Month <= 12)
+            .OrderBy(e => e.Date)
+            .ToList();
+
+        if (activeAstroEvents == null || !activeAstroEvents.Any())
+            return segments;
+
+        bool? lastRetrogradeState = null;
+        DateTime? startDate = null;
+
+        foreach (var astroEvent in activeAstroEvents)
+        {
+            bool? currentRetrogradeState = GetPlanetRetrogradeState(astroEvent, planetName);
+
+            if (currentRetrogradeState == null)
+                continue;
+
+            if (lastRetrogradeState == null || currentRetrogradeState != lastRetrogradeState)
+            {
+                if (startDate != null && lastRetrogradeState == true)
+                {
+                    var segment = CreateRetrogradeSegment(startDate.Value, astroEvent.Date.AddDays(-1));
+                    segments.Add(segment);
+                }
+
+                if (currentRetrogradeState == true)
+                {
+                    startDate = astroEvent.Date;
+                }
+                lastRetrogradeState = currentRetrogradeState;
+            }
+        }
+
+        // Add the last segment if retrograde
+        if (startDate != null && lastRetrogradeState == true)
+        {
+            var lastEvent = activeAstroEvents.Last();
+            var segment = CreateRetrogradeSegment(startDate.Value, lastEvent.Date);
+            segments.Add(segment);
+        }
+
+        return segments;
+    }
+
+    private RetrogradeSegment CreateRetrogradeSegment(DateTime startDate, DateTime endDate)
+    {
+        var startOfYear = new DateTime(_year, 1, 1);
+        var endOfYear = new DateTime(_year, 12, 31);
+
+        var daysFromStart = (startDate - startOfYear).Days;
+        var duration = (endDate - startDate).Days + 1;
+
+        var leftPosition = (daysFromStart * 100.0) / 365;
+        var widthPercentage = (duration * 100.0) / 365;
+
+        return new RetrogradeSegment
+        {
+            StartDate = startDate,
+            EndDate = endDate,
+            WidthPercentage = widthPercentage,
+            LeftPosition = leftPosition
+        };
+    }
+
+    private bool? GetPlanetRetrogradeState(AstroEvent astroEvent, string planetName)
+    {
+        return planetName switch
+        {
+            "Mercury" => astroEvent.MercuryInZodiac?.IsRetrograde,
+            "Venus" => astroEvent.VenusInZodiac?.IsRetrograde,
+            "Mars" => astroEvent.MarsInZodiac?.IsRetrograde,
+            "Jupiter" => astroEvent.JupiterInZodiac?.IsRetrograde,
+            "Saturn" => astroEvent.SaturnInZodiac?.IsRetrograde,
+            "Uranus" => astroEvent.UranusInZodiac?.IsRetrograde,
+            "Neptune" => astroEvent.NeptuneInZodiac?.IsRetrograde,
+            "Pluto" => astroEvent.PlutoInZodiac?.IsRetrograde,
+            _ => null
+        };
+    }
+
+    private string GetZodiacImage(ZodiacSign sign)
+    {
+        var imageName = sign switch
+        {
+            ZodiacSign.Aries => "aries_blue.png",
+            ZodiacSign.Taurus => "taurus_blue.png",
+            ZodiacSign.Gemini => "gemini_blue.png",
+            ZodiacSign.Cancer => "cancer_blue.png",
+            ZodiacSign.Leo => "leo_blue.png",
+            ZodiacSign.Virgo => "virgo_blue.png",
+            ZodiacSign.Libra => "libra_blue.png",
+            ZodiacSign.Scorpio => "scorpio_blue.png",
+            ZodiacSign.Sagittarius => "sagittarius_blue.png",
+            ZodiacSign.Capricorn => "capricorn_blue.png",
+            ZodiacSign.Aquarius => "aquarius_blue.png",
+            ZodiacSign.Pisces => "pisces_blue.png",
+            _ => "unknown.png"
+        };        
+        return $"img/zodiac/{imageName}";
+    }
+
+    private void HideEventDetails()
+    {
+        _showEventDetails = false;
+        StateHasChanged();
+    }
+
+    private bool IsSegmentSelected(string planetName, ZodiacSegment segment)
+    {
+        return _selectedPlanetName == planetName && AreSegmentsEqual(_selectedSegment, segment);
+    }
+
+    private bool AreSegmentsEqual(ZodiacSegment? seg1, ZodiacSegment? seg2)
+    {
+        if (seg1 == null || seg2 == null) return false;
+        return seg1.ZodiacSign == seg2.ZodiacSign &&
+               seg1.ZodiacStartDate == seg2.ZodiacStartDate &&
+               seg1.ZodiacEndDate == seg2.ZodiacEndDate;
+    }
+
+    private Planet GetPlanetFromName(string planetName)
+    {
+        return planetName switch
+        {
+            "Sun" => Planet.Sun,
+            "Mercury" => Planet.Mercury,
+            "Venus" => Planet.Venus,
+            "Mars" => Planet.Mars,
+            "Jupiter" => Planet.Jupiter,
+            "Saturn" => Planet.Saturn,
+            "Uranus" => Planet.Uranus,
+            "Neptune" => Planet.Neptune,
+            "Pluto" => Planet.Pluto,
+            "Selena" => Planet.Selena,
+            "Lilith" => Planet.Lilith,
+            "Rahu" => Planet.Rahu,
+            "Ketu" => Planet.Ketu,
+            _ => Planet.Sun
+        };
+    }
+
+    private void ClearSelection()
+    {
+        _showEventDetails = false;
+        _selectedPlanetName = null;
+        _selectedSegment = null;
+        _selectedPlanetInZodiacText = "";
+        _selectedStartDateText = "";
+        _selectedEndDateText = "";
+        _selectedPlanetInfo = "";
+        _hoveredSegment = null;
+    }
+
+    private void GenerateCalendar()
+    {
+        _planetRows.Clear();
+        _monthSegments.Clear();
+
+        var activeAstroEvents = _db?.AstroEventsDB?
+            .Where(e => e.Date.Year == _year && e.Date.Month >= 1 && e.Date.Month <= 12)
+            .OrderBy(e => e.Date)
+            .ToList();
+
+        if (activeAstroEvents == null || !activeAstroEvents.Any())
+            return;
+
+        GenerateMonthSegments(activeAstroEvents);
+        GeneratePlanetSegments(activeAstroEvents);
+    }
+
+    private void GenerateMonthSegments(List<AstroEvent> events)
+    {
+        var firstEvent = events.First();
+        var lastEvent = events.Last();
+
+        DateTime lastMonthStart = new DateTime(_year, 1, 1);
+
+        for (int month = 1; month <= 12; month++)
+        {
+            var monthStart = new DateTime(_year, month, 1);
+            var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+
+            // Ensure we don't go beyond our data range
+            if (monthStart > lastEvent.Date) break;
+            if (monthEnd > lastEvent.Date) monthEnd = lastEvent.Date;
+
+            var daysInMonth = (monthEnd - monthStart).Days + 1;
+            var widthPercentage = (daysInMonth * 100.0) / 365;
+
+            _monthSegments.Add(new MonthSegment
+            {
+                MonthStartDate = monthStart,
+                MonthEndDate = monthEnd,
+                WidthPercentage = widthPercentage
+            });
+        }
+    }
+
+    private void GeneratePlanetSegments(List<AstroEvent> events)
+    {
+        var planets = new[] { "Sun", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "Selena", "Lilith", "Rahu", "Ketu" };
+
+        foreach (var planetName in planets)
+        {
+            var segments = BuildPlanetSegments(events, planetName);
+            _planetRows.Add(new PlanetRow
+            {
+                PlanetName = planetName,
+                Segments = segments
+            });
+        }
+    }
+
+    private List<ZodiacSegment> BuildPlanetSegments(List<AstroEvent> events, string planetName)
+    {
+        var segments = new List<ZodiacSegment>();
+        ZodiacSign? lastSign = null;
+        DateTime? startDate = null;
+
+        foreach (var astroEvent in events)
+        {
+            ZodiacSign? currentSign = GetPlanetZodiacSign(astroEvent, planetName);
+
+            if (currentSign == null)
+                continue;
+
+            if (lastSign == null || currentSign != lastSign)
+            {
+                if (startDate != null && lastSign != null)
+                {
+                    var segment = CreateZodiacSegment(lastSign.Value, startDate.Value, astroEvent.Date.AddDays(-1));
+                    segments.Add(segment);
+                }
+                startDate = astroEvent.Date;
+                lastSign = currentSign;
+            }
+        }
+
+        // Add the last segment
+        if (startDate != null && lastSign != null)
+        {
+            var lastEvent = events.Last();
+            var segment = CreateZodiacSegment(lastSign.Value, startDate.Value, lastEvent.Date);
+            segments.Add(segment);
+        }
+
+        return segments;
+    }
+
+    private ZodiacSegment CreateZodiacSegment(ZodiacSign sign, DateTime startDate, DateTime endDate)
+    {
+        var duration = (endDate - startDate).Days + 1;
+        var widthPercentage = (duration * 100.0) / 365;
+
+        return new ZodiacSegment
+        {
+            ZodiacSign = sign,
+            ZodiacStartDate = startDate,
+            ZodiacEndDate = endDate,
+            Duration = duration,
+            WidthPercentage = widthPercentage
+        };
+    }
+
+    private ZodiacSign? GetPlanetZodiacSign(AstroEvent astroEvent, string planetName)
+    {
+        return planetName switch
+        {
+            "Sun" => astroEvent.SunInZodiac?.NewZodiacSign,
+            "Mercury" => astroEvent.MercuryInZodiac?.NewZodiacSign,
+            "Venus" => astroEvent.VenusInZodiac?.NewZodiacSign,
+            "Mars" => astroEvent.MarsInZodiac?.NewZodiacSign,
+            "Jupiter" => astroEvent.JupiterInZodiac?.NewZodiacSign,
+            "Saturn" => astroEvent.SaturnInZodiac?.NewZodiacSign,
+            "Uranus" => astroEvent.UranusInZodiac?.NewZodiacSign,
+            "Neptune" => astroEvent.NeptuneInZodiac?.NewZodiacSign,
+            "Pluto" => astroEvent.PlutoInZodiac?.NewZodiacSign,
+            "Selena" => astroEvent.SelenaInZodiac?.NewZodiacSign,
+            "Lilith" => astroEvent.LilithInZodiac?.NewZodiacSign,
+            "Rahu" => astroEvent.RahuInZodiac?.NewZodiacSign,
+            "Ketu" => astroEvent.KetuInZodiac?.NewZodiacSign,
+            _ => null
+        };
+    }
+
+    private string GetSignName(int sign) => sign switch
+    {
+        1 => "Aries",
+        2 => "Taurus",
+        3 => "Gemini",
+        4 => "Cancer",
+        5 => "Leo",
+        6 => "Virgo",
+        7 => "Libra",
+        8 => "Scorpio",
+        9 => "Sagittarius",
+        10 => "Capricorn",
+        11 => "Aquarius",
+        12 => "Pisces",
+        _ => "Unknown"
+    };
+
+    private string GetZodiacColor(ZodiacSign sign) => sign switch
+    {
+        ZodiacSign.Aries => "#FFB347",
+        ZodiacSign.Taurus => "#77DD77",
+        ZodiacSign.Gemini => "#AEC6CF",
+        ZodiacSign.Cancer => "#CFCFC4",
+        ZodiacSign.Leo => "#FFD700",
+        ZodiacSign.Virgo => "#B2BEB5",
+        ZodiacSign.Libra => "#FFB7B2",
+        ZodiacSign.Scorpio => "#C23B22",
+        ZodiacSign.Sagittarius => "#F49AC2",
+        ZodiacSign.Capricorn => "#A9A9A9",
+        ZodiacSign.Aquarius => "#779ECB",
+        ZodiacSign.Pisces => "#B39EB5",
+        _ => "#CCCCCC"
+    };
+
+    // Helper classes
+    public class PlanetRow
+    {
+        public string PlanetName { get; set; } = "";
+        public List<ZodiacSegment> Segments { get; set; } = new();
+    }
+
+    public class MonthSegment
+    {
+        public DateTime MonthStartDate { get; set; }
+        public DateTime MonthEndDate { get; set; }
+        public double WidthPercentage { get; set; }
+    }
+
+    public class ZodiacSegment
+    {
+        public ZodiacSign ZodiacSign { get; set; }
+        public DateTime ZodiacStartDate { get; set; }
+        public DateTime ZodiacEndDate { get; set; }
+        public int Duration { get; set; }
+        public double WidthPercentage { get; set; }
+    }
+
+    public class RetrogradeSegment
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public double WidthPercentage { get; set; }
+        public double LeftPosition { get; set; }
+    }
+}
+
+<style>
+    .timeline-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .month-labels-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .planet-label-spacer {
+        width: 80px;
+        margin-right: 1em;
+    }
+
+    .month-bar {
+        display: flex;
+        height: 24px;
+        flex: 1;
+        border-radius: 8px 8px 0 0;
+        overflow: hidden;
+        background: #f8f8f8;
+        box-shadow: 0 1px 2px #0001;
+    }
+
+    .month-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95em;
+        color: #444;
+        font-weight: 500;
+        border-right: 1px solid #eee;
+        background: #f8f8f8;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.3s ease;
+    }
+
+        .month-label.highlighted {
+            background: #e3f2fd;
+            color: #1976d2;
+            font-weight: 600;
+            box-shadow: inset 0 0 0 2px #1976d2;
+        }
+
+        .month-label:last-child {
+            border-right: none;
+        }
+
+    .planet-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75em;
+    }
+
+    .planet-label {
+        width: 80px;
+        font-weight: bold;
+        text-align: right;
+        padding-right: 1em;
+        color: #333;
+        flex-shrink: 0;
+    }
+
+    .planet-bar-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .year-bar {
+        display: flex;
+        height: 32px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 4px #0002;
+    }
+
+    .retrograde-bar-container {
+        position: relative;
+        height: 4px;
+        margin-top: 2px;
+    }
+
+    .retrograde-bar {
+        position: absolute;
+        height: 100%;
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        border-radius: 2px;
+        opacity: 0.8;
+    }
+
+    .zodiac-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #222;
+        font-size: 0.9em;
+        font-weight: 500;
+        white-space: nowrap;
+        border-right: 1px solid #fff3;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    .bar-content {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 0 8px;
+        position: relative;
+    }
+
+    .start-day {
+        font-size: 0.95em;
+        font-weight: 500;
+        color: #444;
+        white-space: nowrap;
+        position: absolute;
+        left: 8px;
+        z-index: 2;
+    }
+
+    .zodiac-symbol {
+        height: 20px;
+        width: 20px;
+        object-fit: contain;
+        margin: 0 auto;
+    }
+
+    .zodiac-bar:last-child {
+        border-right: none;
+    }
+
+    .zodiac-bar.selected {
+        border: 3px solid #000 !important;
+        box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        z-index: 10;
+        transform: scale(1.02);
+    }
+
+    .zodiac-bar:hover {
+        filter: brightness(1.2);
+        transform: scale(1.02);
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+        z-index: 5;
+    }
+
+    .event-details-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        height: 100vh;
+    }
+
+    .event-details-content {
+        background: white;
+        border-radius: 16px 16px 0 0;
+        padding: 20px;
+        width: 100%;
+        max-width: 600px;
+        max-height: 70vh;
+        overflow-y: auto;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .event-details-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+        .event-details-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+    .close-button {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .event-dates {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
+
+    .date-range {
+        font-size: 0.9em;
+        color: #666;
+    }
+
+    .event-info {
+        line-height: 1.5;
+        color: #333;
+    }
+
+    .year-switcher {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1em;
+        gap: 1em;
+    }
+
+    .year-label {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin: 0 1em;
+        vertical-align: middle;
+    }
+
+    .year-arrow {
+        background: none;
+        border: none;
+        font-size: 1.5em;
+        cursor: pointer;
+        color: #666;
+        padding: 0 0.5em;
+        vertical-align: middle;
+    }
+
+        .year-arrow:focus {
+            outline: none;
+        }
+</style>

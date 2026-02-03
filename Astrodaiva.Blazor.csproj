@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>Astrodaiva.Blazor</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.0" PrivateAssets="all" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+  </ItemGroup>
+
+  <!--
+    IMPORTANT:
+    This repository includes an ASP.NET Core API project under the Astrodaiva.Api/ folder.
+    Because this Blazor WASM project sits at the repo root, the SDK's default globbing would
+    otherwise pick up and try to compile the API's .cs files into the WASM build.
+
+    That causes errors like:
+      - no runtime pack for Microsoft.AspNetCore.App for browser-wasm
+      - missing Microsoft.AspNetCore.Mvc.ApplicationParts types
+      - duplicate Assembly* attributes
+      - AddHttpClient/IHttpClientFactory missing
+
+    We explicitly exclude the API project folder from this WASM project.
+  -->
+  <ItemGroup>
+    <Compile Remove="Astrodaiva.Api/**" />
+    <Content Remove="Astrodaiva.Api/**" />
+    <None Remove="Astrodaiva.Api/**" />
+    <EmbeddedResource Remove="Astrodaiva.Api/**" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,1510 @@
+@page "/admin"
+@using System.Linq
+@using Astrodaiva.Blazor.Data.Models
+@using Astrodaiva.Data.Models
+@using Astrodaiva.Data.Enums
+@using Astrodaiva.Blazor.Services
+@using Microsoft.JSInterop
+@using Microsoft.AspNetCore.Components
+@using System.Text
+@using System.Text.Json
+@using System.Net.Http.Json
+@using System.Globalization
+
+@inject AstroDbEditService Editor
+@inject AstroDbStore Store
+@inject AstroApiClient Api
+@inject IJSRuntime JS
+@inject HttpClient Http
+
+<h2 class="admin-title">Admin – AstroEvents</h2>
+
+<div class="admin-toolbar">
+    <div class="date-nav">
+        <button type="button" @onclick="PrevDay">◀</button>
+
+        <input type="date"
+               value="@_selectedDate.ToString("yyyy-MM-dd")"
+               @onchange="OnDateChanged" />
+
+        <button type="button" @onclick="NextDay">▶</button>
+    </div>
+
+    <div class="admin-actions">
+        <button class="btn btn-secondary" @onclick="OpenBackups" disabled="@_busySnapshots">Backups</button>
+        <button type="button" class="btn btn-outline-primary" @onclick="DownloadCurrentJson">⬇ Download JSON</button>
+
+        <span class="save-indicator">
+            @if (_hasChanges)
+            {
+                <span class="unsaved-dot">●</span>
+                <span>@_changeCount change@(_changeCount == 1 ? "" : "s")</span>
+            }
+            else
+            {
+                <span class="saved-check">✓ All saved</span>
+            }
+        </span>
+    </div>
+
+    <div class="month-moon-editor">
+        <div class="mme-row">
+            <label>MoonDay on 1st</label>
+            <select @bind="_moonDayOnFirst">
+                @for (int d = 1; d <= 30; d++)
+                {
+                    <option value="@d">
+                        @d – @GetMoonDaySymbol(d)
+                    </option>
+                }
+            </select>
+
+            <label>Triple day</label>
+            <select @bind="_tripleDayOfMonth">
+                <option value="0">—</option>
+                @for (int d = 1; d <= DateTime.DaysInMonth(_selectedDate.Year, _moonEditMonth); d++)
+                {
+                    <option value="@d">@d</option>
+                }
+            </select>
+
+            <label class="mme-check">
+                <input type="checkbox" @bind="_is29Cycle" />
+                29-day
+            </label>
+
+            <button type="button" class="apply-btn" @onclick="ApplyMoonDaysForMonth">
+                🌙 Apply month
+            </button>
+        </div>
+    </div>
+
+</div>
+
+
+
+@if (_showBackups)
+{
+    <div style="position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;">
+        <div style="max-width:900px; margin:5vh auto; background:#fff; padding:16px; border-radius:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h4 style="margin:0;">Backups</h4>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="(()=> _showBackups=false)">Close</button>
+            </div>
+
+            <div class="mt-3" style="display:flex;gap:8px;align-items:center;">
+                <input class="form-control" style="max-width:220px;" placeholder="Label" @bind="_snapshotLabel" />
+                <label style="display:flex;gap:6px;align-items:center; margin:0;">
+                    <input type="checkbox" @bind="_snapshotMakeDefault" />
+                    Default
+                </label>
+                <button class="btn btn-primary" disabled="@_busySnapshots" @onclick="CreateSnapshot">Create snapshot</button>
+                <button class="btn btn-outline-primary" disabled="@_busySnapshots" @onclick="RefreshSnapshots">Refresh</button>
+                <button class="btn btn-outline-secondary" disabled="@_busySnapshots" @onclick="DownloadCurrentJson">Download current JSON</button>
+                @if (_busySnapshots) { <span>Working...</span> }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_snapStatus))
+            {
+                <pre class="mt-2" style="white-space:pre-wrap;background:#111;color:#0f0;padding:10px;border-radius:8px;">@_snapStatus</pre>
+            }
+
+            <table class="table table-sm mt-3">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Created (UTC)</th>
+                        <th>Label</th>
+                        <th>Size</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in _snapshots)
+                    {
+                        <tr>
+                            <td>@s.Id</td>
+                            <td>@s.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>
+                                @s.Label
+                                @if (s.IsDefault || _snapshots.Count == 1)
+                                {
+                                    <span class="badge bg-success ms-2">DEFAULT</span>
+                                }
+                            </td>
+                            <td>@(s.SizeBytes/1024) KB</td>
+                            <td style="white-space:nowrap;">
+                                <button class="btn btn-sm btn-success" disabled="@_busySnapshots" @onclick="(()=>LoadSnapshot(s.Id))">Load</button>
+                                <button class="btn btn-sm btn-outline-primary ms-2" disabled="@_busySnapshots" @onclick="(()=>DiffSnapshot(s.Id))">Diff</button>
+                                <button class="btn btn-sm btn-outline-success ms-2"
+                                        disabled="@(_busySnapshots || s.IsDefault || _snapshots.Count == 1)"
+                                        @onclick="(() => SetDefaultSnapshot(s.Id))">
+                                    Set default
+                                </button>
+                                <button class="btn btn-sm btn-danger ms-2" disabled="@_busySnapshots" @onclick="(()=>DeleteSnapshot(s.Id))">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (_showDiff)
+            {
+                <div class="mt-3" style="border:1px solid #ddd;border-radius:10px;padding:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                        <strong>Diff result</strong>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="(()=>_showDiff=false)">Close diff</button>
+                    </div>
+                    <div class="mt-2" style="white-space:pre-wrap;">@_diffSummary</div>
+                    @if (_diffDates.Count > 0)
+                    {
+                        <div class="mt-2" style="max-height:200px; overflow:auto;">
+                            <ul style="margin:0; padding-left:18px;">
+                                @foreach (var d in _diffDates)
+                                {
+                                    <li>@d</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (_loading)
+{
+    <p>Loading astrodb.json…</p>
+}
+else if (!string.IsNullOrEmpty(_error))
+{
+    <p class="admin-error">@_error</p>
+}
+else if (_eventsForDay is null || _eventsForDay.Count == 0)
+{
+    <p>No events found for @_selectedDate.ToString("yyyy-MM-dd").</p>
+
+    <button type="button" class="create-month-btn" @onclick="CreateNewMonthTemplate">
+        ➕ Create New Month
+    </button>
+}
+else
+{
+    @foreach (var ev in _eventsForDay)
+    {
+        <div class="event-card">
+            <h3 class="event-date">
+                @ev.Date.ToString("yyyy-MM-dd")
+                <span class="phase-badge">@GetPhaseLabel(ev.MoonPhase)</span>
+            </h3>
+
+            @{
+                var key = ev.Date.Date;
+                bool editorOpen = _openEventTextEditors.Contains(key);
+                bool hasText = !string.IsNullOrWhiteSpace(ev.EventText);
+                bool noEventChecked = !editorOpen && !hasText; // if empty AND editor not open -> No Event
+            }
+
+            <div class="eventtext-box">
+                <div class="eventtext-header">
+                    <h4>Event Text</h4>
+
+                    <label class="noevent-toggle">
+                        <input type="checkbox"
+                               checked="@noEventChecked"
+                               @onchange="(e) => ToggleNoEvent(ev, e)" />
+                        No Text
+                    </label>
+                </div>
+
+                @if (editorOpen || hasText)
+                {
+                    <textarea class="eventtext-editor"
+                              value="@ev.EventText"
+                              @onchange="(e) => SetEventText(ev, e)"
+                              placeholder="Write event text here..."></textarea>
+                }
+            </div>
+
+            <div class="moonday-box">
+                <h4>Moon Day</h4>
+                <div class="moonday-grid">
+                    <label>
+                        New:
+                        <select @onchange="@(e => SetMoonDayNumber(ev, e))">
+                            @for (int i = 1; i <= 30; i++)
+                            {
+                                <option value="@i" selected="@(ev.MoonDay.NewMoonDay == i)">
+                                    @i – @GetMoonDaySymbol(i)
+                                </option>
+                            }
+                        </select>
+                    </label>
+
+                    <label>
+                        Middle:
+                        <select disabled>
+                            <option>
+                                @ev.MoonDay.MiddleMoonDay – @GetMoonDaySymbol(ev.MoonDay.MiddleMoonDay)
+                            </option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Previous:
+                        <select disabled>
+                            <option>
+                                @ev.MoonDay.PreviousMoonDay – @GetMoonDaySymbol(ev.MoonDay.PreviousMoonDay)
+                            </option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Triple:
+                        @BoolIcon(ev.MoonDay.IsTripleMoonDay, v => { ev.MoonDay.IsTripleMoonDay = v; MarkChanged(); })
+                    </label>
+
+                    <label>
+                        Phase:
+                        <select @onchange="@(e => SetMoonPhase(ev, e))">
+                            <option value="0" selected="@(ev.MoonPhase == 0)">—</option>
+                            <option value="1" selected="@(ev.MoonPhase == 1)">New Moon (1)</option>
+                            <option value="2" selected="@(ev.MoonPhase == 2)">First Quarter (2)</option>
+                            <option value="3" selected="@(ev.MoonPhase == 3)">Full Moon (3)</option>
+                            <option value="4" selected="@(ev.MoonPhase == 4)">Third Quarter (4)</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Transition:
+                        <input type="datetime-local"
+                               value="@ToLocalInput(ev.MoonDay.TransitionTime)"
+                               @onchange="@((ChangeEventArgs e) => { SetMoonTransition(ev, e, false); MarkChanged(); })" />
+                    </label>
+
+                    <label>
+                        Middle transition:
+                        <input type="datetime-local"
+                               value="@ToLocalInput(ev.MoonDay.MiddleMoonDayTransitionTime)"
+                               @onchange="@((ChangeEventArgs e) => { SetMoonTransition(ev, e, true); MarkChanged(); })" />
+                    </label>
+                </div>
+            </div>
+
+            <div class="planet-grid">
+                @RenderPlanetEditor("Sun", ev.SunInZodiac)
+                @RenderPlanetEditor("Moon", ev.MoonInZodiac)
+                @RenderPlanetEditor("Mercury", ev.MercuryInZodiac)
+                @RenderPlanetEditor("Venus", ev.VenusInZodiac)
+                @RenderPlanetEditor("Mars", ev.MarsInZodiac)
+                @RenderPlanetEditor("Jupiter", ev.JupiterInZodiac)
+                @RenderPlanetEditor("Saturn", ev.SaturnInZodiac)
+                @RenderPlanetEditor("Uranus", ev.UranusInZodiac)
+                @RenderPlanetEditor("Neptune", ev.NeptuneInZodiac)
+                @RenderPlanetEditor("Pluto", ev.PlutoInZodiac)
+                @RenderPlanetEditor("Selena", ev.SelenaInZodiac)
+                @RenderPlanetEditor("Lilith", ev.LilithInZodiac)
+                @RenderPlanetEditor("Rahu", ev.RahuInZodiac)
+                @RenderPlanetEditor("Ketu", ev.KetuInZodiac)
+            </div>
+
+            <div class="activities-box">
+                <h4>Activities</h4>
+                <div class="activities-grid">
+                    @RenderActivityEditor("Important tasks", ev.ImportantTasks, v => { ev.ImportantTasks = v; MarkChanged(); })
+                    @RenderActivityEditor("Contracts", ev.Contracts, v => { ev.Contracts = v; MarkChanged(); })
+                    @RenderActivityEditor("Meetings", ev.Meetings, v => { ev.Meetings = v; MarkChanged(); })
+                    @RenderActivityEditor("Love", ev.Love, v => { ev.Love = v; MarkChanged(); })
+                    @RenderActivityEditor("Buy stuff", ev.Buystuff, v => { ev.Buystuff = v; MarkChanged(); })
+                    @RenderActivityEditor("Beauty", ev.Beauty, v => { ev.Beauty = v; MarkChanged(); })
+                    @RenderActivityEditor("Barber", ev.Barber, v => { ev.Barber = v; MarkChanged(); })
+                    @RenderActivityEditor("Gardening", ev.Gardening, v => { ev.Gardening = v; MarkChanged(); })
+                    @RenderActivityEditor("New ideas", ev.NewIdeas, v => { ev.NewIdeas = v; MarkChanged(); })
+                    @RenderActivityEditor("Tech", ev.Tech, v => { ev.Tech = v; MarkChanged(); })
+                    @RenderActivityEditor("Travel", ev.Travel, v => { ev.Travel = v; MarkChanged(); })
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code {
+    private bool _loading = true;
+    private string _error = string.Empty;
+
+    private DateTime _selectedDate = DateTime.Today;
+    private List<AstroEvent>? _eventsForDay;
+
+    // ----- CHANGE TRACKING -----
+    private bool _hasChanges = false;
+    private int _changeCount = 0;
+
+    // ----- SNAPSHOTS (Backups modal) -----
+    private bool _showBackups;
+    private bool _busySnapshots;
+    private string? _snapStatus;
+    private List<SnapshotItemDto> _snapshots = new();
+
+    // Create snapshot inputs
+    private string _snapshotLabel = "ManualBackup";
+    private bool _snapshotMakeDefault = false;
+
+    // ----- DIFF (minimal) -----
+    private bool _showDiff;
+    private string _diffSummary = "";
+    private List<string> _diffDates = new();
+
+    private int _moonEditMonth => _selectedDate.Month; // keep month in sync with current selected date
+    private int _moonDayOnFirst = 1;                   // user chooses: MoonDay number for 1st day
+    private int _tripleDayOfMonth = 0;                 // 0 = none
+    private bool _is29Cycle = false;                   // false=30, true=29
+    private HashSet<DateTime> _openEventTextEditors = new();
+
+    private void MarkChanged()
+    {
+        _hasChanges = true;
+        _changeCount++;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        _error = string.Empty;
+
+        try
+        {
+            // Load startup DB (default snapshot if present, otherwise local JSON)
+            var db = await Editor.EnsureLoadedAsync();
+
+            if (db?.AstroEventsDB is null || db.AstroEventsDB.Count == 0)
+            {
+                _error = "AstroEventsDB is empty or missing.";
+                _loading = false;
+                return;
+            }
+
+            // Ensure selected date exists
+            if (!db.AstroEventsDB.Any(e => e.Date.Date == _selectedDate.Date))
+                _selectedDate = db.AstroEventsDB.OrderBy(e => e.Date).First().Date;
+
+            LoadByDate();
+
+            // Clean state
+            _hasChanges = false;
+            _changeCount = 0;
+        }
+        catch (Exception ex)
+        {
+            _error = "Could not load astrodb.json: " + ex.Message;
+        }
+
+        _loading = false;
+    }
+
+    // ----- DATE NAVIGATION -----
+
+    private void PrevDay()
+    {
+        _selectedDate = _selectedDate.AddDays(-1);
+        LoadByDate();
+    }
+
+    private void NextDay()
+    {
+        _selectedDate = _selectedDate.AddDays(1);
+        LoadByDate();
+    }
+
+    private void OnDateChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var d))
+        {
+            _selectedDate = d;
+            LoadByDate();
+        }
+    }
+
+    private void LoadByDate()
+    {
+        if (Editor.Db?.AstroEventsDB is null)
+        {
+            _eventsForDay = null;
+            _error = "Database not loaded.";
+            return;
+        }
+
+        _error = string.Empty;
+
+        // NEVER clone events; use original references
+        _eventsForDay = Editor.Db.AstroEventsDB
+            .Where(e => e.Date.Date == _selectedDate.Date)
+            .OrderBy(e => e.Date)
+            .ToList();
+    }
+
+    // ----- MOON PHASE -----
+    private string GetPhaseLabel(int phase) => phase switch
+    {
+        1 => "🌑 New",
+        2 => "🌓 1Q",
+        3 => "🌕 Full",
+        4 => "🌗 3Q",
+        _ => "—"
+    };
+
+    private void SetMoonPhase(AstroEvent ev, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int p) && p >= 0 && p <= 4)
+        {
+            if (ev.MoonPhase != p)
+            {
+                ev.MoonPhase = p;
+                MarkChanged();
+            }
+        }
+    }
+
+    // ----- MOONDAY EDITING -----
+
+    private void SetMoonDayNumber(AstroEvent ev, ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int n) && n >= 1 && n <= 30)
+        {
+            ev.MoonDay.NewMoonDay = n;
+            MarkChanged();
+        }
+    }
+
+    private void SetMoonTransition(AstroEvent ev, ChangeEventArgs e, bool isMiddle)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var dt))
+        {
+            if (isMiddle)
+                ev.MoonDay.MiddleMoonDayTransitionTime = dt;
+            else
+                ev.MoonDay.TransitionTime = dt;
+
+            MarkChanged();
+        }
+    }
+
+    private string ToLocalInput(DateTime dt)
+        => dt == default ? "" : dt.ToString("yyyy-MM-ddTHH:mm");
+
+
+    private MoonDaySymbol GetMoonDaySymbol(int day)
+    {
+        if (day < 1 || day > 30)
+            return MoonDaySymbol.None;
+
+        return (MoonDaySymbol)day;
+    }
+
+    private void ApplyMoonDaysForMonth()
+    {
+        if (Editor.Db?.AstroEventsDB is null)
+        {
+            _error = "Database not loaded.";
+            return;
+        }
+
+        int year = _selectedDate.Year;
+        int month = _selectedDate.Month;
+
+        // Safety: if triple day is invalid for this month, disable it
+        int dim = DateTime.DaysInMonth(year, month);
+        if (_tripleDayOfMonth > dim) _tripleDayOfMonth = 0;
+
+        int maxDay = _is29Cycle ? 29 : 30;
+
+        var monthEvents = Editor.Db.AstroEventsDB
+            .Where(e => e.Date.Year == year && e.Date.Month == month)
+            .OrderBy(e => e.Date)
+            .ToList();
+
+        if (monthEvents.Count == 0)
+        {
+            _error = $"No events found for {year}-{month:00}.";
+            return;
+        }
+
+        int current = _moonDayOnFirst;
+        int changed = 0;
+
+        foreach (var e in monthEvents)
+        {
+            e.MoonDay ??= new MoonDay();
+
+            // Set moonday number
+            if (e.MoonDay.NewMoonDay != current)
+            {
+                e.MoonDay.NewMoonDay = current;
+                changed++;
+            }
+
+            // Set MoonPhase based on THIS day's moonday number
+            int phase = PhaseFromMoonDayNumber(current);
+            if (e.MoonPhase != phase)
+            {
+                e.MoonPhase = phase;
+                changed++;
+            }
+
+            // Triple flag ONLY on the chosen triple day
+            bool isTripleDay = _tripleDayOfMonth != 0 && e.Date.Day == _tripleDayOfMonth;
+            if (e.MoonDay.IsTripleMoonDay != isTripleDay)
+            {
+                e.MoonDay.IsTripleMoonDay = isTripleDay;
+                changed++;
+            }
+
+            // skip happens on the day BEFORE triple day
+            bool isSkipDay = _tripleDayOfMonth != 0 && e.Date.Day == (_tripleDayOfMonth - 1);
+
+            // Advance to next day (normal +1)
+            current = NextMoonDay(current, maxDay);
+
+            // If today is skip-day, jump one extra (+2 total)
+            if (isSkipDay)
+                current = NextMoonDay(current, maxDay);
+        }
+
+        if (changed > 0)
+            MarkChangedMany(changed);
+
+        LoadByDate();
+        StateHasChanged();
+    }
+
+    private static int NextMoonDay(int value, int maxDay)
+        => value >= maxDay ? 1 : value + 1;
+
+    private void MarkChangedMany(int count)
+    {
+        if (count <= 0) return;
+        _hasChanges = true;
+        _changeCount += count;
+    }
+
+    // ----- MOON PHASE LOGIC ----- //
+    private int PhaseFromMoonDayNumber(int moonDayNumber)
+    {
+        // Borders by your Avesta names:
+        // 1 Žibintas (Lantern) -> New (1)
+        // 9 Šikšnosparnis (Bat) -> FirstQuarter (2)
+        // 15 Gyvatė (Snake) -> Full (3)
+        // 23 Krokodilas (Crocodile) -> ThirdQuarter (4)
+
+        if (moonDayNumber >= 1 && moonDayNumber <= 8) return 1;     // New
+        if (moonDayNumber >= 9 && moonDayNumber <= 14) return 2;    // 1Q
+        if (moonDayNumber >= 15 && moonDayNumber <= 22) return 3;   // Full
+        return 4;                                                   // 3Q (23..29/30)
+    }
+
+
+    // ----- CREATE NEW MONTH ----- //
+    private async Task CreateNewMonthTemplate()
+    {
+        if (Editor.Db?.AstroEventsDB is null)
+        {
+            _error = "Database not loaded.";
+            return;
+        }
+
+        int year = _selectedDate.Year;
+        int month = _selectedDate.Month;
+
+        // Confirm (optional but recommended)
+        var confirm = await JS.InvokeAsync<bool>(
+            "confirm",
+            $"Create missing AstroEvents for {year}-{month:00} with default values?"
+        );
+        if (!confirm) return;
+
+        var db = Editor.Db;
+        int daysInMonth = DateTime.DaysInMonth(year, month);
+
+        // Fast lookup of existing dates in that month
+        var existing = db.AstroEventsDB
+            .Where(e => e.Date.Year == year && e.Date.Month == month)
+            .Select(e => e.Date.Date)
+            .ToHashSet();
+
+        int created = 0;
+
+        for (int day = 1; day <= daysInMonth; day++)
+        {
+            var date = new DateTime(year, month, day);
+
+            if (existing.Contains(date.Date))
+                continue;
+
+            db.AstroEventsDB.Add(CreateDefaultAstroEvent(date));
+            created++;
+        }
+
+        if (created == 0)
+        {
+            _error = $"Month {year}-{month:00} already has all days.";
+            return;
+        }
+
+        // Keep db tidy
+        var sorted = db.AstroEventsDB.OrderBy(e => e.Date).ToList();
+
+        // Rebuild ObservableCollection in-place
+        db.AstroEventsDB.Clear();
+        foreach (var item in sorted)
+            db.AstroEventsDB.Add(item);
+
+        MarkChangedMany(created); // counts as created rows (simple tracking)
+
+        // Reload current day (now it should exist)
+        LoadByDate();
+        StateHasChanged();
+    }
+
+    private AstroEvent CreateDefaultAstroEvent(DateTime date)
+    {
+        // NOTE: pick a safe default sign for required dropdowns.
+        // If your enum starts with Aries, this is fine.
+        var defaultSign = ZodiacSign.Aries;
+
+        return new AstroEvent
+        {
+            Date = date,
+            EventText = "",
+            MoonPhase = 1,
+
+            MoonDay = new MoonDay
+            {
+                NewMoonDay = 1,                
+                IsTripleMoonDay = false,
+                TransitionTime = default,
+                MiddleMoonDayTransitionTime = default
+            },
+
+            // Planets: must be non-null, because RenderPlanetEditor expects PlanetInZodiac p (not nullable)
+            SunInZodiac = DefaultPlanet(Planet.Sun, defaultSign),
+            MoonInZodiac = DefaultPlanet(Planet.Moon, defaultSign),
+            MercuryInZodiac = DefaultPlanet(Planet.Mercury, defaultSign),
+            VenusInZodiac = DefaultPlanet(Planet.Venus, defaultSign),
+            MarsInZodiac = DefaultPlanet(Planet.Mars, defaultSign),
+            JupiterInZodiac = DefaultPlanet(Planet.Jupiter, defaultSign),
+            SaturnInZodiac = DefaultPlanet(Planet.Saturn, defaultSign),
+            UranusInZodiac = DefaultPlanet(Planet.Uranus, defaultSign),
+            NeptuneInZodiac = DefaultPlanet(Planet.Neptune, defaultSign),
+            PlutoInZodiac = DefaultPlanet(Planet.Pluto, defaultSign),
+            SelenaInZodiac = DefaultPlanet(Planet.Selena, defaultSign),
+            LilithInZodiac = DefaultPlanet(Planet.Lilith, defaultSign),
+            RahuInZodiac = DefaultPlanet(Planet.Rahu, defaultSign),
+            KetuInZodiac = DefaultPlanet(Planet.Ketu, defaultSign),
+
+            // Activities: set to None (or Neutral if your enum does not have None)
+            ImportantTasks = ActivityQuality.None,
+            Contracts = ActivityQuality.None,
+            Meetings = ActivityQuality.None,
+            Love = ActivityQuality.None,
+            Buystuff = ActivityQuality.None,
+            Beauty = ActivityQuality.None,
+            Barber = ActivityQuality.None,
+            Gardening = ActivityQuality.None,
+            NewIdeas = ActivityQuality.None,
+            Tech = ActivityQuality.None,
+            Travel = ActivityQuality.None
+        };
+    }
+
+    private PlanetInZodiac DefaultPlanet(Planet planet, ZodiacSign sign) =>
+        new PlanetInZodiac
+        {
+            Planet = planet,
+            NewZodiacSign = sign,
+            IsRetrograde = false,
+            IsZodiacTransitioning = false,
+            TransitionTime = default
+        };
+
+
+    // ----- SAVING -----
+
+    public void Dispose()
+    {
+        Editor.ClearDb();
+    }
+
+    // ----- BACKUPS (Snapshots) -----
+
+    private async Task OpenBackups()
+    {
+        _showBackups = true;
+        await RefreshSnapshots();
+    }
+
+    private async Task RefreshSnapshots()
+    {
+        _busySnapshots = true;
+        _snapStatus = null;
+
+        try
+        {
+            var items = await Api.ListSnapshotsAsync(80);
+            _snapshots = items.Select(s => new SnapshotItemDto
+            {
+                Id = s.Id,
+                CreatedUtc = s.CreatedUtc,
+                Label = s.Label,
+                IsDefault = s.IsDefault,
+                SizeBytes = s.SizeBytes
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            _snapStatus = ex.ToString();
+            await JS.InvokeVoidAsync("console.error", _snapStatus);
+        }
+        finally
+        {
+            _busySnapshots = false;
+        }
+    }
+
+    private async Task CreateSnapshot()
+    {
+        _busySnapshots = true;
+        _snapStatus = "Creating snapshot...";
+
+        try
+        {
+            var db = Store.Db ?? await Store.EnsureLoadedAsync();
+            if (db is null)
+            {
+                _snapStatus = "DB not loaded.";
+                return;
+            }
+
+            var json = JsonSerializer.Serialize(db, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = null // keep PascalCase
+            });
+
+            // IMPORTANT:
+            // In Blazor WASM, injected `Http` is configured for the *static site* (HostEnvironment.BaseAddress).
+            // Your API lives on ApiBaseUrl, so use the AstroApiClient wrapper.
+            await Api.CreateSnapshotAsync(json, _snapshotLabel, _snapshotMakeDefault);
+
+            _snapStatus = "Snapshot created.";
+            await RefreshSnapshots(); // so DEFAULT badge updates immediately
+        }
+        catch (Exception ex)
+        {
+            _snapStatus = ex.ToString();
+            await JS.InvokeVoidAsync("console.error", _snapStatus);
+        }
+        finally
+        {
+            _busySnapshots = false;
+        }
+    }
+
+
+    private async Task LoadSnapshot(long id)
+    {
+        _busySnapshots = true;
+        _snapStatus = "Loading snapshot...";
+
+        try
+        {
+            await Store.LoadSnapshotAsync(id);
+            await RefreshSnapshots();
+            _snapStatus = $"Loaded snapshot {id}.";
+            await JS.InvokeVoidAsync("console.log", _snapStatus);
+
+            // refresh UI to current date
+            LoadByDate();
+
+            _hasChanges = false;
+            _changeCount = 0;
+        }
+        catch (Exception ex)
+        {
+            _snapStatus = ex.ToString();
+            await JS.InvokeVoidAsync("console.error", _snapStatus);
+        }
+        finally
+        {
+            _busySnapshots = false;
+        }
+    }
+
+    private async Task DeleteSnapshot(long id)
+    {
+        _busySnapshots = true;
+        _snapStatus = "Deleting snapshot...";
+
+        try
+        {
+            await Api.DeleteSnapshotAsync(id);
+            _snapStatus = $"Deleted snapshot {id}.";
+            await JS.InvokeVoidAsync("console.log", _snapStatus);
+            await RefreshSnapshots();
+        }
+        catch (Exception ex)
+        {
+            _snapStatus = ex.ToString();
+            await JS.InvokeVoidAsync("console.error", _snapStatus);
+        }
+        finally
+        {
+            _busySnapshots = false;
+        }
+    }
+
+    private async Task SetDefaultSnapshot(long id)
+    {
+        _busySnapshots = true;
+        _snapStatus = "Setting default snapshot...";
+
+        try
+        {
+            await Api.SetDefaultSnapshotAsync(id);
+            _snapStatus = $"Snapshot {id} is now DEFAULT.";
+            await RefreshSnapshots();
+        }
+        catch (Exception ex)
+        {
+            _snapStatus = ex.ToString();
+            await JS.InvokeVoidAsync("console.error", _snapStatus);
+        }
+        finally
+        {
+            _busySnapshots = false;
+        }
+    }
+
+    private async Task DownloadCurrentJson()
+    {
+        var db = Store.Db ?? await Store.EnsureLoadedAsync();
+        if (db is null)
+        {
+            _snapStatus = "DB not loaded.";
+            return;
+        }
+
+        var json = JsonSerializer.Serialize(db, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = null,
+            WriteIndented = true
+        });
+
+        var fileName = $"astrodb-loaded-{DateTime.UtcNow:yyyyMMdd-HHmmss}-utc.json";
+        await JS.InvokeVoidAsync("downloadTextFile", fileName, json);
+    }
+
+    private async Task DiffSnapshot(long id)
+    {
+        _busySnapshots = true;
+        _diffSummary = "Computing diff...";
+        _diffDates = new();
+        _showDiff = true;
+
+        try
+        {
+            var current = Store.Db ?? await Store.EnsureLoadedAsync();
+            if (current is null)
+            {
+                _diffSummary = "Current DB is not loaded.";
+                return;
+            }
+
+            var snapJson = await Api.GetSnapshotJsonAsync(id);
+            var snap = JsonSerializer.Deserialize<AppDB>(snapJson, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = null
+            });
+
+            if (snap is null)
+            {
+                _diffSummary = "Failed to deserialize snapshot JSON.";
+                return;
+            }
+
+            var opt = new JsonSerializerOptions { PropertyNamingPolicy = null };
+
+            var curEvents = (current?.AstroEventsDB ?? Enumerable.Empty<AstroEvent>())
+                .ToDictionary(e => e.Date.Date, e => e);
+
+            var snapEvents = (snap?.AstroEventsDB ?? Enumerable.Empty<AstroEvent>())
+                .ToDictionary(e => e.Date.Date, e => e);
+
+            var allDates = curEvents.Keys.Union(snapEvents.Keys).OrderBy(d => d).ToList();
+            int changed = 0;
+            int missingInCurrent = 0;
+            int missingInSnapshot = 0;
+
+            foreach (var d in allDates)
+            {
+                var hasCur = curEvents.TryGetValue(d, out var cur);
+                var hasSnap = snapEvents.TryGetValue(d, out var sEv);
+
+                if (!hasCur)
+                {
+                    changed++;
+                    missingInCurrent++;
+                    if (_diffDates.Count < 80) _diffDates.Add($"{d:yyyy-MM-dd} (missing in CURRENT)");
+                    continue;
+                }
+                if (!hasSnap)
+                {
+                    changed++;
+                    missingInSnapshot++;
+                    if (_diffDates.Count < 80) _diffDates.Add($"{d:yyyy-MM-dd} (missing in SNAPSHOT)");
+                    continue;
+                }
+
+                var curStr = JsonSerializer.Serialize(cur, opt);
+                var snapStr = JsonSerializer.Serialize(sEv, opt);
+                if (!string.Equals(curStr, snapStr, StringComparison.Ordinal))
+                {
+                    changed++;
+                    if (_diffDates.Count < 80) _diffDates.Add(d.ToString("yyyy-MM-dd"));
+                }
+            }
+
+            _diffSummary = $"Snapshot {id} vs CURRENT loaded DB\n" +
+                           $"Changed days: {changed} / {allDates.Count}\n" +
+                           $"Missing in CURRENT: {missingInCurrent}\n" +
+                           $"Missing in SNAPSHOT: {missingInSnapshot}\n" +
+                           $"(Showing up to {_diffDates.Count} dates)";
+        }
+        catch (Exception ex)
+        {
+            _diffSummary = ex.ToString();
+            await JS.InvokeVoidAsync("console.error", _diffSummary);
+        }
+        finally
+        {
+            _busySnapshots = false;
+        }
+    }
+
+    private sealed class SnapshotItemDto
+    {
+        public long Id { get; set; }
+        public DateTime CreatedUtc { get; set; }
+        public string? Label { get; set; }
+        public bool IsDefault { get; set; }
+        public int SizeBytes { get; set; }
+    }
+
+    // ----- DEEP CLONE -----
+    // Uses JSON to create a clean deep copy of AppDB.
+    private T DeepClone<T>(T source)
+    {
+        var json = JsonSerializer.Serialize(source);
+        return JsonSerializer.Deserialize<T>(json)!;
+    }
+
+    // EventText
+    private void ToggleNoEvent(AstroEvent ev, ChangeEventArgs e)
+    {
+        bool noEvent = e.Value is bool b && b;
+        var key = ev.Date.Date;
+
+        if (noEvent)
+        {
+            // Hide editor + force empty string
+            _openEventTextEditors.Remove(key);
+
+            if (!string.IsNullOrEmpty(ev.EventText))
+            {
+                ev.EventText = "";
+                MarkChanged();
+            }
+        }
+        else
+        {
+            // Show editor even if text is empty
+            _openEventTextEditors.Add(key);
+            StateHasChanged();
+        }
+    }
+
+    private void SetEventText(AstroEvent ev, ChangeEventArgs e)
+    {
+        var newText = e.Value?.ToString() ?? "";
+
+        if (ev.EventText != newText)
+        {
+            ev.EventText = newText;
+            MarkChanged();
+        }
+
+        // If user erased everything, keep editor open (so they can still type)
+        _openEventTextEditors.Add(ev.Date.Date);
+    }
+
+
+    // ----- PLANET EDITOR RENDERING -----
+
+    RenderFragment RenderPlanetEditor(string name, PlanetInZodiac p) => builder =>
+    {
+        var seq = 0;
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class", "planet-card");
+
+        // Planet Name
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class", "planet-name");
+        builder.AddContent(seq++, name);
+        builder.CloseElement();
+
+        // ----- Zodiac Sign -----
+        builder.OpenElement(seq++, "label");
+        builder.AddContent(seq++, "Sign:");
+
+        builder.OpenElement(seq++, "select");
+        builder.AddAttribute(seq++, "value", p.NewZodiacSign);
+        builder.AddAttribute(seq++, "onchange",
+            EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+        {
+            if (Enum.TryParse<ZodiacSign>(e.Value?.ToString(), out var sign))
+            {
+                p.NewZodiacSign = sign;
+                MarkChanged();
+            }
+        }));
+
+        foreach (var sign in Enum.GetValues<ZodiacSign>())
+        {
+            builder.OpenElement(seq++, "option");
+            builder.AddAttribute(seq++, "value", sign);
+            if (sign.Equals(p.NewZodiacSign))
+                builder.AddAttribute(seq++, "selected", "selected");
+
+            builder.AddContent(seq++, sign.ToString());
+            builder.CloseElement();
+        }
+        builder.CloseElement(); // select
+        builder.CloseElement(); // label
+
+
+        // ----- Retrograde -----
+        builder.OpenElement(seq++, "label");
+        builder.AddContent(seq++, "Retrograde:");
+        builder.AddContent(seq++, BoolIcon(p.IsRetrograde, v =>
+        {
+            p.IsRetrograde = v;
+            MarkChanged();
+        }));
+        builder.CloseElement();
+
+
+        // ----- Transition Toggle -----
+        builder.OpenElement(seq++, "label");
+        builder.AddContent(seq++, "Transition:");
+        builder.AddContent(seq++, BoolIcon(p.IsZodiacTransitioning, v =>
+        {
+            p.IsZodiacTransitioning = v;
+            MarkChanged();
+        }));
+        builder.CloseElement();
+
+
+        // ----- CONDITIONAL TRANSITION TIME -----
+        if (p.IsZodiacTransitioning)
+        {
+            builder.OpenElement(seq++, "label");
+            builder.AddContent(seq++, "Transition Time:");
+
+            builder.OpenElement(seq++, "input");
+            builder.AddAttribute(seq++, "type", "datetime-local");
+            builder.AddAttribute(seq++, "value", ToLocalInput(p.TransitionTime));
+            builder.AddAttribute(seq++, "onchange",
+                EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+            {
+                if (DateTime.TryParse(e.Value?.ToString(), out var dt))
+                {
+                    p.TransitionTime = dt;
+                    MarkChanged();
+                }
+            }));
+            builder.CloseElement(); // input
+
+            builder.CloseElement(); // label
+        }
+
+        builder.CloseElement(); // .planet-card
+    };
+
+
+    // ----- ACTIVITY EDITOR RENDERING -----
+
+    RenderFragment RenderActivityEditor(string name, ActivityQuality value, Action<ActivityQuality> setter)
+        => builder =>
+    {
+        var seq = 0;
+
+        builder.OpenElement(seq++, "div");
+        builder.AddAttribute(seq++, "class", $"activity-item {GetQualityClass(value)}");
+
+        // Activity name
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", "activity-label");
+        builder.AddContent(seq++, name + ": ");
+        builder.CloseElement();
+
+        // Dropdown
+        builder.OpenElement(seq++, "select");
+        builder.AddAttribute(seq++, "value", value);
+        builder.AddAttribute(seq++, "onchange",
+            EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+        {
+            if (Enum.TryParse<ActivityQuality>(e.Value?.ToString(), out var aq))
+            {
+                setter(aq);
+                MarkChanged();
+            }
+        }));
+
+        foreach (var aq in Enum.GetValues<ActivityQuality>())
+        {
+            builder.OpenElement(seq++, "option");
+            builder.AddAttribute(seq++, "value", aq);
+            if (aq.Equals(value))
+                builder.AddAttribute(seq++, "selected", "selected");
+            builder.AddContent(seq++, aq.ToString());
+            builder.CloseElement();
+        }
+
+        builder.CloseElement(); // select
+
+        builder.CloseElement(); // div
+    };
+
+
+    // ----- QUALITY CLASS (BACKGROUND COLORS) -----
+
+    private string GetQualityClass(ActivityQuality q) =>
+        q switch
+        {
+            ActivityQuality.Good => "good",
+            ActivityQuality.Bad => "bad",
+            ActivityQuality.Neutral => "neutral",
+            _ => "none"
+        };
+
+
+    // ----- COLORED BOOLEAN ICON (✔ / ✖) -----
+
+    private RenderFragment BoolIcon(bool value, Action<bool> setter) => builder =>
+    {
+        var seq = 0;
+
+        builder.OpenElement(seq++, "span");
+        builder.AddAttribute(seq++, "class", $"bool-icon {(value ? "true" : "false")}");
+        builder.AddAttribute(seq++, "onclick",
+            EventCallback.Factory.Create(this, () =>
+        {
+            setter(!value);
+            MarkChanged();
+        }));
+
+        builder.AddContent(seq++, value ? "✔" : "✖");
+        builder.CloseElement();
+    };
+}
+<style>
+    /* ----- TITLE ----- */
+    .admin-title {
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+
+    /* ----- TOOLBAR ----- */
+    .admin-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .admin-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* ----- DATE NAVIGATION ----- */
+    .date-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+        .date-nav input[type="date"] {
+            padding: 2px 4px;
+            font-size: 0.9rem;
+        }
+
+    /* ----- BUTTONS ----- */
+    .save-btn,
+    .revert-btn {
+        padding: 4px 10px;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .revert-btn {
+        background: #eee;
+    }
+
+    .save-btn {
+        background: #e8f5e9;
+    }
+
+    /* ----- SAVE INDICATOR ----- */
+    .save-indicator {
+        font-size: 0.85rem;
+        user-select: none;
+    }
+
+    .unsaved-dot {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+
+    .saved-check {
+        color: #2ecc71;
+        font-weight: bold;
+    }
+
+    /* ----- ERRORS ----- */
+    .admin-error {
+        color: #b00020;
+        font-weight: 500;
+    }
+
+    /* ----- EVENT TEXT ----- */
+    .eventtext-box {
+        background: #fff7ef;
+        padding: 6px;
+        border-radius: 4px;
+        border: 1px solid #f1d6b8;
+        margin-bottom: 6px;
+    }
+
+    .eventtext-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
+
+        .eventtext-header h4 {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+    .noevent-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        user-select: none;
+    }
+
+    .eventtext-editor {
+        width: 100%;
+        min-height: 70px;
+        resize: vertical;
+        font-size: 0.85rem;
+        padding: 6px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+
+
+    /* ----- EVENT CARD ----- */
+    .event-card {
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px 8px;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+    }
+
+    .event-date {
+        text-align: center;
+        margin: 0 0 4px 0;
+    }
+
+    .event-text {
+        font-style: italic;
+        margin-bottom: 4px;
+    }
+
+    /* ----- MOONDAY ----- */
+    .moonday-box {
+        background: #eef7ff;
+        padding: 4px 6px;
+        border-radius: 4px;
+        margin-bottom: 6px;
+    }
+
+    .moonday-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 4px;
+        font-size: 0.8rem;
+    }
+
+        .moonday-grid label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+    .moonday-symbol {
+        font-style: italic;
+        color: #555;
+    }
+
+    .month-moon-editor {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.mme-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.mme-row label {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.mme-row select {
+    padding: 2px 6px;
+    font-size: 0.85rem;
+}
+
+.mme-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.apply-btn {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    background: #eef7ff;
+    border: 1px solid #bcd9ff;
+    border-radius: 6px;
+}
+
+
+    /* ----- PLANET GRID (7 COLUMNS) ----- */
+    .planet-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(140px, 1fr));
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+
+    .planet-card {
+        background: #fafafa;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 4px;
+        font-size: 0.8rem;
+    }
+
+        .planet-card label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+    .planet-name {
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    /* ----- ACTIVITIES ----- */
+    .activities-box {
+        margin-top: 4px;
+        padding: 4px 6px;
+        background: #f8f8f8;
+        border-radius: 4px;
+    }
+
+    .activities-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 4px;
+    }
+
+    .activity-item {
+        padding: 2px 4px;
+        border-radius: 4px;
+        border: 1px solid #bbb;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+    }
+
+    .activity-label {
+        white-space: nowrap;
+    }
+
+    /* ----- QUALITY BACKGROUNDS ----- */
+    .good {
+        background: #d8f5d8;
+    }
+
+    .bad {
+        background: #ffd6d6;
+    }
+
+    .neutral {
+        background: #fff4bf;
+    }
+
+    .none {
+        background: #eee;
+    }
+
+    /* ----- BOOLEAN ICONS (✔ / ✖) ----- */
+    .bool-icon {
+        cursor: pointer;
+        font-weight: bold;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 1rem;
+        user-select: none;
+    }
+
+        .bool-icon.true {
+            color: #2ecc71; /* green */
+        }
+
+        .bool-icon.false {
+            color: #e74c3c; /* red */
+        }
+</style>

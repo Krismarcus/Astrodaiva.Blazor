@@ -1,0 +1,17 @@
+@* Simple month grid *@
+@using System.Globalization
+@code {
+    [Parameter] public int Year { get; set; }
+    private string MonthName(int m) => new DateTime(Year, m, 1).ToString("MMM", CultureInfo.InvariantCulture);
+}
+
+<div class="grid">
+  @foreach (var m in Enumerable.Range(1, 12))
+  {
+    <div class="card">
+      <div class="tag">@Year</div>
+      <h4 style="margin:.2rem 0">@MonthName(m)</h4>
+      <small>@(new DateTime(Year, m, 1).ToString("yyyy-MM-dd"))</small>
+    </div>
+  }
+</div>
