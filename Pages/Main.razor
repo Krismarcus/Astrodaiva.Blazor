@@ -45,6 +45,8 @@ else
                             var active = d == _selectedDay ? "active" : "";
                             var e = _monthEvents.FirstOrDefault(x => x.Date.Day == d);
                             string? moonDay = e?.MoonDay is not null ? GetMoonDayName((int)e.MoonDay.NewMoonDay).ToLower() : null;
+                            var q = GetActivityQuality(e, _selectedActivity);
+                            var qClass = GetQualityClass(q);
 
                             <button @key="d"
                                     type="button"
@@ -58,6 +60,9 @@ else
                                         <img src="@($"img/zodiac/{moonDay}.png")" alt="@moonDay" />
                                     }
                                 </span>
+                                <span class="daycard-indicator" title="@GetQualityTitle(q)">
+                                    <span class="quality-dot @qClass"></span>
+                                </span>
                             </button>
                         }
                     }
@@ -68,6 +73,26 @@ else
         <!-- RIGHT: desktop-only panel -->
         <div class="tab-content day-layout desktop-right">
             @RightPanelContent()
+        </div>
+    </div>
+
+    <!-- Activity selector (2 rows × 5 columns) -->
+    <div class="card activity-selector">
+        <div class="activity-selector__title">Select activity</div>
+        <div class="activity-grid">
+            @foreach (var a in _activities)
+            {
+                var sel = a == _selectedActivity ? "selected" : "";
+                var activityTitle = EnumText.GetName<ActivitySymbol>((int)a);
+
+                <button type="button"
+                        class="activity-btn @sel"
+                        title="@activityTitle"
+                        @onclick="(() => SelectActivity(a))">
+                    <span class="activity-btn__icon">@GetActivityIcon(a)</span>
+                    <span class="activity-btn__label">@GetActivityShortLabel(a)</span>
+                </button>
+            }
         </div>
     </div>
 
@@ -92,6 +117,22 @@ else
     private int _year;
     private int _month;
     private int _selectedDay;
+
+    // Activity selector state (used for calendar dots)
+    private ActivitySymbol _selectedActivity = ActivitySymbol.ImportantTasks;
+    private static readonly ActivitySymbol[] _activities = new[]
+    {
+        ActivitySymbol.Barber,
+        ActivitySymbol.Beauty,
+        ActivitySymbol.BuyStuff,
+        ActivitySymbol.Contracts,
+        ActivitySymbol.ImportantTasks,
+        ActivitySymbol.Love,
+        ActivitySymbol.Meetings,
+        ActivitySymbol.NewIdeas,
+        ActivitySymbol.Technologies,
+        ActivitySymbol.Travel,
+    };
 
     // UI state: no JS — CSS shows overlay only on ≤900px
     private bool _overlayOpen;
@@ -199,6 +240,105 @@ else
 
     private void CloseOverlay() => _overlayOpen = false;
 
+    private void SelectActivity(ActivitySymbol a)
+    {
+        _selectedActivity = a;
+        // Update dots immediately
+        InvokeAsync(StateHasChanged);
+    }
+
+    private static string GetActivityIcon(ActivitySymbol a) => a switch
+    {
+        ActivitySymbol.Barber => "💇",
+        ActivitySymbol.Beauty => "💄",
+        ActivitySymbol.BuyStuff => "🛍️",
+        ActivitySymbol.Contracts => "📝",
+        ActivitySymbol.ImportantTasks => "✅",
+        ActivitySymbol.Love => "❤️",
+        ActivitySymbol.Meetings => "🤝",
+        ActivitySymbol.NewIdeas => "💡",
+        ActivitySymbol.Technologies => "💻",
+        ActivitySymbol.Travel => "✈️",
+        _ => "•"
+    };
+
+    private static string GetActivityShortLabel(ActivitySymbol a) => a switch
+    {
+        ActivitySymbol.BuyStuff => "Buy",
+        ActivitySymbol.ImportantTasks => "Tasks",
+        ActivitySymbol.NewIdeas => "Ideas",
+        ActivitySymbol.Technologies => "Tech",
+        ActivitySymbol.Meetings => "Meet",
+        ActivitySymbol.Contracts => "Contracts",
+        ActivitySymbol.Barber => "Barber",
+        ActivitySymbol.Beauty => "Beauty",
+        ActivitySymbol.Love => "Love",
+        ActivitySymbol.Travel => "Travel",
+        _ => EnumText.GetName<ActivitySymbol>((int)a)
+    };
+
+    private static ActivityQuality GetActivityQuality(AstroEvent? e, ActivitySymbol a)
+    {
+        if (e is null) return ActivityQuality.None;
+        return a switch
+        {
+            ActivitySymbol.Barber => e.Barber,
+            ActivitySymbol.Beauty => e.Beauty,
+            ActivitySymbol.BuyStuff => e.Buystuff,
+            ActivitySymbol.Contracts => e.Contracts,
+            ActivitySymbol.ImportantTasks => e.ImportantTasks,
+            ActivitySymbol.Love => e.Love,
+            ActivitySymbol.Meetings => e.Meetings,
+            ActivitySymbol.NewIdeas => e.NewIdeas,
+            ActivitySymbol.Technologies => e.Tech,
+            ActivitySymbol.Travel => e.Travel,
+            _ => ActivityQuality.None
+        };
+    }
+
+    private static string GetQualityClass(ActivityQuality q) => q switch
+    {
+        ActivityQuality.Good => "good",
+        ActivityQuality.Bad => "bad",
+        ActivityQuality.Neutral => "neutral",
+        _ => "none"
+    };
+
+    private string GetQualityTitle(ActivityQuality q)
+        => q switch
+        {
+            ActivityQuality.Good => $"{GetActivityShortLabel(_selectedActivity)}: Good",
+            ActivityQuality.Bad => $"{GetActivityShortLabel(_selectedActivity)}: Bad",
+            ActivityQuality.Neutral => $"{GetActivityShortLabel(_selectedActivity)}: Neutral",
+            _ => $"{GetActivityShortLabel(_selectedActivity)}: —"
+        };
+    
+    private string BuildGoodBadTagsHtml(AstroEvent? e)
+    {
+        if (e is null) return "";
+
+        var tags = _activities
+            .Select(a => new { A = a, Q = GetActivityQuality(e, a) })
+            .Where(x => x.Q == ActivityQuality.Good || x.Q == ActivityQuality.Bad)
+            .Select(x =>
+            {
+                var cls = x.Q == ActivityQuality.Good ? "tag-good" : "tag-bad";
+                var title = EnumText.GetName<ActivitySymbol>((int)x.A);
+                var icon = GetActivityIcon(x.A);
+                return $@"<div class=""gb-tag {cls}"" title=""{title}"">
+                        <span class=""gb-tag__icon"">{icon}</span>
+                        <span class=""gb-tag__label"">{title}</span>
+                      </div>";
+            })
+            .ToList();
+
+        if (tags.Count == 0)
+            return @"<div class=""gb-tags-empty muted"">No Good/Bad tags for this day.</div>";
+
+        return $@"<div class=""gb-tags"">{string.Join("", tags)}</div>";
+    }
+
+
     // Shared right panel content
     private RenderFragment RightPanelContent() => __builder =>
     {
@@ -252,5 +392,8 @@ else
         {
             __builder.AddMarkupContent(7, "<div class=\"day-layout\">No events on this day.</div>");
         }
+        // GOOD/BAD TAGS (bottom of right panel)
+        var tagsHtml = BuildGoodBadTagsHtml(first);
+        __builder.AddMarkupContent(99, $@"<div class=""gb-tags-wrap"">{tagsHtml}</div>");
     };
 }

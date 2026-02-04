@@ -10,7 +10,11 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // Register services
 builder.Services.AddSingleton<AppState>();
 // Local (static) assets on the Blazor site
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.AddScoped(sp => new HttpClient
+{
+    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress),
+    Timeout = TimeSpan.FromSeconds(20)
+});
 
 // API client (snapshots, default startup JSON)
 builder.Services.AddScoped(sp =>
@@ -19,7 +23,12 @@ builder.Services.AddScoped(sp =>
     if (string.IsNullOrWhiteSpace(apiBase))
         apiBase = builder.HostEnvironment.BaseAddress;
 
-    return new AstroApiClient(new HttpClient { BaseAddress = new Uri(apiBase) });
+    return new AstroApiClient(new HttpClient
+    {
+        BaseAddress = new Uri(apiBase),
+        // If API host is unreachable (common on GH Pages), do NOT stall the app.
+        Timeout = TimeSpan.FromSeconds(4)
+    });
 });
 
 builder.Services.AddScoped<AstroDbStore>();

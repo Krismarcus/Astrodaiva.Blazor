@@ -33,6 +33,7 @@
     <div class="admin-actions">
         <button class="btn btn-secondary" @onclick="OpenBackups" disabled="@_busySnapshots">Backups</button>
         <button type="button" class="btn btn-outline-primary" @onclick="DownloadCurrentJson">⬇ Download JSON</button>
+        <button type="button" class="btn btn-outline-success" @onclick="OpenInterpretations">✍ Interpretations</button>
 
         <span class="save-indicator">
             @if (_hasChanges)
@@ -169,6 +170,125 @@
                     }
                 </div>
             }
+        </div>
+    </div>
+}
+
+@if (_showInterpretations)
+{
+    <div style="position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;">
+        <div style="max-width:980px; margin:5vh auto; background:#fff; padding:16px; border-radius:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h4 style="margin:0;">Interpretations</h4>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="CloseInterpretations" disabled="@_interpBusy">Close</button>
+            </div>
+
+            <div class="mt-3" style="display:flex; flex-direction:column; gap:14px;">
+
+                <!-- Row 1 -->
+                <div style="border:1px solid #eee; border-radius:10px; padding:12px;">
+                    <div style="font-weight:700; margin-bottom:8px;">Planet in Zodiac</div>
+
+                    <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
+                        <label style="display:flex; gap:8px; align-items:center; margin:0;">
+                            Planet
+                            <select class="form-select form-select-sm" style="width:180px;"
+                                    @bind="_interpPlanet"
+                                    @bind:event="onchange"
+                                    @bind:after="OnInterpPlanetOrZodiacChanged">
+                                @foreach (Planet p in Enum.GetValues(typeof(Planet)))
+                                {
+                                    <option value="@p">@p</option>
+                                }
+                            </select>
+                        </label>
+
+                        <label style="display:flex; gap:8px; align-items:center; margin:0;">
+                            Zodiac
+                            <select class="form-select form-select-sm" style="width:180px;"
+                                    @bind="_interpZodiacSign"
+                                    @bind:event="onchange"
+                                    @bind:after="OnInterpPlanetOrZodiacChanged">
+                                @foreach (ZodiacSign z in Enum.GetValues(typeof(ZodiacSign)))
+                                {
+                                    <option value="@z">@z</option>
+                                }
+                            </select>
+                        </label>
+                    </div>
+
+                    <textarea class="form-control" style="width:100%;"
+                              rows="10"
+                              @bind="_interpPlanetInZodiacInfo"
+                              @bind:event="oninput"></textarea>
+                </div>
+
+                <!-- Row 2 -->
+                <div style="border:1px solid #eee; border-radius:10px; padding:12px;">
+                    <div style="font-weight:700; margin-bottom:8px;">Planet in Retrograde</div>
+
+                    <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
+                        <label style="display:flex; gap:8px; align-items:center; margin:0;">
+                            Planet
+                            <select class="form-select form-select-sm" style="width:180px;"
+                                    @bind="_interpRetroPlanet"
+                                    @bind:event="onchange"
+                                    @bind:after="OnInterpRetroPlanetChanged">
+                                @foreach (Planet p in Enum.GetValues(typeof(Planet)))
+                                {
+                                    <option value="@p">@p</option>
+                                }
+                            </select>
+                        </label>
+                    </div>
+
+                    <textarea class="form-control" style="width:100%;"
+                              rows="10"
+                              @bind="_interpPlanetInRetrogradeInfo"
+                              @bind:event="oninput"></textarea>
+                </div>
+
+
+                <!-- Row 3 -->
+                <div style="border:1px solid #eee; border-radius:10px; padding:12px;">
+                    <div style="font-weight:700; margin-bottom:8px;">Moon Day</div>
+
+                    <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
+                        <label style="display:flex; gap:8px; align-items:center; margin:0;">
+                            Day
+                            <select class="form-select form-select-sm" style="width:220px;"
+                                    @bind="_interpMoonDay"
+                                    @bind:event="onchange"
+                                    @bind:after="OnInterpMoonDayChanged">
+                                @for (int d = 1; d <= 30; d++)
+                                {
+                                    <option value="@d">@d – @GetMoonDaySymbol(d)</option>
+                                }
+                            </select>
+                        </label>
+                    </div>
+
+                    <textarea class="form-control" style="width:100%;"
+                              rows="10"
+                              @bind="_interpMoonDayInfo"
+                              @bind:event="oninput"></textarea>
+                </div>
+
+
+            </div>
+
+            <div class="mt-3" style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="min-height:20px;">
+                    @if (!string.IsNullOrWhiteSpace(_interpStatus))
+                    {
+                        <span>@_interpStatus</span>
+                    }
+                </div>
+
+                <button class="btn btn-primary" disabled="@_interpBusy" @onclick="SaveInterpretationsToDb">
+                    Save to DB
+                </button>
+            </div>
         </div>
     </div>
 }
@@ -355,6 +475,27 @@ else
     private string _diffSummary = "";
     private List<string> _diffDates = new();
 
+    // ----- INTERPRETATIONS (modal) -----
+    private bool _showInterpretations = false;
+    private bool _interpBusy = false;
+    private string _interpStatus = "";
+
+    // selectors
+    private Planet _interpPlanet = Planet.Sun;
+    private ZodiacSign _interpZodiacSign = ZodiacSign.Aries;
+    private Planet _interpRetroPlanet = Planet.Mercury;
+    private int _interpMoonDay = 1;
+
+    // text buffers (editable)
+    private string _interpPlanetInZodiacInfo = "";
+    private string _interpPlanetInRetrogradeInfo = "";
+    private string _interpMoonDayInfo = "";
+
+    // bound rows in DB (so save knows what to update)
+    private PlanetInZodiacDetails? _boundPizRow;
+    private PlanetInRetrogradeDetails? _boundRetroRow;
+    private MoonDayDetails? _boundMoonRow;
+
     private int _moonEditMonth => _selectedDate.Month; // keep month in sync with current selected date
     private int _moonDayOnFirst = 1;                   // user chooses: MoonDay number for 1st day
     private int _tripleDayOfMonth = 0;                 // 0 = none
@@ -441,6 +582,171 @@ else
             .Where(e => e.Date.Date == _selectedDate.Date)
             .OrderBy(e => e.Date)
             .ToList();
+    }
+
+    // ----- INTERPRETATIONS MODAL -----
+    private void OpenInterpretations()
+    {
+        var db = Editor.Db;
+        if (db is null)
+        {
+            _interpStatus = "DB not loaded.";
+            return;
+        }
+
+        // Sensible defaults based on current day
+        var ev = _eventsForDay?.FirstOrDefault();
+        if (ev is not null)
+        {
+            if (ev.SunInZodiac is not null)
+            {
+                _interpPlanet = Planet.Sun;
+                _interpZodiacSign = ev.SunInZodiac.NewZodiacSign;
+            }
+
+            if (ev.MoonDay is not null && ev.MoonDay.NewMoonDay >= 1 && ev.MoonDay.NewMoonDay <= 30)
+                _interpMoonDay = ev.MoonDay.NewMoonDay;
+        }
+
+        BindPlanetInZodiacRow();
+        BindRetroRow();
+        BindMoonDayRow();
+
+        _interpStatus = "";
+        _showInterpretations = true;
+    }
+
+    private void CloseInterpretations()
+    {
+        if (_interpBusy) return;
+        _showInterpretations = false;
+        _interpStatus = "";
+    }
+
+    private void OnInterpPlanetOrZodiacChanged()
+    {
+        BindPlanetInZodiacRow();
+    }
+
+    private void OnInterpRetroPlanetChanged()
+    {
+        BindRetroRow();
+    }
+
+    private void OnInterpMoonDayChanged()
+    {
+        BindMoonDayRow();
+    }
+
+    private void BindPlanetInZodiacRow()
+    {
+        var db = Editor.Db;
+        if (db is null) return;
+
+        db.PlanetInZodiacsDB ??= new System.Collections.ObjectModel.ObservableCollection<PlanetInZodiacDetails>();
+
+        _boundPizRow = db.PlanetInZodiacsDB.FirstOrDefault(x =>
+            x.Planet == _interpPlanet && x.ZodiacSign == _interpZodiacSign);
+
+        if (_boundPizRow is null)
+        {
+            _boundPizRow = new PlanetInZodiacDetails
+            {
+                Planet = _interpPlanet,
+                ZodiacSign = _interpZodiacSign,
+                PlanetInZodiacInfo = ""
+            };
+            db.PlanetInZodiacsDB.Add(_boundPizRow);
+        }
+
+        _interpPlanetInZodiacInfo = _boundPizRow.PlanetInZodiacInfo ?? "";
+    }
+
+    private void BindRetroRow()
+    {
+        var db = Editor.Db;
+        if (db is null) return;
+
+        db.PlanetInRetrogradeDetailsDB ??= new System.Collections.ObjectModel.ObservableCollection<PlanetInRetrogradeDetails>();
+
+        _boundRetroRow = db.PlanetInRetrogradeDetailsDB.FirstOrDefault(x =>
+            x.PlanetInRetrograde == _interpRetroPlanet);
+
+        if (_boundRetroRow is null)
+        {
+            _boundRetroRow = new PlanetInRetrogradeDetails
+            {
+                PlanetInRetrograde = _interpRetroPlanet,
+                PlanetInRetrogradeInfo = ""
+            };
+            db.PlanetInRetrogradeDetailsDB.Add(_boundRetroRow);
+        }
+
+        _interpPlanetInRetrogradeInfo = _boundRetroRow.PlanetInRetrogradeInfo ?? "";
+    }
+
+    private void BindMoonDayRow()
+    {
+        var db = Editor.Db;
+        if (db is null) return;
+
+        db.MoonDayDetailsDB ??= new System.Collections.ObjectModel.ObservableCollection<MoonDayDetails>();
+
+        _boundMoonRow = db.MoonDayDetailsDB.FirstOrDefault(x => x.MoonDay == _interpMoonDay);
+
+        if (_boundMoonRow is null)
+        {
+            _boundMoonRow = new MoonDayDetails
+            {
+                MoonDay = _interpMoonDay,
+                MoonDayInfo = ""
+            };
+            db.MoonDayDetailsDB.Add(_boundMoonRow);
+        }
+
+        _interpMoonDayInfo = _boundMoonRow.MoonDayInfo ?? "";
+    }
+
+    private async Task SaveInterpretationsToDb()
+    {
+        var db = Editor.Db;
+        if (db is null)
+        {
+            _interpStatus = "DB not loaded.";
+            return;
+        }
+
+        try
+        {
+            _interpBusy = true;
+            _interpStatus = "Saving…";
+
+            if (_boundPizRow is not null)
+                _boundPizRow.PlanetInZodiacInfo = _interpPlanetInZodiacInfo ?? "";
+
+            if (_boundRetroRow is not null)
+                _boundRetroRow.PlanetInRetrogradeInfo = _interpPlanetInRetrogradeInfo ?? "";
+
+            if (_boundMoonRow is not null)
+                _boundMoonRow.MoonDayInfo = _interpMoonDayInfo ?? "";
+
+            // show unsaved indicator
+            MarkChanged();
+
+            // Persist via your existing snapshot mechanism
+            var label = $"Interpretations {DateTime.UtcNow:yyyy-MM-dd HH:mm}";
+            await Store.SaveSnapshotAsync(label, setDefault: true);
+
+            _interpStatus = "✓ Saved (new default snapshot).";
+        }
+        catch (Exception ex)
+        {
+            _interpStatus = $"Save failed: {ex.Message}";
+        }
+        finally
+        {
+            _interpBusy = false;
+        }
     }
 
     // ----- MOON PHASE -----

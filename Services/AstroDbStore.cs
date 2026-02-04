@@ -8,13 +8,16 @@ namespace Astrodaiva.Blazor.Services;
 /// Single source of truth for the AppDB JSON in the Blazor client.
 ///
 /// Load order:
-/// 1) Default snapshot from API (if present)
-/// 2) Fallback to local wwwroot/data/astrodb.json
+/// 1) Local wwwroot/data/astrodb.json (fast, always available on GH Pages)
+/// 2) Default snapshot from API (if present) – overrides local
 /// </summary>
 public class AstroDbStore
 {
     private readonly HttpClient _localHttp;
     private readonly AstroApiClient _api;
+
+    private bool _apiRefreshStarted;
+    private Task? _apiRefreshTask;
 
     public AstroDbStore(HttpClient localHttp, AstroApiClient api)
     {
@@ -31,24 +34,64 @@ public class AstroDbStore
     {
         if (Db is not null) return Db;
 
-        // 1) Try API default snapshot
-        var json = await _api.TryGetDefaultSnapshotJsonAsync();
-        if (!string.IsNullOrWhiteSpace(json))
-        {
-            var apiDb = Deserialize(json);
-            if (apiDb is not null)
-            {
-                Db = apiDb;
-                Changed?.Invoke();
-                return Db;
-            }
-        }
+        // DB-first startup:
+        // 1) Try API default snapshot first, but NEVER block app startup for long.
+        // 2) If there is no snapshot (or API is unreachable/slow), fall back to local JSON.
+        //
+        // NOTE: App.razor waits for this method before showing Router, so keep it fast.
 
-        // 2) Fallback to local JSON
+        const int apiTimeoutMs = 1200;
+        var apiTask = _api.TryGetDefaultSnapshotJsonAsync();
+
         try
         {
-            var localDb = await _localHttp.GetFromJsonAsync<AppDB>("data/astrodb.json");
-            Db = localDb;
+            var completed = await Task.WhenAny(apiTask, Task.Delay(apiTimeoutMs));
+            if (completed == apiTask)
+            {
+                var json = await apiTask; // may be null/empty when no snapshot exists
+                if (!string.IsNullOrWhiteSpace(json))
+                {
+                    var apiDb = Deserialize(json);
+                    if (apiDb is not null)
+                    {
+                        Db = apiDb;
+                        Changed?.Invoke();
+                        return Db;
+                    }
+                }
+                // No snapshot (or failed to deserialize) -> fall through to local JSON.
+            }
+            else
+            {
+                // Timed out: keep loading local JSON now, but allow API task to finish later and override.
+                _ = apiTask.ContinueWith(t =>
+                {
+                    try
+                    {
+                        if (t.Status != TaskStatus.RanToCompletion) return;
+                        var json = t.Result;
+                        if (string.IsNullOrWhiteSpace(json)) return;
+                        var apiDb = Deserialize(json);
+                        if (apiDb is null) return;
+                        Db = apiDb;
+                        Changed?.Invoke();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                });
+            }
+        }
+        catch
+        {
+            // Ignore API failures; we'll fall back to local JSON.
+        }
+
+        // Fallback: local JSON (single canonical location)
+        try
+        {
+            Db = await _localHttp.GetFromJsonAsync<AppDB>("data/astrodb.json");
         }
         catch
         {
@@ -57,6 +100,33 @@ public class AstroDbStore
 
         Changed?.Invoke();
         return Db;
+    }
+
+    private void StartApiRefreshInBackground()
+    {
+        if (_apiRefreshStarted) return;
+        _apiRefreshStarted = true;
+
+        _apiRefreshTask = RefreshFromApiAsync();
+    }
+
+    private async Task RefreshFromApiAsync()
+    {
+        try
+        {
+            var json = await _api.TryGetDefaultSnapshotJsonAsync();
+            if (string.IsNullOrWhiteSpace(json)) return;
+
+            var apiDb = Deserialize(json);
+            if (apiDb is null) return;
+
+            Db = apiDb;
+            Changed?.Invoke();
+        }
+        catch
+        {
+            // Ignore API failures (common on GitHub Pages if ApiBaseUrl is not configured).
+        }
     }
 
     public async Task<AppDB?> ReloadFromLocalAsync()
