@@ -19,7 +19,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "https://krismarcus.github.io",              // ✅ GitHub Pages origin
-                "https://astrodaiva-blazor.onrender.com",    // (optional) if you call API from this origin too                
+                "https://astrodaiva-blazor.onrender.com"    // (optional) if you call API from this origin too                
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
