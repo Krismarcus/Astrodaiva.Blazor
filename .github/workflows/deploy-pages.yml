@@ -25,8 +25,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       # If your Blazor project is in a subfolder, set working-directory accordingly.
-      - name: Publish
-        working-directory: Astrodaiva.Blazor
+      - name: Publish        
         run: dotnet publish -c Release -o ../release
 
       # Fix base href for repo pages: /<repo-name>/
