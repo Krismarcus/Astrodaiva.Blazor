@@ -12,8 +12,15 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
-    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy.WithOrigins("https://your-frontend.onrender.com")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var conn = builder.Configuration.GetConnectionString("Default");
 if (string.IsNullOrWhiteSpace(conn))
@@ -27,7 +34,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-app.UseCors();
+app.UseCors("Frontend");
 app.MapControllers();
 
 // Auto-apply migrations on startup (dev-friendly). Remove if you prefer manual.
