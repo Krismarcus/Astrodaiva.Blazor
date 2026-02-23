@@ -203,14 +203,13 @@ a {
     width: 10px;
     height: 10px;
     border-radius: 999px;
-    background: rgba(255,255,255,.25);
-    box-shadow: 0 0 0 1px rgba(255,255,255,.15) inset;
+    background: rgba(255,255,255,.25);    
 }
 
 .quality-dot.good { background: #2ecc71; }
 .quality-dot.bad { background: #e74c3c; }
-.quality-dot.neutral { background: #f1c40f; }
-.quality-dot.none { background: rgba(255,255,255,.25); }
+.quality-dot.neutral { background: transparent; }
+.quality-dot.none { background: transparent; }
 
 /* Activity selector */
 .activity-selector__title {
@@ -320,6 +319,109 @@ a {
     display: block;
     margin: 0 auto;
     object-fit: contain;
+}
+
+
+/* ========================
+   MOON-DAY TIMELINE (Right panel)
+======================== */
+.md-timeline{
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: .7rem;
+    align-items: center;
+}
+
+.md-side{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: .2rem;
+}
+
+.md-side img{
+    width: var(--MoondayIconSize);
+    height: var(--MoondayIconSize);
+    object-fit: contain;
+}
+
+.md-line-wrap{
+    position: relative;
+    height: 34px;
+    border-radius: 999px;
+    /* make the timeline clearly visible */
+    background: rgba(255,255,255,.14);
+    overflow: visible;
+}
+
+.md-line{
+    position: center;
+    left: 1px;
+    right: 1px;    
+    height: 10px;  
+    border-radius: 999px;    
+    background: #074252;
+}
+
+/* Marker: vertical bar + time label */
+.md-marker{
+    position:absolute;    
+    left: var(--target, 0%);
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    animation: md-marker-move 0.5s ease-out forwards;
+    pointer-events: none;
+}
+
+.md-marker-bar {
+    width: 2px;
+    height: 20px;
+    border-radius: 2px;
+    background: #074252;
+}
+
+.md-marker--mid .md-marker-bar {
+    background: #074252;
+}
+
+.md-marker-label {
+    font-size: 11px;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(-2px);
+    animation: md-marker-label 180ms ease-out forwards;
+    animation-delay: 0.5s;    
+    padding: 2px 6px;
+    border-radius: 8px;
+    letter-spacing: .02em;
+    user-select: none;
+    color: #074252;
+}
+
+@keyframes md-marker-label{
+    to{ opacity: 1; transform: translateY(0); }
+}
+
+@keyframes md-marker-move{
+    from{ left: 0%; }
+    to{ left: var(--target, 0%); }
+}
+
+/* Middle (triple) Moon-day icon sitting above the timeline (intentionally smaller) */
+.md-mini{
+    position:absolute;
+    top: -22px;
+    left: var(--target, 0%);
+    /* keep it subtle in split view; matches the popup feel */
+    width: calc(var(--MoondayIconSize) * 0.25);
+    height: calc(var(--MoondayIconSize) * 0.25);
+    transform: translateX(-50%);
+    object-fit: contain;
+    opacity: .95;
 }
 
 .muted {

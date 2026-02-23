@@ -347,14 +347,72 @@ else
         __builder.AddMarkupContent(2, $"<div class=\"day-layout weekday-row\">{_current.ToString("dddd", CultureInfo.InvariantCulture)}</div>");
 
         var mo = _monthEvents.FirstOrDefault(x => x.Date.Date == _current.Date);
-        string? moonDayIcon = mo?.MoonDay is not null ? GetMoonDayName((int)mo.MoonDay.NewMoonDay).ToLower() : null;
 
-        if (!string.IsNullOrEmpty(moonDayIcon))
-            __builder.AddMarkupContent(3, $"<div class=\"day-layout moonday-row\"><img alt=\"Moon Day\" src=\"img/zodiac/{moonDayIcon}.png\" width=\"64\" height=\"64\" /></div>");
-        else
-            __builder.AddMarkupContent(4, "<div class=\"day-layout moonday-row\"><span class=\"muted\">No Moon-day symbol</span></div>");
+// Moon-day timeline (previous -> new, with animated marker(s) for transition time(s))
+if (mo?.MoonDay is not null)
+{
+    var md = mo.MoonDay;
 
-        var dayEvents = DayEvents.ToList();
+    static double ToDayPercent(DateTime dt)
+    {
+        // map 00:00:00 => 0%, 23:59:59 => 100%
+        var seconds = dt.TimeOfDay.TotalSeconds;
+        var pct = (seconds / 86399.0) * 100.0;
+        if (pct < 0) pct = 0;
+        if (pct > 100) pct = 100;
+        return pct;
+    }
+
+    var prevIcon = GetMoonDayName(md.PreviousMoonDay).ToLower();
+    var newIcon = GetMoonDayName(md.NewMoonDay).ToLower();
+    var prevTitle = GetMoonDayName(md.PreviousMoonDay);
+    var newTitle = GetMoonDayName(md.NewMoonDay);
+
+    var endPct = ToDayPercent(md.TransitionTime);
+    var endTimeText = md.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+
+    var markersHtml = $@"<div class=""md-marker md-marker--final"" style=""--target:{endPct:F2}%;"" title=""Transition: {endTimeText}""><div class=""md-marker-bar""></div><div class=""md-marker-label"">{endTimeText}</div></div>";
+
+    if (md.IsTripleMoonDay)
+    {
+        var midIcon = GetMoonDayName(md.MiddleMoonDay).ToLower();
+        var midTitle = GetMoonDayName(md.MiddleMoonDay);
+
+        var midPct = ToDayPercent(md.MiddleMoonDayTransitionTime);
+        var midTimeText = md.MiddleMoonDayTransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+
+        markersHtml =
+            $@"<div class=""md-marker md-marker--mid"" style=""--target:{midPct:F2}%;"" title=""Middle transition: {midTimeText}""><div class=""md-marker-bar""></div><div class=""md-marker-label"">{midTimeText}</div></div>" +
+            $@"<div class=""md-marker md-marker--final"" style=""--target:{endPct:F2}%;"" title=""Transition: {endTimeText}""><div class=""md-marker-bar""></div><div class=""md-marker-label"">{endTimeText}</div></div>" +
+            $@"<img class=""md-mini"" alt=""Middle Moon Day"" src=""img/zodiac/{midIcon}.png"" style=""--target:{midPct:F2}%;"" title=""{midTitle}"" />";
+    }
+
+    var moonDayHtml = $@"
+        <div class=""day-layout moonday-row"">
+            <div class=""md-timeline"">
+                <div class=""md-side md-side--left"" title=""{prevTitle}"">
+                    <img alt=""Previous Moon Day"" src=""img/zodiac/{prevIcon}.png"" />
+                </div>
+
+                <div class=""md-line-wrap"">
+                    <div class=""md-line""></div>
+                    {markersHtml}
+                </div>
+
+                <div class=""md-side md-side--right"" title=""{newTitle}"">
+                    <img alt=""New Moon Day"" src=""img/zodiac/{newIcon}.png"" />
+                </div>
+            </div>
+        </div>";
+
+    __builder.AddMarkupContent(3, moonDayHtml);
+}
+else
+{
+    __builder.AddMarkupContent(4, "<div class=\"day-layout moonday-row\"><span class=\"muted\">No Moon-day symbol</span></div>");
+}
+
+var dayEvents = DayEvents.ToList();
         var first = dayEvents.FirstOrDefault();
 
         var sunBlock = first?.SunInZodiac is not null
