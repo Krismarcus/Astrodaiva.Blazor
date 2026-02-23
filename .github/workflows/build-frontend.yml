@@ -1,0 +1,35 @@
+name: Build Blazor Frontend
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "Astrodaiva.Blazor/**"
+      - ".github/workflows/build-frontend.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish Blazor WASM
+        run: dotnet publish Astrodaiva.Blazor/Astrodaiva.Blazor.csproj -c Release -o frontend_dist
+
+      # IMPORTANT for client-side routing on static hosts
+      - name: Add _redirects for SPA
+        run: |
+          echo "/* /index.html 200" > frontend_dist/_redirects
+
+      - name: Commit published site
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add frontend_dist
+          git commit -m "Publish frontend" || echo "No changes to commit"
+          git push
