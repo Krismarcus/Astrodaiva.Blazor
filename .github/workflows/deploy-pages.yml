@@ -25,7 +25,7 @@ jobs:
           dotnet-version: "9.0.x"
 
       - name: Publish Blazor WASM (project only)
-        run: dotnet publish Astrodaiva.Blazor/Astrodaiva.Blazor.csproj -c Release -o release
+        run: dotnet publish Astrodaiva.Blazor.csproj -c Release -o release
 
       - name: Rewrite base href
         run: sed -i 's|<base href="/" />|<base href="/Astrodaiva.Blazor/" />|g' release/wwwroot/index.html
