@@ -147,6 +147,34 @@ else
     private static string GetSignName(int sign) => EnumText.GetName<ZodiacSign>(sign);
     private static string GetMoonDayName(int symbol) => EnumText.GetName<MoonDaySymbol>(symbol);
 
+    private static string BuildZodiacOrTransitionBlock(string planetName, PlanetInZodiac? p)
+    {
+        if (p is null)
+            return "<div class=\"muted\">—</div>";
+
+        var newName = GetSignName((int)p.NewZodiacSign);
+        var newIcon = newName.ToLowerInvariant();
+
+        // default: show the current (new) sign
+        if (!p.IsZodiacTransitioning)
+        {
+            return $"<div class=\"astro-label\">{planetName} in {newName}</div>" +
+                   $"<img alt=\"{planetName} sign\" src=\"img/zodiac/{newIcon}.png\" width=\"64\" height=\"64\" />";
+        }
+
+        // transitioning: show previous sign (left) + transition time (center) + new sign (right)
+        var prevName = GetSignName((int)p.PreviousZodiacSign);
+        var prevIcon = prevName.ToLowerInvariant();
+        var timeText = p.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+
+        return $@"<div class=""astro-label"">{planetName}: {prevName} → {newName}</div>
+<div class=""astro-transition"" title=""Transition {timeText}"">
+  <img alt=""Previous {planetName} sign"" src=""img/zodiac/{prevIcon}.png"" />
+  <span class=""astro-transition__time"">{timeText}</span>
+  <img alt=""New {planetName} sign"" src=""img/zodiac/{newIcon}.png"" />
+</div>";
+    }
+
     protected override async Task OnInitializedAsync()
     {
         Store.Changed += OnStoreChanged;
@@ -415,13 +443,8 @@ else
 var dayEvents = DayEvents.ToList();
         var first = dayEvents.FirstOrDefault();
 
-        var sunBlock = first?.SunInZodiac is not null
-            ? $"<div class=\"astro-label\">Sun in {GetSignName((int)first.SunInZodiac.NewZodiacSign)}</div><img alt=\"Sun sign\" src=\"img/zodiac/{GetSignName((int)first.SunInZodiac.NewZodiacSign).ToLower()}.png\" width=\"64\" height=\"64\" />"
-            : "<div class=\"muted\">—</div>";
-
-        var moonBlock = first?.MoonInZodiac is not null
-            ? $"<div class=\"astro-label\">Moon in {GetSignName((int)first.MoonInZodiac.NewZodiacSign)}</div><img alt=\"Moon sign\" src=\"img/zodiac/{GetSignName((int)first.MoonInZodiac.NewZodiacSign).ToLower()}.png\" width=\"64\" height=\"64\" />"
-            : "<div class=\"muted\">—</div>";
+        var sunBlock = BuildZodiacOrTransitionBlock("Sun", first?.SunInZodiac);
+        var moonBlock = BuildZodiacOrTransitionBlock("Moon", first?.MoonInZodiac);
 
         __builder.AddMarkupContent(5, $@"
             <div class=""row dual astro-two-col"">
@@ -435,6 +458,26 @@ var dayEvents = DayEvents.ToList();
                 </div>
             </div>");
 
+        var mercuryBlock = BuildZodiacOrTransitionBlock("Mercury", first?.MercuryInZodiac);
+        var venusBlock = BuildZodiacOrTransitionBlock("Venus", first?.VenusInZodiac);
+        var marsBlock = BuildZodiacOrTransitionBlock("Mars", first?.MarsInZodiac);
+
+        __builder.AddMarkupContent(5_1, $@"
+            <div class=""row triple astro-three-col"">
+                <div class=""astro-col"">
+                    <img alt=""Mercury"" src=""img/zodiac/mercury.png"" width=""40"" height=""40"" />
+                    {mercuryBlock}
+                </div>
+                <div class=""astro-col"">
+                    <img alt=""Venus"" src=""img/zodiac/venus.png"" width=""40"" height=""40"" />
+                    {venusBlock}
+                </div>
+                <div class=""astro-col"">
+                    <img alt=""Mars"" src=""img/zodiac/mars.png"" width=""40"" height=""40"" />
+                    {marsBlock}
+                </div>
+            </div>");
+
         if (DayEvents.Any())
         {
             var items = string.Join("", DayEvents.Select(e =>
@@ -442,13 +485,14 @@ var dayEvents = DayEvents.ToList();
                     ? $"<li>{e.EventText}</li>"
                     : (e.PlanetEvents is { Count: > 0 }
                         ? $"<li>{string.Join(", ", e.PlanetEvents.Select(pe => $"{pe.Planet1} {pe.AspectSymbol} {pe.Planet2}"))}</li>"
-                        : "<li>Event</li>")
+                        : "")
             ));
-            __builder.AddMarkupContent(6, $"<ul class=\"events-list\">{items}</ul>");
+            if (!string.IsNullOrWhiteSpace(items))
+                __builder.AddMarkupContent(6, $"<ul class=\"events-list\">{items}</ul>");
         }
         else
         {
-            __builder.AddMarkupContent(7, "<div class=\"day-layout\">No events on this day.</div>");
+            // no placeholder when there are no events
         }
         // GOOD/BAD TAGS (bottom of right panel)
         var tagsHtml = BuildGoodBadTagsHtml(first);

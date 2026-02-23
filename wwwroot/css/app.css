@@ -435,6 +435,13 @@ a {
     gap: .8rem;
 }
 
+/* Row 6: three columns Mercury/Venus/Mars */
+.astro-three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: .8rem;
+}
+
 .astro-col {
     display: flex;
     flex-direction: column;
@@ -449,16 +456,46 @@ a {
     font-weight: 600;
 }
 
+/* Planet sign transitioning (Prev sign • time • New sign) */
+.astro-transition {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+}
+
+.astro-transition img {
+    width: calc(var(--ZodiacIconSize) * 0.70);
+    height: calc(var(--ZodiacIconSize) * 0.70);
+    object-fit: contain;
+}
+
+.astro-transition__time {
+    font-weight: 700;
+    font-size: .95rem;
+    padding: .12rem .45rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.55);
+    border: 1px solid rgba(0,0,0,.08);
+    line-height: 1.2;
+}
+
 /* scale small badges and big zodiac icons */
 .astro-col > img[alt="Sun"],
-.astro-col > img[alt="Moon"] {
+.astro-col > img[alt="Moon"],
+.astro-col > img[alt="Mercury"],
+.astro-col > img[alt="Venus"],
+.astro-col > img[alt="Mars"] {
     width: var(--SunMoonBadge);
     height: var(--SunMoonBadge);
     object-fit: contain;
 }
 
 .astro-col img[alt="Sun sign"],
-.astro-col img[alt="Moon sign"] {
+.astro-col img[alt="Moon sign"],
+.astro-col img[alt="Mercury sign"],
+.astro-col img[alt="Venus sign"],
+.astro-col img[alt="Mars sign"] {
     width: var(--ZodiacIconSize);
     height: var(--ZodiacIconSize);
     object-fit: contain;
