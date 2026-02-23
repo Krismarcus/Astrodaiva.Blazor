@@ -22,19 +22,15 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: "9.0.x"
 
-      # If your Blazor project is in a subfolder, set working-directory accordingly.
-      - name: Publish        
-        run: dotnet publish -c Release -o ../release
+      - name: Publish Blazor WASM (project only)
+        run: dotnet publish Astrodaiva.Blazor/Astrodaiva.Blazor.csproj -c Release -o release
 
-      # Fix base href for repo pages: /<repo-name>/
       - name: Rewrite base href
-        run: |
-          sed -i 's|<base href="/" />|<base href="/Astrodaiva.Blazor/" />|g' release/wwwroot/index.html
+        run: sed -i 's|<base href="/" />|<base href="/Astrodaiva.Blazor/" />|g' release/wwwroot/index.html
 
-      # SPA routing for GitHub Pages (copy index.html to 404.html)
-      - name: SPA fallback
+      - name: SPA fallback for GitHub Pages
         run: cp release/wwwroot/index.html release/wwwroot/404.html
 
       - name: Upload artifact
@@ -45,10 +41,8 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Deploy
-        id: deployment
         uses: actions/deploy-pages@v4
