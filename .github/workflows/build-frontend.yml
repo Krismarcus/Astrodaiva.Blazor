@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "master" ]
     paths:
-      - "/**"
+      - "Astrodaiva.Blazor/**"
       - ".github/workflows/build-frontend.yml"
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Publish Blazor WASM
-        run: dotnet publish Astrodaiva.Blazor/Astrodaiva.Blazor.csproj -c Release -o frontend_dist
+        run: dotnet publish Astrodaiva.Blazor.csproj -c Release -o frontend_dist
 
       # IMPORTANT for client-side routing on static hosts
       - name: Add _redirects for SPA
