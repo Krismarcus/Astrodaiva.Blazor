@@ -40,6 +40,10 @@
     --MoondayIconSize: clamp(56px, 6vw, 128px);
     --SunMoonBadge: clamp(28px, 2.5vw, 48px);
     --ZodiacIconSize: clamp(40px, 3.5vw, 96px);
+    /* Home background gradient (like the app mockups) */
+    --PageGradientTop: #F8FCD1;
+    --PageGradientMid: #CFEAD0;
+    --PageGradientBottom: #48A6B1;
 }
 
 /* ========================
@@ -48,7 +52,8 @@
 html, body {
     height: 100%;
     margin: 0;
-    background: var(--ShadedBackground);
+    /* main page background stays clean/white */
+    background: #ffffff;
     color: var(--PrimaryDarkText);
     font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
@@ -104,8 +109,51 @@ a {
 .split-2 {
     display: grid;
     grid-template-columns: 1fr 1fr; /* desktop: two columns */
-    gap: 1rem;
+    /* a bit more breathing room so the right-panel shadows never visually "eat" the calendar */
+    gap: 1.4rem;
+    align-items: start;
 }
+
+/* ========================
+   HOME: MERGED GRADIENT SURFACE
+   - one continuous gradient under BOTH left + right panels
+   - main page remains white
+======================== */
+
+/* Apply gradient to the shared split surface (the container is .card.split-2) */
+.card.split-2 {
+    background: linear-gradient(180deg,
+        var(--PageGradientTop) 0%,
+        var(--PageGradientMid) 38%,
+        var(--PageGradientBottom) 100%);
+    border-radius: 18px;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Panels become transparent so the merged gradient reads as one surface */
+.tabs-panel,
+.desktop-right {
+    background: transparent;
+    border-radius: 0;
+    /* keep comfortable inner spacing while letting the merged gradient show through */
+    padding: .75rem;
+    box-sizing: border-box;
+}
+
+/* Mobile overlay remains gradient (full panel) */
+.mobile-overlay__body {
+    background: linear-gradient(180deg,
+        var(--PageGradientTop) 0%,
+        var(--PageGradientMid) 38%,
+        var(--PageGradientBottom) 100%);
+    border-radius: 18px;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Prevent grid children from overflowing their column (important for long inline content) */
+.split-2 > * { min-width: 0; }
 
 /* ========================
    LEFT PANEL: Calendar
@@ -114,6 +162,15 @@ a {
     display: flex;
     flex-direction: column;
     gap: .6rem;
+    position: relative;
+    z-index: 2; /* keep calendar above any neighboring shadows */
+}
+
+/* Right side wrapper (desktop) */
+.desktop-right{
+    position: relative;
+    z-index: 1;
+    padding-left: .25rem;
 }
 
 /* Weekday header + calendar grid */
@@ -272,7 +329,13 @@ a {
     grid-template-rows: auto auto auto auto auto; /* 5 rows */
     gap: .6rem;
     align-content: start;
-    justify-items: center; /* This centers child elements */
+    /* Stretch rows to full available width so frames align cleanly */
+    justify-items: stretch;
+}
+
+/* Ensure each row can take full width by default (frames need this) */
+.day-layout > * {
+    width: 100%;
 }
 
 /* Remove width: 100% from these elements to allow proper centering */
@@ -321,6 +384,141 @@ a {
     object-fit: contain;
 }
 
+/* ========================
+   DARK FRAMES (Home right panel)
+   - matches the rounded dark cards in your design reference
+======================== */
+.astro-frame{
+    width: 100%;
+    max-width: none;
+    background: var(--Primary, #074252);
+    border-radius: 26px;
+    padding: clamp(.85rem, 1.2vw, 1.2rem);
+    box-shadow: 0 14px 34px rgba(0,0,0,.18);
+    box-sizing: border-box;
+}
+
+.astro-frame--moonday{
+    padding: clamp(.9rem, 1.4vw, 1.35rem);
+}
+
+.astro-frame--planets{
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    justify-self: stretch;
+}
+
+/* 2-row layout:
+   Row 1: 2 columns (Sun + Moon) centered
+   Row 2: 3 columns (Mercury + Venus + Mars) centered */
+.astro-frame--planets .planet-grid{
+    display: grid;
+    gap: .75rem;
+    width: 100%;
+}
+
+.astro-frame--planets .planet-grid--top{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-items: center;
+}
+
+.astro-frame--planets .planet-grid--bottom{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-items: center;
+}
+
+.astro-frame--planets .planet-cell{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .65rem;
+    min-width: 0;
+}
+
+.astro-frame--planets .planet-icon{
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    display: block;
+}
+
+.astro-frame--planets .planet-zodiac{
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    justify-content: center;
+    min-width: 0;
+}
+
+/* Hide the long label inside the planet frame to keep it clean */
+.astro-frame--planets .astro-label{
+    display: none;
+}
+
+/* Non-transition: make zodiac icon compact and aligned */
+.astro-frame--planets .planet-zodiac > img{
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    display: block;
+}
+
+/* Transition block: keep it on one line */
+.astro-frame--planets .astro-transition{
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+}
+
+.astro-frame--planets .astro-transition img{
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+}
+
+/* inside dark frames: remove the small light boxes */
+.astro-frame .astro-col{
+    background: transparent;
+    padding: .25rem;
+}
+
+.astro-frame .astro-transition__time{
+    background: rgba(248,252,209,.18);
+    border: 1px solid rgba(248,252,209,.22);
+    color: var(--PrimaryLightText, #F8FCD1);
+}
+
+.astro-frame .md-line-wrap{
+    /* remove the wide translucent band; keep only the thin golden line */
+    background: transparent;
+    height: 12px;
+}
+
+.astro-frame .md-line{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    right: 0;
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg,
+        rgba(248,252,209,.20) 0%,
+        rgba(240,201,134,.75) 50%,
+        rgba(248,252,209,.20) 100%);
+}
+
+.astro-frame .md-marker-bar{
+    background: rgba(248,252,209,.95);
+}
+
+.astro-frame .md-marker-label{
+    color: var(--PrimaryLightText, #F8FCD1);
+    background: rgba(7,66,82,.55);
+    border: 1px solid rgba(248,252,209,.18);
+}
+
 
 /* ========================
    MOON-DAY TIMELINE (Right panel)
@@ -366,18 +564,23 @@ a {
 
 /* Marker: vertical bar + time label */
 .md-marker{
-    position:absolute;    
+    position: absolute;
     left: var(--target, 0%);
+    top: 50%;
+    /* Keep the BAR perfectly centered on the timeline line.
+       Label is positioned independently so it won't pull the marker off-center. */
     transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    animation: md-marker-move 0.5s ease-out forwards;
+    width: 0;
+    height: 0;
     pointer-events: none;
+    animation: md-marker-move 0.5s ease-out forwards;
 }
 
 .md-marker-bar {
+    position: absolute;
+    left: 0;
+    top: -10px; /* 20px bar => centered on the line */
+    transform: translateX(-50%);
     width: 2px;
     height: 20px;
     border-radius: 2px;
@@ -389,10 +592,16 @@ a {
 }
 
 .md-marker-label {
+    position: absolute;
+    left: 0;
+    top: 14px; /* just below the line */
+    transform: translateX(-50%) translateY(-2px);
     font-size: 11px;
     line-height: 1;
     opacity: 0;
-    transform: translateY(-2px);
+    /* subtle "pop" without affecting alignment */
+    will-change: opacity, transform;
+    transform-origin: center;
     animation: md-marker-label 180ms ease-out forwards;
     animation-delay: 0.5s;    
     padding: 2px 6px;
@@ -403,7 +612,7 @@ a {
 }
 
 @keyframes md-marker-label{
-    to{ opacity: 1; transform: translateY(0); }
+    to{ opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 @keyframes md-marker-move{

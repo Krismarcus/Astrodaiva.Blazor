@@ -367,135 +367,155 @@ else
     }
 
 
-    // Shared right panel content
-    private RenderFragment RightPanelContent() => __builder =>
-    {
-        __builder.AddMarkupContent(0, $"<div class=\"day-layout month-row\">{_current.ToString("MMMM yyyy", CultureInfo.InvariantCulture)}</div>");
-        __builder.AddMarkupContent(1, $"<div class=\"day-layout daynum-row\">{_current.Day}</div>");
-        __builder.AddMarkupContent(2, $"<div class=\"day-layout weekday-row\">{_current.ToString("dddd", CultureInfo.InvariantCulture)}</div>");
 
-        var mo = _monthEvents.FirstOrDefault(x => x.Date.Date == _current.Date);
+    // Shared right panel content (Razor template — safer than manual __builder markup)
+    private RenderFragment RightPanelContent() => @<div class="day-layout">
+        <div class="month-row">@_current.ToString("MMMM yyyy", CultureInfo.InvariantCulture)</div>
+        <div class="daynum-row">@_current.Day</div>
+        <div class="weekday-row">@_current.ToString("dddd", CultureInfo.InvariantCulture)</div>
 
-// Moon-day timeline (previous -> new, with animated marker(s) for transition time(s))
-if (mo?.MoonDay is not null)
-{
-    var md = mo.MoonDay;
+        @{
+            var mo = _monthEvents.FirstOrDefault(x => x.Date.Date == _current.Date);
 
-    static double ToDayPercent(DateTime dt)
-    {
-        // map 00:00:00 => 0%, 23:59:59 => 100%
-        var seconds = dt.TimeOfDay.TotalSeconds;
-        var pct = (seconds / 86399.0) * 100.0;
-        if (pct < 0) pct = 0;
-        if (pct > 100) pct = 100;
-        return pct;
-    }
+            double ToDayPercent(DateTime dt)
+            {
+                var seconds = dt.TimeOfDay.TotalSeconds;
+                var pct = (seconds / 86399.0) * 100.0;
+                if (pct < 0) pct = 0;
+                if (pct > 100) pct = 100;
+                return pct;
+            }
+        }
 
-    var prevIcon = GetMoonDayName(md.PreviousMoonDay).ToLower();
-    var newIcon = GetMoonDayName(md.NewMoonDay).ToLower();
-    var prevTitle = GetMoonDayName(md.PreviousMoonDay);
-    var newTitle = GetMoonDayName(md.NewMoonDay);
+        @* Moon-day timeline *@
+        @if (mo?.MoonDay is not null)
+        {
+            var md = mo.MoonDay!;
 
-    var endPct = ToDayPercent(md.TransitionTime);
-    var endTimeText = md.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+            var prevIcon = GetMoonDayName(md.PreviousMoonDay).ToLower();
+            var newIcon  = GetMoonDayName(md.NewMoonDay).ToLower();
+            var prevTitle = GetMoonDayName(md.PreviousMoonDay);
+            var newTitle  = GetMoonDayName(md.NewMoonDay);
 
-    var markersHtml = $@"<div class=""md-marker md-marker--final"" style=""--target:{endPct:F2}%;"" title=""Transition: {endTimeText}""><div class=""md-marker-bar""></div><div class=""md-marker-label"">{endTimeText}</div></div>";
+            var endPct = ToDayPercent(md.TransitionTime);
+            var endTimeText = md.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
 
-    if (md.IsTripleMoonDay)
-    {
-        var midIcon = GetMoonDayName(md.MiddleMoonDay).ToLower();
-        var midTitle = GetMoonDayName(md.MiddleMoonDay);
+            <div class="moonday-row">
+                <div class="astro-frame astro-frame--moonday">
+                    <div class="md-timeline">
+                        <div class="md-side md-side--left" title="@prevTitle">
+                            <img alt="Previous Moon Day" src="@($"img/zodiac/{prevIcon}.png")" />
+                        </div>
 
-        var midPct = ToDayPercent(md.MiddleMoonDayTransitionTime);
-        var midTimeText = md.MiddleMoonDayTransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+                        <div class="md-line-wrap">
+                            <div class="md-line"></div>
 
-        markersHtml =
-            $@"<div class=""md-marker md-marker--mid"" style=""--target:{midPct:F2}%;"" title=""Middle transition: {midTimeText}""><div class=""md-marker-bar""></div><div class=""md-marker-label"">{midTimeText}</div></div>" +
-            $@"<div class=""md-marker md-marker--final"" style=""--target:{endPct:F2}%;"" title=""Transition: {endTimeText}""><div class=""md-marker-bar""></div><div class=""md-marker-label"">{endTimeText}</div></div>" +
-            $@"<img class=""md-mini"" alt=""Middle Moon Day"" src=""img/zodiac/{midIcon}.png"" style=""--target:{midPct:F2}%;"" title=""{midTitle}"" />";
-    }
+                            @if (md.IsTripleMoonDay)
+                            {
+                                var midPct = ToDayPercent(md.MiddleMoonDayTransitionTime);
+                                var midTimeText = md.MiddleMoonDayTransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+                                var midIcon = GetMoonDayName(md.MiddleMoonDay).ToLower();
+                                var midTitle = GetMoonDayName(md.MiddleMoonDay);
 
-    var moonDayHtml = $@"
-        <div class=""day-layout moonday-row"">
-            <div class=""md-timeline"">
-                <div class=""md-side md-side--left"" title=""{prevTitle}"">
-                    <img alt=""Previous Moon Day"" src=""img/zodiac/{prevIcon}.png"" />
-                </div>
+                                <div class="md-marker md-marker--mid" style="--target:@($"{midPct:F2}%")" title="@($"Middle transition: {midTimeText}")">
+                                    <div class="md-marker-bar"></div>
+                                    <div class="md-marker-label">@midTimeText</div>
+                                </div>
 
-                <div class=""md-line-wrap"">
-                    <div class=""md-line""></div>
-                    {markersHtml}
-                </div>
+                                <img class="md-mini"
+                                     alt="Middle Moon Day"
+                                     src="@($"img/zodiac/{midIcon}.png")"
+                                     style="--target:@($"{midPct:F2}%")"
+                                     title="@midTitle" />
+                            }
 
-                <div class=""md-side md-side--right"" title=""{newTitle}"">
-                    <img alt=""New Moon Day"" src=""img/zodiac/{newIcon}.png"" />
+                            <div class="md-marker md-marker--final" style="--target:@($"{endPct:F2}%")" title="@($"Transition: {endTimeText}")">
+                                <div class="md-marker-bar"></div>
+                                <div class="md-marker-label">@endTimeText</div>
+                            </div>
+                        </div>
+
+                        <div class="md-side md-side--right" title="@newTitle">
+                            <img alt="New Moon Day" src="@($"img/zodiac/{newIcon}.png")" />
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>";
-
-    __builder.AddMarkupContent(3, moonDayHtml);
-}
-else
-{
-    __builder.AddMarkupContent(4, "<div class=\"day-layout moonday-row\"><span class=\"muted\">No Moon-day symbol</span></div>");
-}
-
-var dayEvents = DayEvents.ToList();
-        var first = dayEvents.FirstOrDefault();
-
-        var sunBlock = BuildZodiacOrTransitionBlock("Sun", first?.SunInZodiac);
-        var moonBlock = BuildZodiacOrTransitionBlock("Moon", first?.MoonInZodiac);
-
-        __builder.AddMarkupContent(5, $@"
-            <div class=""row dual astro-two-col"">
-                <div class=""astro-col"">
-                    <img alt=""Sun"" src=""img/zodiac/sun.png"" width=""40"" height=""40"" />
-                    {sunBlock}
-                </div>
-                <div class=""astro-col"">
-                    <img alt=""Moon"" src=""img/zodiac/moon.png"" width=""40"" height=""40"" />
-                    {moonBlock}
-                </div>
-            </div>");
-
-        var mercuryBlock = BuildZodiacOrTransitionBlock("Mercury", first?.MercuryInZodiac);
-        var venusBlock = BuildZodiacOrTransitionBlock("Venus", first?.VenusInZodiac);
-        var marsBlock = BuildZodiacOrTransitionBlock("Mars", first?.MarsInZodiac);
-
-        __builder.AddMarkupContent(5_1, $@"
-            <div class=""row triple astro-three-col"">
-                <div class=""astro-col"">
-                    <img alt=""Mercury"" src=""img/zodiac/mercury.png"" width=""40"" height=""40"" />
-                    {mercuryBlock}
-                </div>
-                <div class=""astro-col"">
-                    <img alt=""Venus"" src=""img/zodiac/venus.png"" width=""40"" height=""40"" />
-                    {venusBlock}
-                </div>
-                <div class=""astro-col"">
-                    <img alt=""Mars"" src=""img/zodiac/mars.png"" width=""40"" height=""40"" />
-                    {marsBlock}
-                </div>
-            </div>");
-
-        if (DayEvents.Any())
-        {
-            var items = string.Join("", DayEvents.Select(e =>
-                !string.IsNullOrWhiteSpace(e.EventText)
-                    ? $"<li>{e.EventText}</li>"
-                    : (e.PlanetEvents is { Count: > 0 }
-                        ? $"<li>{string.Join(", ", e.PlanetEvents.Select(pe => $"{pe.Planet1} {pe.AspectSymbol} {pe.Planet2}"))}</li>"
-                        : "")
-            ));
-            if (!string.IsNullOrWhiteSpace(items))
-                __builder.AddMarkupContent(6, $"<ul class=\"events-list\">{items}</ul>");
         }
         else
         {
-            // no placeholder when there are no events
+            <div class="moonday-row"><span class="muted">No Moon-day symbol</span></div>
         }
-        // GOOD/BAD TAGS (bottom of right panel)
-        var tagsHtml = BuildGoodBadTagsHtml(first);
-        __builder.AddMarkupContent(99, $@"<div class=""gb-tags-wrap"">{tagsHtml}</div>");
-    };
+
+        @{
+            var first = DayEvents.FirstOrDefault();
+
+            var sunBlock     = BuildZodiacOrTransitionBlock("Sun", first?.SunInZodiac);
+            var moonBlock    = BuildZodiacOrTransitionBlock("Moon", first?.MoonInZodiac);
+            var mercuryBlock = BuildZodiacOrTransitionBlock("Mercury", first?.MercuryInZodiac);
+            var venusBlock   = BuildZodiacOrTransitionBlock("Venus", first?.VenusInZodiac);
+            var marsBlock    = BuildZodiacOrTransitionBlock("Mars", first?.MarsInZodiac);
+        }
+
+        @* Planets-in-zodiac frame *@
+        <div class="astro-frame astro-frame--planets">
+            <div class="planet-grid planet-grid--top">
+                <div class="planet-cell">
+                    <img class="planet-icon" alt="Sun" src="img/zodiac/sun.png" width="40" height="40" />
+                    <div class="planet-zodiac">@((MarkupString)sunBlock)</div>
+                </div>
+                <div class="planet-cell">
+                    <img class="planet-icon" alt="Moon" src="img/zodiac/moon.png" width="40" height="40" />
+                    <div class="planet-zodiac">@((MarkupString)moonBlock)</div>
+                </div>
+            </div>
+
+            <div class="planet-grid planet-grid--bottom">
+                <div class="planet-cell">
+                    <img class="planet-icon" alt="Mercury" src="img/zodiac/mercury.png" width="40" height="40" />
+                    <div class="planet-zodiac">@((MarkupString)mercuryBlock)</div>
+                </div>
+                <div class="planet-cell">
+                    <img class="planet-icon" alt="Venus" src="img/zodiac/venus.png" width="40" height="40" />
+                    <div class="planet-zodiac">@((MarkupString)venusBlock)</div>
+                </div>
+                <div class="planet-cell">
+                    <img class="planet-icon" alt="Mars" src="img/zodiac/mars.png" width="40" height="40" />
+                    <div class="planet-zodiac">@((MarkupString)marsBlock)</div>
+                </div>
+            </div>
+        </div>
+
+        @* Events frame *@
+        @if (DayEvents.Any())
+        {
+            var items = DayEvents
+                .Select(e => !string.IsNullOrWhiteSpace(e.EventText)
+                    ? e.EventText
+                    : (e.PlanetEvents is { Count: > 0 }
+                        ? string.Join(", ", e.PlanetEvents.Select(pe => $"{pe.Planet1} {pe.AspectSymbol} {pe.Planet2}"))
+                        : ""))
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+
+            if (items.Count > 0)
+            {
+                <div class="astro-frame astro-frame--events">
+                    <ul class="events-list">
+                        @foreach (var t in items)
+                        {
+                            <li>@t</li>
+                        }
+                    </ul>
+                </div>
+            }
+        }
+
+        @* Good/Bad tags (bottom) *@
+        @{
+            var tagsHtml = BuildGoodBadTagsHtml(first);
+        }
+        <div class="gb-tags-wrap">@((MarkupString)tagsHtml)</div>
+
+    </div>;
 }

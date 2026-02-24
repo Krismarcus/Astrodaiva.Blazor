@@ -34,8 +34,4 @@
     <None Remove="Astrodaiva.Api/**" />
     <EmbeddedResource Remove="Astrodaiva.Api/**" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="frontend_dist\" />
-  </ItemGroup>
-
 </Project>
