@@ -7,6 +7,7 @@
 @using System.Linq
 @using Astrodaiva.Data.Enums
 @using Astrodaiva.Blazor.Utils
+@using System.Net
 
 <div class="card month-header">
     <button type="button" class="nav-btn" @onclick="PrevMonth">◀</button>
@@ -108,6 +109,23 @@ else
             </div>
         </div>
     </div>
+
+    <!-- INFO MODAL (Moon-day / Planet-in-zodiac details) -->
+    @if (_infoModalOpen)
+    {
+        <div class="info-modal" role="dialog" aria-modal="true">
+            <div class="info-modal__backdrop" @onclick="CloseInfoModal"></div>
+            <div class="info-modal__panel">
+                <div class="info-modal__header">
+                    <div class="info-modal__title">@_infoModalTitle</div>
+                    <button type="button" class="info-modal__close" title="Close" @onclick="CloseInfoModal">✕</button>
+                </div>
+                <div class="info-modal__body">
+                    @_infoModalBody
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
@@ -136,6 +154,11 @@ else
 
     // UI state: no JS — CSS shows overlay only on ≤900px
     private bool _overlayOpen;
+
+    // UI state: details popup
+    private bool _infoModalOpen;
+    private string _infoModalTitle = "";
+    private MarkupString _infoModalBody;
 
     // Left panel calendar data
     private List<List<int?>> _weeks = new();
@@ -404,7 +427,9 @@ else
                 <div class="astro-frame astro-frame--moonday">
                     <div class="md-timeline">
                         <div class="md-side md-side--left" title="@prevTitle">
-                            <img alt="Previous Moon Day" src="@($"img/zodiac/{prevIcon}.png")" />
+                            <button type="button" class="icon-btn" title="@prevTitle" @onclick="(() => OpenMoonDayDetails(md.PreviousMoonDay))">
+                                <img alt="Previous Moon Day" src="@($"img/zodiac/{prevIcon}.png")" />
+                            </button>
                         </div>
 
                         <div class="md-line-wrap">
@@ -422,11 +447,13 @@ else
                                     <div class="md-marker-label">@midTimeText</div>
                                 </div>
 
-                                <img class="md-mini"
-                                     alt="Middle Moon Day"
-                                     src="@($"img/zodiac/{midIcon}.png")"
-                                     style="--target:@($"{midPct:F2}%")"
-                                     title="@midTitle" />
+                                <button type="button"
+                                        class="icon-btn md-mini"
+                                        style="--target:@($"{midPct:F2}%")"
+                                        title="@midTitle"
+                                        @onclick="(() => OpenMoonDayDetails(md.MiddleMoonDay))">
+                                    <img alt="Middle Moon Day" src="@($"img/zodiac/{midIcon}.png")" />
+                                </button>
                             }
 
                             <div class="md-marker md-marker--final" style="--target:@($"{endPct:F2}%")" title="@($"Transition: {endTimeText}")">
@@ -436,7 +463,9 @@ else
                         </div>
 
                         <div class="md-side md-side--right" title="@newTitle">
-                            <img alt="New Moon Day" src="@($"img/zodiac/{newIcon}.png")" />
+                            <button type="button" class="icon-btn" title="@newTitle" @onclick="(() => OpenMoonDayDetails(md.NewMoonDay))">
+                                <img alt="New Moon Day" src="@($"img/zodiac/{newIcon}.png")" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -461,26 +490,36 @@ else
         <div class="astro-frame astro-frame--planets">
             <div class="planet-grid planet-grid--top">
                 <div class="planet-cell">
-                    <img class="planet-icon" alt="Sun" src="img/zodiac/sun.png" width="40" height="40" />
+                    <button type="button" class="icon-btn" title="Sun" @onclick="(() => OpenPlanetInZodiacDetails(first?.SunInZodiac))">
+                        <img class="planet-icon" alt="Sun" src="img/zodiac/sun.png" width="40" height="40" />
+                    </button>
                     <div class="planet-zodiac">@((MarkupString)sunBlock)</div>
                 </div>
                 <div class="planet-cell">
-                    <img class="planet-icon" alt="Moon" src="img/zodiac/moon.png" width="40" height="40" />
+                    <button type="button" class="icon-btn" title="Moon" @onclick="(() => OpenPlanetInZodiacDetails(first?.MoonInZodiac))">
+                        <img class="planet-icon" alt="Moon" src="img/zodiac/moon.png" width="40" height="40" />
+                    </button>
                     <div class="planet-zodiac">@((MarkupString)moonBlock)</div>
                 </div>
             </div>
 
             <div class="planet-grid planet-grid--bottom">
                 <div class="planet-cell">
-                    <img class="planet-icon" alt="Mercury" src="img/zodiac/mercury.png" width="40" height="40" />
+                    <button type="button" class="icon-btn" title="Mercury" @onclick="(() => OpenPlanetInZodiacDetails(first?.MercuryInZodiac))">
+                        <img class="planet-icon" alt="Mercury" src="img/zodiac/mercury.png" width="40" height="40" />
+                    </button>
                     <div class="planet-zodiac">@((MarkupString)mercuryBlock)</div>
                 </div>
                 <div class="planet-cell">
-                    <img class="planet-icon" alt="Venus" src="img/zodiac/venus.png" width="40" height="40" />
+                    <button type="button" class="icon-btn" title="Venus" @onclick="(() => OpenPlanetInZodiacDetails(first?.VenusInZodiac))">
+                        <img class="planet-icon" alt="Venus" src="img/zodiac/venus.png" width="40" height="40" />
+                    </button>
                     <div class="planet-zodiac">@((MarkupString)venusBlock)</div>
                 </div>
                 <div class="planet-cell">
-                    <img class="planet-icon" alt="Mars" src="img/zodiac/mars.png" width="40" height="40" />
+                    <button type="button" class="icon-btn" title="Mars" @onclick="(() => OpenPlanetInZodiacDetails(first?.MarsInZodiac))">
+                        <img class="planet-icon" alt="Mars" src="img/zodiac/mars.png" width="40" height="40" />
+                    </button>
                     <div class="planet-zodiac">@((MarkupString)marsBlock)</div>
                 </div>
             </div>
@@ -518,4 +557,54 @@ else
         <div class="gb-tags-wrap">@((MarkupString)tagsHtml)</div>
 
     </div>;
+
+    private void OpenMoonDayDetails(int moonDay)
+    {
+        var name = GetMoonDayName(moonDay);
+
+        var info = _db?.MoonDayDetailsDB?
+            .FirstOrDefault(x => x.MoonDay == moonDay)
+            ?.MoonDayInfo;
+
+        _infoModalTitle = $"Moon Day {moonDay} · {name}";
+        _infoModalBody = ToMultilineMarkup(info, "No Moon-day details saved yet for this symbol.");
+        _infoModalOpen = true;
+    }
+
+    private void OpenPlanetInZodiacDetails(PlanetInZodiac? p)
+    {
+        if (p is null)
+        {
+            _infoModalTitle = "Details";
+            _infoModalBody = ToMultilineMarkup(null, "No planet data for this day.");
+            _infoModalOpen = true;
+            return;
+        }
+
+        var planetName = EnumText.GetName<Planet>((int)p.Planet);
+        var signName = EnumText.GetName<ZodiacSign>((int)p.NewZodiacSign);
+
+        var info = _db?.PlanetInZodiacsDB?
+            .FirstOrDefault(x => x.Planet == p.Planet && x.ZodiacSign == p.NewZodiacSign)
+            ?.PlanetInZodiacInfo;
+
+        _infoModalTitle = $"{planetName} in {signName}";
+        _infoModalBody = ToMultilineMarkup(info, "No Planet-in-Zodiac details saved yet for this position.");
+        _infoModalOpen = true;
+    }
+
+    private void CloseInfoModal()
+    {
+        _infoModalOpen = false;
+        _infoModalTitle = "";
+        _infoModalBody = default;
+    }
+
+    private static MarkupString ToMultilineMarkup(string? text, string emptyMessage)
+    {
+        var raw = string.IsNullOrWhiteSpace(text) ? emptyMessage : text;
+        var encoded = WebUtility.HtmlEncode(raw);
+        var html = encoded.Replace("\r\n", "<br/>").Replace("\n", "<br/>");
+        return new MarkupString($"<div class=\"info-modal__text\">{html}</div>");
+    }
 }

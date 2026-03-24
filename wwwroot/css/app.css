@@ -629,8 +629,31 @@ a {
     width: calc(var(--MoondayIconSize) * 0.25);
     height: calc(var(--MoondayIconSize) * 0.25);
     transform: translateX(-50%);
-    object-fit: contain;
     opacity: .95;
+}
+
+.md-mini img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Generic icon button (used to make icons clickable without changing layout) */
+.icon-btn{
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.icon-btn:focus{
+    outline: none;
+}
+
+.icon-btn:hover img{
+    filter: brightness(1.05);
 }
 
 .muted {
@@ -774,6 +797,76 @@ a {
 
 /* Make popup use the exact same right-panel styling */
 .mobile-overlay .day-layout { /* inherits everything */
+}
+
+/* ========================
+   INFO MODAL (Moon-day / Planet details)
+======================== */
+.info-modal{
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.info-modal__backdrop{
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    backdrop-filter: blur(8px);
+}
+
+.info-modal__panel{
+    position: relative;
+    width: min(760px, 94vw);
+    max-height: 86vh;
+    background: rgba(255,255,255,.92);
+    border: 1px solid rgba(255,255,255,.55);
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-modal__header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .85rem 1rem;
+    border-bottom: 1px solid rgba(0,0,0,.08);
+    background: rgba(255,255,255,.55);
+}
+
+.info-modal__title{
+    font-weight: 800;
+    color: #063646;
+}
+
+.info-modal__close{
+    border: none;
+    background: rgba(7,66,82,.08);
+    color: #063646;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.info-modal__body{
+    padding: 1rem;
+    overflow: auto;
+}
+
+.info-modal__text{
+    white-space: normal;
+    line-height: 1.55;
+    color: #05303d;
 }
 
 /* ========================
