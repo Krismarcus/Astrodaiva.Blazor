@@ -16,7 +16,7 @@ namespace Astrodaiva.Data.Models
         private DateTime transitionTime;
         private DateTime middleMoonDayTransitionTime;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
         {

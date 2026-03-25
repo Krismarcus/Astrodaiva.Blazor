@@ -1,14 +1,47 @@
+@using Microsoft.JSInterop
 @inherits LayoutComponentBase
+@inject Microsoft.JSInterop.IJSRuntime JS
+@inject NavigationManager Nav
+@using System.Globalization
+
 <div class="header">
-  <h1>Astrodaiva</h1>
-  <nav>
-    <NavLink href="" Match="NavLinkMatch.All">Home</NavLink> ·
-    <NavLink href="year">Year</NavLink> ·
-    <NavLink href="admin">Admin</NavLink>
-  </nav>
+  <div class="header-row">
+    <div>
+      <h1>Astrodaiva</h1>
+      <nav>
+        <NavLink href="" Match="NavLinkMatch.All">@(IsLt ? "Pradžia" : "Home")</NavLink> ·
+        <NavLink href="year">@(IsLt ? "Metai" : "Year")</NavLink> ·
+        <NavLink href="admin">Admin</NavLink>
+      </nav>
+    </div>
+    <div class="lang-switcher">
+      <button type="button" class="lang-btn @(IsLt ? "active" : null)" @onclick="SetLt">LT</button>
+      <button type="button" class="lang-btn @(!IsLt ? "active" : null)" @onclick="SetEn">EN</button>
+    </div>
+  </div>
 </div>
 <div class="container">
   <div class="body">
     @Body
   </div>
 </div>
+
+@code {
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+
+    private Task SetLt() => SetCulture("lt-LT");
+    private Task SetEn() => SetCulture("en-US");
+
+    private async Task SetCulture(string culture)
+    {
+        await JS.InvokeAsync<object>("blazorCulture.set", culture);
+        Nav.NavigateTo(Nav.Uri, forceLoad: true);
+    }
+}
+
+<style>
+.header-row { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.lang-switcher { display:flex; gap:6px; }
+.lang-btn { border:1px solid #cfcfcf; background:#fff; border-radius:999px; padding:6px 10px; cursor:pointer; }
+.lang-btn.active { font-weight:700; border-color:#666; }
+</style>

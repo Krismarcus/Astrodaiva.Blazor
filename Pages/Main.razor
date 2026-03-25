@@ -1,5 +1,6 @@
 @page "/"
 @inject Astrodaiva.Blazor.Services.AstroDbStore Store
+@inject IJSRuntime JS
 @implements IDisposable
 @using Astrodaiva.Data
 @using Astrodaiva.Data.Models
@@ -8,16 +9,17 @@
 @using Astrodaiva.Data.Enums
 @using Astrodaiva.Blazor.Utils
 @using System.Net
+@using Microsoft.JSInterop
 
 <div class="card month-header">
     <button type="button" class="nav-btn" @onclick="PrevMonth">◀</button>
-    <div class="month-title">@_current.ToString("MMMM yyyy", CultureInfo.InvariantCulture)</div>
+    <div class="month-title">@_current.ToString("MMMM yyyy", CultureInfo.CurrentCulture)</div>
     <button type="button" class="nav-btn" @onclick="NextMonth">▶</button>
 </div>
 
 @if (_db is null)
 {
-    <div class="card">Loading astro database…</div>
+    <div class="card">@(IsLt ? "Kraunama astro duomenų bazė…" : "Loading astro database…")</div>
 }
 else
 {
@@ -45,7 +47,7 @@ else
                             var d = day.Value;
                             var active = d == _selectedDay ? "active" : "";
                             var e = _monthEvents.FirstOrDefault(x => x.Date.Day == d);
-                            string? moonDay = e?.MoonDay is not null ? GetMoonDayName((int)e.MoonDay.NewMoonDay).ToLower() : null;
+                            string? moonDay = e?.MoonDay is not null ? GetMoonDayKey((int)e.MoonDay.NewMoonDay) : null;
                             var q = GetActivityQuality(e, _selectedActivity);
                             var qClass = GetQualityClass(q);
 
@@ -79,12 +81,12 @@ else
 
     <!-- Activity selector (2 rows × 5 columns) -->
     <div class="card activity-selector">
-        <div class="activity-selector__title">Select activity</div>
+        <div class="activity-selector__title">@(IsLt ? "Pasirinkite veiklą" : "Select activity")</div>
         <div class="activity-grid">
             @foreach (var a in _activities)
             {
                 var sel = a == _selectedActivity ? "selected" : "";
-                var activityTitle = EnumText.GetName<ActivitySymbol>((int)a);
+                var activityTitle = EnumText.GetActivityName(a);
 
                 <button type="button"
                         class="activity-btn @sel"
@@ -118,7 +120,7 @@ else
             <div class="info-modal__panel">
                 <div class="info-modal__header">
                     <div class="info-modal__title">@_infoModalTitle</div>
-                    <button type="button" class="info-modal__close" title="Close" @onclick="CloseInfoModal">✕</button>
+                    <button type="button" class="info-modal__close" title="@(IsLt ? "Uždaryti" : "Close")" @onclick="CloseInfoModal">✕</button>
                 </div>
                 <div class="info-modal__body">
                     @_infoModalBody
@@ -162,13 +164,32 @@ else
 
     // Left panel calendar data
     private List<List<int?>> _weeks = new();
-    private readonly string[] _weekdaysShort = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+    private string[] _weekdaysShort => GetWeekdayShortNames();
+
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+
+    private static string[] GetWeekdayShortNames()
+    {
+        var culture = CultureInfo.CurrentCulture;
+        return new[]
+        {
+            culture.DateTimeFormat.GetShortestDayName(DayOfWeek.Monday),
+            culture.DateTimeFormat.GetShortestDayName(DayOfWeek.Tuesday),
+            culture.DateTimeFormat.GetShortestDayName(DayOfWeek.Wednesday),
+            culture.DateTimeFormat.GetShortestDayName(DayOfWeek.Thursday),
+            culture.DateTimeFormat.GetShortestDayName(DayOfWeek.Friday),
+            culture.DateTimeFormat.GetShortestDayName(DayOfWeek.Saturday),
+            culture.DateTimeFormat.GetShortestDayName(DayOfWeek.Sunday),
+        };
+    }
 
     private IEnumerable<AstroEvent> DayEvents
         => _monthEvents.Where(e => e.Date.Day == _selectedDay).OrderBy(e => e.Date);
 
-    private static string GetSignName(int sign) => EnumText.GetName<ZodiacSign>(sign);
-    private static string GetMoonDayName(int symbol) => EnumText.GetName<MoonDaySymbol>(symbol);
+    private static string GetSignName(int sign) => EnumText.GetZodiacName((ZodiacSign)sign);
+    private static string GetSignLocative(int sign) => EnumText.GetZodiacLocative((ZodiacSign)sign);
+    private static string GetMoonDayName(int symbol) => EnumText.GetMoonDayName((MoonDaySymbol)symbol);
+    private static string GetMoonDayKey(int symbol) => EnumText.GetMoonDayKey((MoonDaySymbol)symbol);
 
     private static string BuildZodiacOrTransitionBlock(string planetName, PlanetInZodiac? p)
     {
@@ -176,18 +197,20 @@ else
             return "<div class=\"muted\">—</div>";
 
         var newName = GetSignName((int)p.NewZodiacSign);
-        var newIcon = newName.ToLowerInvariant();
+        var newLocative = GetSignLocative((int)p.NewZodiacSign);
+        var newIcon = EnumText.GetZodiacKey(p.NewZodiacSign);
 
         // default: show the current (new) sign
         if (!p.IsZodiacTransitioning)
         {
-            return $"<div class=\"astro-label\">{planetName} in {newName}</div>" +
+            var label = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt" ? $"{planetName} {newLocative}" : $"{planetName} in {newName}";
+            return $"<div class=\"astro-label\">{label}</div>" +
                    $"<img alt=\"{planetName} sign\" src=\"img/zodiac/{newIcon}.png\" width=\"64\" height=\"64\" />";
         }
 
         // transitioning: show previous sign (left) + transition time (center) + new sign (right)
         var prevName = GetSignName((int)p.PreviousZodiacSign);
-        var prevIcon = prevName.ToLowerInvariant();
+        var prevIcon = EnumText.GetZodiacKey(p.PreviousZodiacSign);
         var timeText = p.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
 
         return $@"<div class=""astro-label"">{planetName}: {prevName} → {newName}</div>
@@ -313,20 +336,36 @@ else
         _ => "•"
     };
 
-    private static string GetActivityShortLabel(ActivitySymbol a) => a switch
-    {
-        ActivitySymbol.BuyStuff => "Buy",
-        ActivitySymbol.ImportantTasks => "Tasks",
-        ActivitySymbol.NewIdeas => "Ideas",
-        ActivitySymbol.Technologies => "Tech",
-        ActivitySymbol.Meetings => "Meet",
-        ActivitySymbol.Contracts => "Contracts",
-        ActivitySymbol.Barber => "Barber",
-        ActivitySymbol.Beauty => "Beauty",
-        ActivitySymbol.Love => "Love",
-        ActivitySymbol.Travel => "Travel",
-        _ => EnumText.GetName<ActivitySymbol>((int)a)
-    };
+    private static string GetActivityShortLabel(ActivitySymbol a)
+        => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt"
+            ? a switch
+            {
+                ActivitySymbol.BuyStuff => "Pirkti",
+                ActivitySymbol.ImportantTasks => "Darbai",
+                ActivitySymbol.NewIdeas => "Idėjos",
+                ActivitySymbol.Technologies => "Tech",
+                ActivitySymbol.Meetings => "Susit.",
+                ActivitySymbol.Contracts => "Sutart.",
+                ActivitySymbol.Barber => "Kirpyk.",
+                ActivitySymbol.Beauty => "Grožis",
+                ActivitySymbol.Love => "Meilė",
+                ActivitySymbol.Travel => "Kel.",
+                _ => EnumText.GetActivityName(a)
+            }
+            : a switch
+            {
+                ActivitySymbol.BuyStuff => "Buy",
+                ActivitySymbol.ImportantTasks => "Tasks",
+                ActivitySymbol.NewIdeas => "Ideas",
+                ActivitySymbol.Technologies => "Tech",
+                ActivitySymbol.Meetings => "Meet",
+                ActivitySymbol.Contracts => "Contracts",
+                ActivitySymbol.Barber => "Barber",
+                ActivitySymbol.Beauty => "Beauty",
+                ActivitySymbol.Love => "Love",
+                ActivitySymbol.Travel => "Travel",
+                _ => EnumText.GetActivityName(a)
+            };
 
     private static ActivityQuality GetActivityQuality(AstroEvent? e, ActivitySymbol a)
     {
@@ -358,9 +397,9 @@ else
     private string GetQualityTitle(ActivityQuality q)
         => q switch
         {
-            ActivityQuality.Good => $"{GetActivityShortLabel(_selectedActivity)}: Good",
-            ActivityQuality.Bad => $"{GetActivityShortLabel(_selectedActivity)}: Bad",
-            ActivityQuality.Neutral => $"{GetActivityShortLabel(_selectedActivity)}: Neutral",
+            ActivityQuality.Good => IsLt ? $"{GetActivityShortLabel(_selectedActivity)}: palanku" : $"{GetActivityShortLabel(_selectedActivity)}: Good",
+            ActivityQuality.Bad => IsLt ? $"{GetActivityShortLabel(_selectedActivity)}: nepalanku" : $"{GetActivityShortLabel(_selectedActivity)}: Bad",
+            ActivityQuality.Neutral => IsLt ? $"{GetActivityShortLabel(_selectedActivity)}: neutralu" : $"{GetActivityShortLabel(_selectedActivity)}: Neutral",
             _ => $"{GetActivityShortLabel(_selectedActivity)}: —"
         };
     
@@ -374,7 +413,7 @@ else
             .Select(x =>
             {
                 var cls = x.Q == ActivityQuality.Good ? "tag-good" : "tag-bad";
-                var title = EnumText.GetName<ActivitySymbol>((int)x.A);
+                var title = EnumText.GetActivityName(x.A);
                 var icon = GetActivityIcon(x.A);
                 return $@"<div class=""gb-tag {cls}"" title=""{title}"">
                         <span class=""gb-tag__icon"">{icon}</span>
@@ -384,7 +423,7 @@ else
             .ToList();
 
         if (tags.Count == 0)
-            return @"<div class=""gb-tags-empty muted"">No Good/Bad tags for this day.</div>";
+            return IsLt ? @"<div class=""gb-tags-empty muted"">Šiai dienai nėra palankių / nepalankių veiklų.</div>" : @"<div class=""gb-tags-empty muted"">No Good/Bad tags for this day.</div>";
 
         return $@"<div class=""gb-tags"">{string.Join("", tags)}</div>";
     }
@@ -393,9 +432,9 @@ else
 
     // Shared right panel content (Razor template — safer than manual __builder markup)
     private RenderFragment RightPanelContent() => @<div class="day-layout">
-        <div class="month-row">@_current.ToString("MMMM yyyy", CultureInfo.InvariantCulture)</div>
+        <div class="month-row">@_current.ToString("MMMM yyyy", CultureInfo.CurrentCulture)</div>
         <div class="daynum-row">@_current.Day</div>
-        <div class="weekday-row">@_current.ToString("dddd", CultureInfo.InvariantCulture)</div>
+        <div class="weekday-row">@_current.ToString("dddd", CultureInfo.CurrentCulture)</div>
 
         @{
             var mo = _monthEvents.FirstOrDefault(x => x.Date.Date == _current.Date);
@@ -415,8 +454,8 @@ else
         {
             var md = mo.MoonDay!;
 
-            var prevIcon = GetMoonDayName(md.PreviousMoonDay).ToLower();
-            var newIcon  = GetMoonDayName(md.NewMoonDay).ToLower();
+            var prevIcon = GetMoonDayKey(md.PreviousMoonDay);
+            var newIcon  = GetMoonDayKey(md.NewMoonDay);
             var prevTitle = GetMoonDayName(md.PreviousMoonDay);
             var newTitle  = GetMoonDayName(md.NewMoonDay);
 
@@ -439,24 +478,24 @@ else
                             {
                                 var midPct = ToDayPercent(md.MiddleMoonDayTransitionTime);
                                 var midTimeText = md.MiddleMoonDayTransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
-                                var midIcon = GetMoonDayName(md.MiddleMoonDay).ToLower();
+                                var midIcon = GetMoonDayKey(md.MiddleMoonDay);
                                 var midTitle = GetMoonDayName(md.MiddleMoonDay);
 
-                                <div class="md-marker md-marker--mid" style="--target:@($"{midPct:F2}%")" title="@($"Middle transition: {midTimeText}")">
+                                <div class="md-marker md-marker--mid" style="--target:@Css.Pct(midPct)" title="@($"Middle transition: {midTimeText}")">
                                     <div class="md-marker-bar"></div>
                                     <div class="md-marker-label">@midTimeText</div>
                                 </div>
 
                                 <button type="button"
                                         class="icon-btn md-mini"
-                                        style="--target:@($"{midPct:F2}%")"
+                                        style="--target:@Css.Pct(midPct)"
                                         title="@midTitle"
                                         @onclick="(() => OpenMoonDayDetails(md.MiddleMoonDay))">
                                     <img alt="Middle Moon Day" src="@($"img/zodiac/{midIcon}.png")" />
                                 </button>
                             }
 
-                            <div class="md-marker md-marker--final" style="--target:@($"{endPct:F2}%")" title="@($"Transition: {endTimeText}")">
+                            <div class="md-marker md-marker--final" style="--target:@Css.Pct(endPct)" title="@($"Transition: {endTimeText}")">
                                 <div class="md-marker-bar"></div>
                                 <div class="md-marker-label">@endTimeText</div>
                             </div>
@@ -473,17 +512,17 @@ else
         }
         else
         {
-            <div class="moonday-row"><span class="muted">No Moon-day symbol</span></div>
+            <div class="moonday-row"><span class="muted">@(IsLt ? "Nėra Mėnulio dienos simbolio" : "No Moon-day symbol")</span></div>
         }
 
         @{
             var first = DayEvents.FirstOrDefault();
 
-            var sunBlock     = BuildZodiacOrTransitionBlock("Sun", first?.SunInZodiac);
-            var moonBlock    = BuildZodiacOrTransitionBlock("Moon", first?.MoonInZodiac);
-            var mercuryBlock = BuildZodiacOrTransitionBlock("Mercury", first?.MercuryInZodiac);
-            var venusBlock   = BuildZodiacOrTransitionBlock("Venus", first?.VenusInZodiac);
-            var marsBlock    = BuildZodiacOrTransitionBlock("Mars", first?.MarsInZodiac);
+            var sunBlock     = BuildZodiacOrTransitionBlock(EnumText.GetPlanetName(Planet.Sun), first?.SunInZodiac);
+            var moonBlock    = BuildZodiacOrTransitionBlock(EnumText.GetPlanetName(Planet.Moon), first?.MoonInZodiac);
+            var mercuryBlock = BuildZodiacOrTransitionBlock(EnumText.GetPlanetName(Planet.Mercury), first?.MercuryInZodiac);
+            var venusBlock   = BuildZodiacOrTransitionBlock(EnumText.GetPlanetName(Planet.Venus), first?.VenusInZodiac);
+            var marsBlock    = BuildZodiacOrTransitionBlock(EnumText.GetPlanetName(Planet.Mars), first?.MarsInZodiac);
         }
 
         @* Planets-in-zodiac frame *@
@@ -566,8 +605,8 @@ else
             .FirstOrDefault(x => x.MoonDay == moonDay)
             ?.MoonDayInfo;
 
-        _infoModalTitle = $"Moon Day {moonDay} · {name}";
-        _infoModalBody = ToMultilineMarkup(info, "No Moon-day details saved yet for this symbol.");
+        _infoModalTitle = IsLt ? $"Mėnulio diena {moonDay} · {name}" : $"Moon Day {moonDay} · {name}";
+        _infoModalBody = ToMultilineMarkup(info, IsLt ? "Šiam simboliui Mėnulio dienos aprašymo dar nėra." : "No Moon-day details saved yet for this symbol.");
         _infoModalOpen = true;
     }
 
@@ -575,21 +614,21 @@ else
     {
         if (p is null)
         {
-            _infoModalTitle = "Details";
-            _infoModalBody = ToMultilineMarkup(null, "No planet data for this day.");
+            _infoModalTitle = IsLt ? "Detalės" : "Details";
+            _infoModalBody = ToMultilineMarkup(null, IsLt ? "Šiai dienai planetos duomenų nėra." : "No planet data for this day.");
             _infoModalOpen = true;
             return;
         }
 
-        var planetName = EnumText.GetName<Planet>((int)p.Planet);
-        var signName = EnumText.GetName<ZodiacSign>((int)p.NewZodiacSign);
+        var planetName = EnumText.GetPlanetName(p.Planet);
+        var signName = EnumText.GetZodiacName(p.NewZodiacSign);
 
         var info = _db?.PlanetInZodiacsDB?
             .FirstOrDefault(x => x.Planet == p.Planet && x.ZodiacSign == p.NewZodiacSign)
             ?.PlanetInZodiacInfo;
 
-        _infoModalTitle = $"{planetName} in {signName}";
-        _infoModalBody = ToMultilineMarkup(info, "No Planet-in-Zodiac details saved yet for this position.");
+        _infoModalTitle = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt" ? $"{planetName} {EnumText.GetZodiacLocative(p.NewZodiacSign)}" : $"{planetName} in {signName}";
+        _infoModalBody = ToMultilineMarkup(info, IsLt ? "Šiai padėčiai planetos ženkle aprašymo dar nėra." : "No Planet-in-Zodiac details saved yet for this position.");
         _infoModalOpen = true;
     }
 

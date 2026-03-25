@@ -14,7 +14,7 @@ namespace Astrodaiva.Blazor.Utils
         }
 
         public static string Symbol(ZodiacSign sign) => Symbols[ToIndex(sign)];
-        public static string Name(ZodiacSign sign) => sign.ToString();
+        public static string Name(ZodiacSign sign) => EnumText.GetZodiacName(sign);
 
         public static string Symbol(int signIndex)
         {
@@ -39,7 +39,7 @@ namespace Astrodaiva.Blazor.Utils
             _ => "unknown.png"
         };
 
-        public static string ImagePath(ZodiacSign sign) => $"img/zodiac/{sign.ToString().ToLowerInvariant()}.png";
+        public static string ImagePath(ZodiacSign sign) => $"img/zodiac/{EnumText.GetZodiacKey(sign)}.png";
 
         public static string Color(ZodiacSign sign) => sign switch
         {
