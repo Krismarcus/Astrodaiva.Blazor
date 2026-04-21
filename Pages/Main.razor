@@ -71,31 +71,31 @@ else
                     }
                 }
             </div>
+        
+            <!-- Activity selector (left side, under day cards) -->
+            <div class="activity-selector activity-selector--inline">
+                <div class="activity-selector__title">@(IsLt ? "Pasirinkite veiklą" : "Select activity")</div>
+                <div class="activity-grid">
+                    @foreach (var a in _activities)
+                    {
+                        var sel = a == _selectedActivity ? "selected" : "";
+                        var activityTitle = EnumText.GetActivityName(a);
+
+                        <button type="button"
+                                class="activity-btn @sel"
+                                title="@activityTitle"
+                                @onclick="(() => SelectActivity(a))">
+                            <span class="activity-btn__icon">@GetActivityIcon(a)</span>
+                            <span class="activity-btn__label">@GetActivityShortLabel(a)</span>
+                        </button>
+                    }
+                </div>
+            </div>
         </div>
 
         <!-- RIGHT: desktop-only panel -->
         <div class="tab-content day-layout desktop-right">
             @RightPanelContent()
-        </div>
-    </div>
-
-    <!-- Activity selector (2 rows × 5 columns) -->
-    <div class="card activity-selector">
-        <div class="activity-selector__title">@(IsLt ? "Pasirinkite veiklą" : "Select activity")</div>
-        <div class="activity-grid">
-            @foreach (var a in _activities)
-            {
-                var sel = a == _selectedActivity ? "selected" : "";
-                var activityTitle = EnumText.GetActivityName(a);
-
-                <button type="button"
-                        class="activity-btn @sel"
-                        title="@activityTitle"
-                        @onclick="(() => SelectActivity(a))">
-                    <span class="activity-btn__icon">@GetActivityIcon(a)</span>
-                    <span class="activity-btn__label">@GetActivityShortLabel(a)</span>
-                </button>
-            }
         </div>
     </div>
 

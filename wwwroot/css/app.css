@@ -166,6 +166,12 @@ a {
     z-index: 2; /* keep calendar above any neighboring shadows */
 }
 
+.activity-selector--inline {
+    margin-top: .35rem;
+    padding: .25rem 0 0;
+    background: transparent;
+}
+
 /* Right side wrapper (desktop) */
 .desktop-right{
     position: relative;
@@ -276,6 +282,10 @@ a {
     text-align: center;
 }
 
+.tabs-panel .activity-selector__title {
+    margin-top: .15rem;
+}
+
 .activity-grid {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -283,28 +293,42 @@ a {
 }
 
 .activity-btn {
-    border: 1px solid rgba(0,0,0,.12);
+    border: 1px solid rgba(7, 66, 82, .16);
     border-radius: 12px;
     padding: 10px 8px;
-    background: #fff;
+    background: var(--PageGradientTop, #F8FCD1);
+    color: var(--Primary, #074252);
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    transition: background-color .18s ease, color .18s ease, transform .12s ease, box-shadow .18s ease, border-color .18s ease;
 }
 
-.activity-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); }
+.activity-btn:hover {
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--Secondary, #074252) 18%, var(--PageGradientTop, #F8FCD1));
+    border-color: rgba(7, 66, 82, .28);
+    box-shadow: 0 6px 16px rgba(0,0,0,.08);
+}
 
 .activity-btn.selected {
-    border-color: rgba(0,0,0,.35);
+    background: var(--Secondary, #074252);
+    color: #fff;
+    border-color: rgba(7, 66, 82, .42);
     box-shadow: 0 10px 22px rgba(0,0,0,.12);
 }
 
-.activity-btn__icon { font-size: 20px; line-height: 1; }
-.activity-btn__label { font-size: 12px; font-weight: 700; opacity: .85; }
+.activity-btn.selected .activity-btn__label,
+.activity-btn.selected .activity-btn__icon {
+    color: #fff;
+    opacity: 1;
+}
+
+.activity-btn__icon { font-size: 20px; line-height: 1; transition: color .18s ease, opacity .18s ease; }
+.activity-btn__label { font-size: 12px; font-weight: 700; opacity: .85; transition: color .18s ease, opacity .18s ease; }
 
 @media (max-width: 520px) {
     .activity-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
@@ -737,7 +761,17 @@ a {
 .events-list {
     grid-column: 1 / -1;
     margin: .4rem 0 0 0;
-    padding-left: 1rem;
+    padding-left: 1.1rem;
+    color: var(--PrimaryLightText, #F8FCD1);
+}
+
+.astro-frame--events .events-list li {
+    color: var(--PrimaryLightText, #F8FCD1);
+    font-weight: 600;
+}
+
+.astro-frame--events .events-list li::marker {
+    color: rgba(240, 201, 134, .95);
 }
 
 /* ========================
@@ -963,10 +997,12 @@ a {
 
 .gb-tag.tag-good {
     border-color: rgba(0, 180, 90, .55);
+    background: rgba(0, 180, 90, .14);
 }
 
 .gb-tag.tag-bad {
     border-color: rgba(220, 50, 50, .55);
+    background: rgba(220, 50, 50, .14);
 }
 
 .gb-tags-empty {

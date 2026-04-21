@@ -39,9 +39,37 @@
                 @foreach (var planetRow in _planetRows)
                 {
                     <div class="planet-row">
-                        <div class="planet-label">@EnumText.GetPlanetName(planetRow.PlanetName)</div>
+                        <div class="planet-label">@GetRowLabel(planetRow.PlanetName)</div>
 
                         <div class="planet-bar-container">
+                            @if (planetRow.PlanetName == Planet.Moon)
+                            {
+                                <div class="eclipse-bar-container eclipse-bar-summary-container"
+                                     title="@BuildEclipsesSummaryTitle()"
+                                     @onclick="ShowYearEclipsesSummary">
+                                    <span class="eclipse-track"></span>
+                                    @foreach (var eclipseSegment in GetEclipseSegments())
+                                    {
+                                        var eclipseKey = MakeRetroKey($"eclipse-{(eclipseSegment.IsSunEclipse ? "sun" : "moon")}", eclipseSegment.StartDate);
+                                        <button type="button"
+                                                class="eclipse-marker @(eclipseKey == _activeRetroKey ? "is-active" : null)"
+                                                style="left:@Css.Pct(eclipseSegment.CenterPosition)"
+                                                title="@(BuildEclipseTitle(eclipseSegment))"
+                                                @onclick="() => ShowSpecificEclipse(eclipseSegment)"
+                                                @onclick:stopPropagation="true"
+                                                @onpointerdown="@(() => _activeRetroKey = eclipseKey)"
+                                                @onpointerup="@(() => StateHasChanged())"
+                                                @onpointercancel="@(() => _activeRetroKey = null)"
+                                                @onpointerenter="@(() => OnEclipseHover(eclipseSegment))"
+                                                @onpointerleave="OnEclipseHoverOut">
+                                            <span class="eclipse-marker-dot @(eclipseSegment.IsSunEclipse ? "sun-eclipse-dot" : "moon-eclipse-dot")"></span>
+                                            <span class="eclipse-day-marker">@eclipseSegment.StartDate.Day</span>
+                                        </button>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
                             <!-- Main Zodiac Bar -->
                             <div class="year-bar">
                                 @foreach (var segment in planetRow.Segments)
@@ -67,7 +95,6 @@
                             </div>
 
                             <!-- Retrograde Bar -->
-                            <!-- Retrograde Bar -->
                             <div class="retrograde-bar-container">
                                 @foreach (var retroSegment in GetRetrogradeSegments(planetRow.PlanetName))
                                 {
@@ -83,6 +110,7 @@
                                     </span>
                                 }
                             </div>
+                            }
                         </div>
                     </div>
                 }
@@ -102,8 +130,18 @@
                         <span class="date-range">@_selectedStartDateText</span>
                         <span class="date-range">@_selectedEndDateText</span>
                     </div>
-                    <div class="event-info">
-                        @_selectedPlanetInfo
+                    <div class="event-info @(_isEclipseSummaryList ? "eclipse-summary-list" : null)">
+                        @if (_isEclipseSummaryList && _selectedPlanetInfoLines.Count > 0)
+                        {
+                            foreach (var infoLine in _selectedPlanetInfoLines)
+                            {
+                                <div class="eclipse-summary-line">@infoLine</div>
+                            }
+                        }
+                        else
+                        {
+                            @_selectedPlanetInfo
+                        }
                     </div>
                 </div>
             </div>
@@ -121,6 +159,8 @@
     private string _selectedStartDateText = "";
     private string _selectedEndDateText = "";
     private string _selectedPlanetInfo = "";
+    private bool _isEclipseSummaryList = false;
+    private List<string> _selectedPlanetInfoLines = new();
 
     // Selection
     private Planet? _selectedPlanetName;
@@ -128,6 +168,7 @@
 
     // Hover
     private ZodiacSegment? _hoveredSegment;
+    private int? _hoveredEclipseMonth;
 
     // Touch "active" retrograde key (planet + start date)
     private string? _activeRetroKey;
@@ -135,6 +176,11 @@
         => $"{planetName}:{start:yyyyMMdd}";
 
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+
+    private string GetRowLabel(Planet planet)
+        => planet == Planet.Moon
+            ? (IsLt ? "Užtemimai" : "Eclipses")
+            : EnumText.GetPlanetName(planet);
 
     private string BuildSegmentTitle(Planet planet, ZodiacSegment segment)
         => IsLt
@@ -146,10 +192,19 @@
             ? $"{EnumText.GetPlanetName(planet)} retrogradinis: {segment.StartDate.ToString("MMM d", CultureInfo.CurrentCulture)} - {segment.EndDate.ToString("MMM d", CultureInfo.CurrentCulture)}"
             : $"{EnumText.GetPlanetName(planet)} Retrograde: {segment.StartDate:MMM d} - {segment.EndDate:MMM d}";
 
+
+    private string BuildEclipseTitle(EclipseSegment segment)
+        => IsLt
+            ? $"{(segment.IsSunEclipse ? "Saulės užtemimas" : "Mėnulio užtemimas")}: {segment.StartDate.ToString("MMMM d", CultureInfo.CurrentCulture)}"
+            : $"{(segment.IsSunEclipse ? "Sun Eclipse" : "Moon Eclipse")}: {segment.StartDate:MMMM d}";
+
+    private string BuildEclipsesSummaryTitle()
+        => IsLt ? "Rodyti visų metų užtemimus" : "Show all eclipses of the year";
+
     // Order shown in the UI
     private static readonly Planet[] PlanetsOrder = new[]
     {
-        Planet.Sun, Planet.Mercury, Planet.Venus, Planet.Mars, Planet.Jupiter,
+        Planet.Sun, Planet.Moon, Planet.Mercury, Planet.Venus, Planet.Mars, Planet.Jupiter,
         Planet.Saturn, Planet.Uranus, Planet.Neptune, Planet.Pluto,
         Planet.Selena, Planet.Lilith, Planet.Rahu, Planet.Ketu
     };
@@ -230,10 +285,26 @@
 
     private bool IsMonthHighlighted(MonthSegment month)
     {
+        if (_hoveredEclipseMonth.HasValue)
+            return month.MonthStartDate.Month == _hoveredEclipseMonth.Value;
+
         if (_hoveredSegment == null) return false;
 
         return _hoveredSegment.ZodiacStartDate <= month.MonthEndDate &&
                _hoveredSegment.ZodiacEndDate >= month.MonthStartDate;
+    }
+
+    private void OnEclipseHover(EclipseSegment eclipse)
+    {
+        _hoveredEclipseMonth = eclipse.StartDate.Month;
+        StateHasChanged();
+    }
+
+    private void OnEclipseHoverOut()
+    {
+        _hoveredEclipseMonth = null;
+        _activeRetroKey = null;
+        StateHasChanged();
     }
 
     private List<RetrogradeSegment> GetRetrogradeSegments(Planet planet)
@@ -309,10 +380,101 @@
         _ => null // Sun/Nodes/Selena/Lilith usually not used for retrograde bars
     };
 
+    private List<EclipseSegment> GetEclipseSegments()
+    {
+        var eclipseEvents = _db?.AstroEventsDB?
+            .Where(e => e.Date.Year == _year)
+            .Where(e => e.SunEclipse || e.MoonEclipse)
+            .OrderBy(e => e.Date)
+            .ToList();
+
+        if (eclipseEvents == null || eclipseEvents.Count == 0)
+            return new List<EclipseSegment>();
+
+        var segments = new List<EclipseSegment>();
+
+        foreach (var e in eclipseEvents)
+        {
+            if (e.SunEclipse)
+                segments.Add(CreateEclipseSegment(e.Date, isSunEclipse: true));
+
+            if (e.MoonEclipse)
+                segments.Add(CreateEclipseSegment(e.Date, isSunEclipse: false));
+        }
+
+        return segments
+            .OrderBy(s => s.StartDate)
+            .ThenByDescending(s => s.IsSunEclipse)
+            .ToList();
+    }
+
+    private EclipseSegment CreateEclipseSegment(DateTime date, bool isSunEclipse)
+    {
+        var startOfYear = new DateTime(_year, 1, 1);
+        var daysFromStart = (date - startOfYear).Days;
+        var widthPercentage = Math.Max(0.12, 100.0 / 365.0);
+        var leftPosition = (daysFromStart * 100.0) / 365;
+        var centerPosition = leftPosition + (widthPercentage / 2.0);
+
+        return new EclipseSegment
+        {
+            StartDate = date,
+            EndDate = date,
+            WidthPercentage = widthPercentage,
+            LeftPosition = leftPosition,
+            CenterPosition = centerPosition,
+            IsSunEclipse = isSunEclipse
+        };
+    }
+
+    private void ShowYearEclipsesSummary()
+    {
+        var eclipses = GetEclipseSegments();
+        _selectedPlanetInZodiacText = IsLt ? $"Užtemimai {_year}" : $"Eclipses {_year}";
+        _selectedStartDateText = IsLt ? $"Metai: {_year}" : $"Year: {_year}";
+        _selectedEndDateText = IsLt
+            ? $"Iš viso: {eclipses.Count}"
+            : $"Total: {eclipses.Count}";
+
+        _selectedPlanetInfo = eclipses.Count == 0
+            ? (IsLt ? "Šiais metais užtemimų nerasta." : "No eclipses found in this year.")
+            : string.Join("\n", eclipses.Select(e =>
+                IsLt
+                    ? $"• {(e.IsSunEclipse ? "Saulės užtemimas" : "Mėnulio užtemimas")} – {e.StartDate.ToString("MMMM d", CultureInfo.CurrentCulture)}"
+                    : $"• {(e.IsSunEclipse ? "Sun eclipse" : "Moon eclipse")} – {e.StartDate.ToString("MMMM d", CultureInfo.CurrentCulture)}"));
+
+        _showEventDetails = true;
+        _selectedPlanetName = Planet.Moon;
+        _selectedSegment = null;
+        StateHasChanged();
+    }
+
+    private void ShowSpecificEclipse(EclipseSegment eclipse)
+    {
+        _selectedPlanetInZodiacText = IsLt
+            ? (eclipse.IsSunEclipse ? "Saulės užtemimas" : "Mėnulio užtemimas")
+            : (eclipse.IsSunEclipse ? "Sun Eclipse" : "Moon Eclipse");
+
+        _selectedStartDateText = IsLt
+            ? $"Data: {eclipse.StartDate.ToString("MMMM d, yyyy", CultureInfo.CurrentCulture)}"
+            : $"Date: {eclipse.StartDate.ToString("MMMM d, yyyy", CultureInfo.CurrentCulture)}";
+
+        _selectedEndDateText = IsLt ? $"Metai: {_year}" : $"Year: {_year}";
+        _selectedPlanetInfo = IsLt
+            ? $"{(eclipse.IsSunEclipse ? "Saulės" : "Mėnulio")} užtemimas įvyks {eclipse.StartDate.ToString("MMMM d", CultureInfo.CurrentCulture)}."
+            : $"This {(eclipse.IsSunEclipse ? "sun" : "moon")} eclipse happens on {eclipse.StartDate.ToString("MMMM d", CultureInfo.CurrentCulture)}.";
+
+        _selectedPlanetInfoLines.Clear();
+        _isEclipseSummaryList = false;
+        _showEventDetails = true;
+        StateHasChanged();
+    }
+
     private void HideEventDetails()
     {
         _showEventDetails = false;
         _activeRetroKey = null;
+        _hoveredEclipseMonth = null;
         StateHasChanged();
     }
 
@@ -334,7 +496,10 @@
         _selectedStartDateText = "";
         _selectedEndDateText = "";
         _selectedPlanetInfo = "";
+        _selectedPlanetInfoLines.Clear();
+        _isEclipseSummaryList = false;
         _hoveredSegment = null;
+        _hoveredEclipseMonth = null;
         _activeRetroKey = null;
     }
 
@@ -479,6 +644,16 @@
         public DateTime EndDate { get; set; }
         public double WidthPercentage { get; set; }
         public double LeftPosition { get; set; }
+    }
+
+    public class EclipseSegment
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public double WidthPercentage { get; set; }
+        public double LeftPosition { get; set; }
+        public double CenterPosition { get; set; }
+        public bool IsSunEclipse { get; set; }
     }
 }
 
@@ -636,6 +811,94 @@
             }
     }
 
+    .eclipse-bar-container {
+        position: relative;
+        height: 22px;
+        margin-top: 4px;
+        overflow: visible;
+    }
+
+    .eclipse-bar-summary-container {
+        cursor: pointer;
+    }
+
+    .eclipse-track {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 40%;
+        height: 4px;
+        transform: translateY(-50%);
+        background: #444;
+        border-radius: 999px;
+        opacity: 0.95;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    }
+
+    .eclipse-marker {
+        position: absolute;
+        top: 40%;
+        transform: translateX(-50%);
+        display: block;
+        width: 30px;
+        height: 0;
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        z-index: 2;
+    }
+
+    .eclipse-marker-dot {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+    }
+
+    .sun-eclipse-dot {
+        background: #242424;
+    }
+
+    .moon-eclipse-dot {
+        background: #7a7a7a;
+    }
+
+    .eclipse-day-marker {
+        position: absolute;
+        left: 50%;
+        top: 11px;
+        transform: translateX(-50%);
+        display: block;
+        background: transparent;
+        color: #444;
+        font-size: 0.95em;
+        font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    @@media (hover: hover) {
+        .eclipse-bar-summary-container:hover .eclipse-track {
+            filter: brightness(1.04);
+        }
+
+        .eclipse-marker:hover,
+        .eclipse-marker.is-active {
+            transform: translateX(-50%) scale(1.08);
+        }
+    }
+
+    @@media (hover: none) {
+        .eclipse-marker.is-active {
+            transform: translateX(-50%) scale(1.08);
+        }
+    }
+
     .zodiac-bar {
         display: flex;
         align-items: center;
@@ -762,6 +1025,16 @@
     .event-info {
         line-height: 1.5;
         color: #333;
+        white-space: pre-line;
+    }
+
+    .eclipse-summary-list {
+        text-align: center;
+    }
+
+    .eclipse-summary-line {
+        text-align: center;
+        margin: 0.35em 0;
     }
 
     .year-switcher {
