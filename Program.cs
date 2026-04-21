@@ -44,6 +44,7 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddScoped<AstroDbStore>();
 builder.Services.AddScoped<AstroDataService>();
 builder.Services.AddScoped<AstroDbEditService>();
+builder.Services.AddScoped<AdminAccessService>();
 
 var host = builder.Build();
 

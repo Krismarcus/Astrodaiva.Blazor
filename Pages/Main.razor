@@ -11,12 +11,6 @@
 @using System.Net
 @using Microsoft.JSInterop
 
-<div class="card month-header">
-    <button type="button" class="nav-btn" @onclick="PrevMonth">◀</button>
-    <div class="month-title">@_current.ToString("MMMM yyyy", CultureInfo.CurrentCulture)</div>
-    <button type="button" class="nav-btn" @onclick="NextMonth">▶</button>
-</div>
-
 @if (_db is null)
 {
     <div class="card">@(IsLt ? "Kraunama astro duomenų bazė…" : "Loading astro database…")</div>
@@ -26,14 +20,21 @@ else
     <div class="card split-2">
         <!-- LEFT: calendar -->
         <div class="tabs-panel">
-            <div class="weekday-header">
+            <div class="calendar-shell">
+                <div class="month-header month-header--inside">
+                    <button type="button" class="nav-btn" @onclick="PrevMonth">◀</button>
+                    <div class="month-title">@_current.ToString("MMMM yyyy", CultureInfo.CurrentCulture)</div>
+                    <button type="button" class="nav-btn" @onclick="NextMonth">▶</button>
+                </div>
+
+                <div class="weekday-header">
                 @foreach (var wd in _weekdaysShort)
                 {
                     <div class="weekday-cell">@wd</div>
                 }
             </div>
 
-            <div class="tabs-strip-grid">
+                <div class="tabs-strip-grid">
                 @foreach (var week in _weeks)
                 {
                     foreach (var day in week)
@@ -50,6 +51,7 @@ else
                             string? moonDay = e?.MoonDay is not null ? GetMoonDayKey((int)e.MoonDay.NewMoonDay) : null;
                             var q = GetActivityQuality(e, _selectedActivity);
                             var qClass = GetQualityClass(q);
+                            var showIndicator = q == ActivityQuality.Good || q == ActivityQuality.Bad;
 
                             <button @key="d"
                                     type="button"
@@ -63,26 +65,31 @@ else
                                         <img src="@($"img/zodiac/{moonDay}.png")" alt="@moonDay" />
                                     }
                                 </span>
-                                <span class="daycard-indicator" title="@GetQualityTitle(q)">
-                                    <span class="quality-dot @qClass"></span>
+                                <span class="daycard-indicator @(showIndicator ? "has-indicator" : "is-empty")" title="@GetQualityTitle(q)">
+                                    @if (showIndicator)
+                                    {
+                                        <span class="quality-dot @qClass"></span>
+                                    }
                                 </span>
                             </button>
                         }
                     }
                 }
+                </div>
             </div>
-        
+
             <!-- Activity selector (left side, under day cards) -->
             <div class="activity-selector activity-selector--inline">
                 <div class="activity-selector__title">@(IsLt ? "Pasirinkite veiklą" : "Select activity")</div>
-                <div class="activity-grid">
+                <div class="activity-grid js-activity-grid">
+                    <span class="activity-grid__slider" aria-hidden="true"></span>
                     @foreach (var a in _activities)
                     {
                         var sel = a == _selectedActivity ? "selected" : "";
                         var activityTitle = EnumText.GetActivityName(a);
 
                         <button type="button"
-                                class="activity-btn @sel"
+                                class="activity-btn @sel" data-activity-btn="true"
                                 title="@activityTitle"
                                 @onclick="(() => SelectActivity(a))">
                             <span class="activity-btn__icon">@GetActivityIcon(a)</span>
@@ -232,6 +239,16 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await JS.InvokeVoidAsync("activitySlider.update", ".js-activity-grid");
+
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("activitySlider.init", ".js-activity-grid");
+        }
+    }
+
     private void OnStoreChanged()
     {
         _db = Store.Db;
@@ -314,11 +331,10 @@ else
 
     private void CloseOverlay() => _overlayOpen = false;
 
-    private void SelectActivity(ActivitySymbol a)
+    private async Task SelectActivity(ActivitySymbol a)
     {
         _selectedActivity = a;
-        // Update dots immediately
-        InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     private static string GetActivityIcon(ActivitySymbol a) => a switch

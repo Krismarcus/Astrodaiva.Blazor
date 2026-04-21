@@ -2,32 +2,93 @@
 @inherits LayoutComponentBase
 @inject Microsoft.JSInterop.IJSRuntime JS
 @inject NavigationManager Nav
+@inject Astrodaiva.Blazor.Services.AdminAccessService AdminAccess
 @using System.Globalization
 
-<div class="header">
-  <div class="header-row">
-    <div>
-      <h1>Astrodaiva</h1>
-      <nav>
-        <NavLink href="" Match="NavLinkMatch.All">@(IsLt ? "Pradžia" : "Home")</NavLink> ·
-        <NavLink href="year">@(IsLt ? "Metai" : "Year")</NavLink> ·
-        <NavLink href="admin">Admin</NavLink>
-      </nav>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="header-row">
+      <div class="brand-block">
+        <button type="button"
+                class="brand-trigger"
+                title="Astrodaiva"
+                @onclick="HandleBrandClick">
+          <span class="brand-mark"></span>
+          <span class="brand-text-wrap">
+            <span class="brand-title">Astrodaiva</span>
+            <span class="brand-subtitle">@(IsLt ? "Gyvoji astrologija" : "Living astrology")</span>
+          </span>
+        </button>
+
+        <nav class="main-nav @(IsYearPage ? "is-year" : "is-home")">
+          <span class="main-nav__slider" aria-hidden="true"></span>
+          <NavLink class="main-nav__link" href="" Match="NavLinkMatch.All">@(IsLt ? "Pradžia" : "Home")</NavLink>
+          <NavLink class="main-nav__link" href="year">@(IsLt ? "Metai" : "Year")</NavLink>
+        </nav>
+      </div>
+
+      <div class="header-actions">
+        <div class="lang-switcher">
+          <button type="button" class="lang-btn @(IsLt ? "active" : null)" @onclick="SetLt">LT</button>
+          <button type="button" class="lang-btn @(!IsLt ? "active" : null)" @onclick="SetEn">EN</button>
+        </div>
+      </div>
     </div>
-    <div class="lang-switcher">
-      <button type="button" class="lang-btn @(IsLt ? "active" : null)" @onclick="SetLt">LT</button>
-      <button type="button" class="lang-btn @(!IsLt ? "active" : null)" @onclick="SetEn">EN</button>
+  </header>
+
+  <main class="container app-main">
+    <div class="body">
+      @Body
     </div>
-  </div>
-</div>
-<div class="container">
-  <div class="body">
-    @Body
-  </div>
+  </main>
 </div>
 
+@if (_showAdminPrompt)
+{
+  <div class="admin-gate" role="dialog" aria-modal="true">
+    <div class="admin-gate__backdrop" @onclick="CloseAdminPrompt"></div>
+    <div class="admin-gate__panel">
+      <div class="admin-gate__header">
+        <div>
+          <div class="admin-gate__eyebrow">@(IsLt ? "Privati prieiga" : "Private access")</div>
+          <div class="admin-gate__title">@(IsLt ? "Įveskite administratoriaus slaptažodį" : "Enter admin password")</div>
+        </div>
+        <button type="button" class="admin-gate__close" @onclick="CloseAdminPrompt">✕</button>
+      </div>
+
+      <div class="admin-gate__body">
+        <input type="password"
+               class="admin-gate__input"
+               placeholder="@(IsLt ? "Slaptažodis" : "Password")"
+               @bind="_adminPassword"
+               @bind:event="oninput"
+               @onkeydown="OnAdminPasswordKeyDown" />
+
+        @if (!string.IsNullOrWhiteSpace(_adminError))
+        {
+          <div class="admin-gate__error">@_adminError</div>
+        }
+
+        <div class="admin-gate__hint">
+          @(IsLt ? "Atidarymui: Shift + Alt + spustelėjimas ant Astrodaiva ženklo." : "To open: Shift + Alt + click the Astrodaiva mark.")
+        </div>
+
+        <div class="admin-gate__actions">
+          <button type="button" class="lang-btn" @onclick="CloseAdminPrompt">@(IsLt ? "Uždaryti" : "Close")</button>
+          <button type="button" class="lang-btn active" @onclick="UnlockAdmin">@(IsLt ? "Atidaryti" : "Unlock")</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
 @code {
+    private bool _showAdminPrompt;
+    private string _adminPassword = "";
+    private string _adminError = "";
+
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private bool IsYearPage => Nav.Uri.Contains("/year", StringComparison.OrdinalIgnoreCase);
 
     private Task SetLt() => SetCulture("lt-LT");
     private Task SetEn() => SetCulture("en-US");
@@ -37,11 +98,40 @@
         await JS.InvokeAsync<object>("blazorCulture.set", culture);
         Nav.NavigateTo(Nav.Uri, forceLoad: true);
     }
-}
 
-<style>
-.header-row { display:flex; align-items:center; justify-content:space-between; gap:16px; }
-.lang-switcher { display:flex; gap:6px; }
-.lang-btn { border:1px solid #cfcfcf; background:#fff; border-radius:999px; padding:6px 10px; cursor:pointer; }
-.lang-btn.active { font-weight:700; border-color:#666; }
-</style>
+    private void HandleBrandClick(MouseEventArgs e)
+    {
+        if (e.ShiftKey && e.AltKey)
+        {
+            _adminPassword = "";
+            _adminError = "";
+            _showAdminPrompt = true;
+        }
+    }
+
+    private void CloseAdminPrompt()
+    {
+        _showAdminPrompt = false;
+        _adminPassword = "";
+        _adminError = "";
+    }
+
+    private async Task OnAdminPasswordKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await UnlockAdmin();
+    }
+
+    private async Task UnlockAdmin()
+    {
+        var ok = await AdminAccess.UnlockAsync(_adminPassword);
+        if (!ok)
+        {
+            _adminError = IsLt ? "Neteisingas slaptažodis." : "Wrong password.";
+            return;
+        }
+
+        CloseAdminPrompt();
+        Nav.NavigateTo("/admin");
+    }
+}

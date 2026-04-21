@@ -16,8 +16,21 @@
 @inject AstroApiClient Api
 @inject IJSRuntime JS
 @inject HttpClient Http
+@inject NavigationManager Nav
+@inject AdminAccessService AdminAccess
 
+@if (!_accessChecked)
+{
+    <div class="card">Checking access…</div>
+}
+else if (!_accessGranted)
+{
+    <div class="card">Redirecting…</div>
+}
+else
+{
 <h2 class="admin-title">Admin – AstroEvents</h2>
+
 
 <div class="admin-toolbar">
     <div class="date-nav">
@@ -449,7 +462,27 @@ else
     }
 }
 
+
+}
+
 @code {
+    private bool _accessChecked;
+    private bool _accessGranted;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        _accessGranted = await AdminAccess.IsUnlockedAsync();
+        _accessChecked = true;
+        StateHasChanged();
+
+        if (!_accessGranted)
+        {
+            Nav.NavigateTo("/", forceLoad: false);
+        }
+    }
+
     private bool _loading = true;
     private string _error = string.Empty;
 
