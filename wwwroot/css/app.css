@@ -495,101 +495,29 @@ a {
 }
 
 @media (max-width: 520px) {
-    .app-header {
-        padding: 8px 8px 4px;
-    }
-
-    .header-row {
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 18px;
-    }
-
-    .brand-block {
-        gap: 10px;
-    }
-
-    .main-nav {
-        min-width: 0;
-        width: 100%;
-        padding: 4px;
-    }
-
-    .main-nav__slider {
-        top: 4px;
-        left: 4px;
-        width: calc(50% - 4px);
-        height: calc(100% - 8px);
-    }
-
-    .main-nav__link,
-    .main-nav a {
-        padding: 8px 10px;
-    }
-
-    .header-actions {
-        gap: 6px;
-    }
-
-    .lang-switcher {
-        padding: 3px;
-    }
-
-    .lang-btn {
-        padding: 7px 12px;
-    }
-
-    .split-2 {
-        padding: 8px;
-        gap: 10px;
-        border-radius: 18px;
-    }
-
-    .calendar-shell {
-        padding: 8px;
-        border-radius: 16px;
-    }
-
-    .month-header,
-    .month-header--inside {
-        padding: 6px 8px;
-        margin-bottom: 8px;
-        border-radius: 14px;
-    }
-
-    .weekday-header,
-    .tabs-strip-grid {
-        gap: 6px;
-    }
-
-    .weekday-header {
-        margin-bottom: 4px;
-    }
-
     .activity-selector--inline {
-        padding: 8px;
-        border-radius: 16px;
+        padding: .8rem;
+        border-radius: 18px;
     }
 
     .activity-grid {
-        --activity-gap: 6px;
-        --activity-pad: 6px;
+        --activity-gap: 8px;
         grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: var(--activity-gap);
-        border-radius: 18px;
+        border-radius: 20px;
     }
 
     .activity-grid__slider,
     .activity-btn {
-        border-radius: 14px;
+        border-radius: 16px;
     }
 
     .activity-btn {
-        min-height: 62px;
-        padding: 8px 4px;
+        min-height: 66px;
+        padding: 10px 6px;
     }
 
-    .activity-btn__label { font-size: 10px; }
+    .activity-btn__label { font-size: 11px; }
 }
 
 
@@ -1201,9 +1129,8 @@ a {
 
     .split-2 {
         grid-template-columns: 1fr;
-        padding: 10px;
-        gap: 12px;
-        border-radius: 22px;
+        padding: var(--space-2);
+        gap: var(--space-4);
     }
 
     .desktop-right {
@@ -1211,20 +1138,11 @@ a {
     }
 
     .tabs-panel {
-        gap: 10px;
-        padding: 0;
+        gap: var(--space-3);
     }
 
-    .calendar-shell {
-        padding: 10px;
-        border-radius: 18px;
-    }
-
-    .month-header,
-    .month-header--inside {
-        padding: 8px 10px;
-        margin-bottom: 10px;
-        border-radius: 16px;
+    .month-header {
+        padding: var(--space-2);
     }
 
     /* Calendar: 7 columns, mobile gaps; perfect squares already applied */
@@ -1275,6 +1193,29 @@ a {
     .activity-selector--inline {
         padding: 10px;
         border-radius: 18px;
+    }
+
+    .tabs-strip-grid {
+        gap: var(--DayCellGapMobile);
+    }
+
+    .daycard {
+        --DayCardPadX: clamp(2px, 1vw, 5px);
+        --DayCardPadTop: clamp(2px, 0.9vw, 5px);
+        --DayCardPadBottom: clamp(8px, 2vw, 12px);
+        --DayCardGap: 1px;
+        --DayNumSize: clamp(10px, 2.7vw, 13px);
+        --DayIconMaxW: 96%;
+        --DayIconMaxH: 84%;
+        --DayIndicatorSize: clamp(6px, 1.5vw, 9px);
+        border-radius: 15px;
+        aspect-ratio: 1 / 1.28;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 14px rgba(7,66,82,.12);
+    }
+
+    .daycard-icon img {
+        max-width: var(--DayIconMaxW);
+        max-height: var(--DayIconMaxH);
     }
 
     /* Show overlay only on mobile when flagged open */
@@ -1704,22 +1645,27 @@ body {
 
 @media (max-width: 900px) {
     .app-header {
-        padding: 10px 10px 6px;
+        padding: 14px 14px 8px;
     }
 
     .header-row {
-        padding: 12px;
+        padding: 14px;
         border-radius: 20px;
     }
 
     .brand-block {
-        gap: 12px;
+        gap: 14px;
     }
 
     .main-nav {
         width: 100%;
         justify-content: flex-start;
         overflow-x: auto;
+    }
+
+    .calendar-shell {
+        padding: var(--space-3);
+        border-radius: 18px;
     }
 
     .md-timeline {
