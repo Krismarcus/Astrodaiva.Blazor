@@ -140,6 +140,7 @@ namespace Astrodaiva.Blazor.Utils
             ActivitySymbol.Love => "Meilė",
             ActivitySymbol.Meetings => "Susitikimai",
             ActivitySymbol.NewIdeas => "Naujos idėjos",
+            ActivitySymbol.Gardening => "Sodininkystė",
             ActivitySymbol.Technologies => "Technologijos",
             ActivitySymbol.Travel => "Kelionės",
             _ => symbol.ToString()

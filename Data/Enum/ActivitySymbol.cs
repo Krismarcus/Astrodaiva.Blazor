@@ -16,6 +16,7 @@ namespace Astrodaiva.Data.Enums
         Love,
         Meetings,
         NewIdeas,              
+        Gardening,
         Technologies,
         Travel,
     }

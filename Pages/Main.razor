@@ -142,15 +142,15 @@ else
     private ActivitySymbol _selectedActivity = ActivitySymbol.ImportantTasks;
     private static readonly ActivitySymbol[] _activities = new[]
     {
-        ActivitySymbol.Barber,
-        ActivitySymbol.Beauty,
-        ActivitySymbol.BuyStuff,
-        ActivitySymbol.Contracts,
         ActivitySymbol.ImportantTasks,
-        ActivitySymbol.Love,
+        ActivitySymbol.Contracts,
+        ActivitySymbol.BuyStuff,
         ActivitySymbol.Meetings,
-        ActivitySymbol.NewIdeas,
         ActivitySymbol.Technologies,
+        ActivitySymbol.Love,
+        ActivitySymbol.Beauty,
+        ActivitySymbol.Barber,
+        ActivitySymbol.Gardening,
         ActivitySymbol.Travel,
     };
 
@@ -331,6 +331,7 @@ else
         ActivitySymbol.Love => "❤️",
         ActivitySymbol.Meetings => "🤝",
         ActivitySymbol.NewIdeas => "💡",
+        ActivitySymbol.Gardening => "🪴",
         ActivitySymbol.Technologies => "💻",
         ActivitySymbol.Travel => "✈️",
         _ => "•"
@@ -342,13 +343,13 @@ else
             {
                 ActivitySymbol.BuyStuff => "Pirkti",
                 ActivitySymbol.ImportantTasks => "Darbai",
-                ActivitySymbol.NewIdeas => "Idėjos",
                 ActivitySymbol.Technologies => "Tech",
                 ActivitySymbol.Meetings => "Susit.",
                 ActivitySymbol.Contracts => "Sutart.",
                 ActivitySymbol.Barber => "Kirpyk.",
                 ActivitySymbol.Beauty => "Grožis",
                 ActivitySymbol.Love => "Meilė",
+                ActivitySymbol.Gardening => "Sod.",
                 ActivitySymbol.Travel => "Kel.",
                 _ => EnumText.GetActivityName(a)
             }
@@ -356,13 +357,13 @@ else
             {
                 ActivitySymbol.BuyStuff => "Buy",
                 ActivitySymbol.ImportantTasks => "Tasks",
-                ActivitySymbol.NewIdeas => "Ideas",
                 ActivitySymbol.Technologies => "Tech",
                 ActivitySymbol.Meetings => "Meet",
                 ActivitySymbol.Contracts => "Contracts",
                 ActivitySymbol.Barber => "Barber",
                 ActivitySymbol.Beauty => "Beauty",
                 ActivitySymbol.Love => "Love",
+                ActivitySymbol.Gardening => "Gardening",
                 ActivitySymbol.Travel => "Travel",
                 _ => EnumText.GetActivityName(a)
             };
@@ -380,6 +381,7 @@ else
             ActivitySymbol.Love => e.Love,
             ActivitySymbol.Meetings => e.Meetings,
             ActivitySymbol.NewIdeas => e.NewIdeas,
+            ActivitySymbol.Gardening => e.Gardening,
             ActivitySymbol.Technologies => e.Tech,
             ActivitySymbol.Travel => e.Travel,
             _ => ActivityQuality.None
