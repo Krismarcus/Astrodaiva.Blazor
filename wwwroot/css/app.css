@@ -46,9 +46,9 @@
     --SunMoonBadge: clamp(28px, 2.5vw, 48px);
     --ZodiacIconSize: clamp(40px, 3.5vw, 96px);
     /* Home background gradient (like the app mockups) */
-    --PageGradientTop: #F8FCD1;
-    --PageGradientMid: #CFEAD0;
-    --PageGradientBottom: #48A6B1;
+    --PageGradientTop: #F6F9DD;
+    --PageGradientMid: #D8EBD7;
+    --PageGradientBottom: #6AAEB4;
     /* 8pt spacing system */
     --space-1: 4px;
     --space-2: 8px;
@@ -128,7 +128,7 @@ a {
 .split-2 {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
-    gap: var(--space-6);
+    gap: var(--space-5);
     align-items: start;
 }
 
@@ -193,7 +193,7 @@ a {
 .desktop-right{
     position: relative;
     z-index: 1;
-    padding-left: .25rem;
+    padding-left: .15rem;
 }
 
 /* Weekday header + calendar grid */
@@ -1116,6 +1116,72 @@ a {
 /* ========================
    RESPONSIVE (Mobile tweaks)
 ======================== */
+
+/* ========================
+   SMALL MOBILE WIDTH RECOVERY
+======================== */
+@media (max-width: 640px) {
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .card {
+        padding: 12px;
+        border-radius: 18px;
+    }
+
+    .card.split-2 {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .tabs-panel,
+    .desktop-right {
+        padding: 4px;
+    }
+
+    .weekday-header {
+        margin-bottom: 6px;
+    }
+
+    .weekday-header,
+    .tabs-strip-grid {
+        gap: 4px;
+    }
+
+    .activity-selector--inline {
+        margin-top: 2px;
+        padding-top: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    .container {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    .card {
+        padding: 10px;
+    }
+
+    .card.split-2 {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .tabs-panel,
+    .desktop-right {
+        padding: 2px;
+    }
+
+    .weekday-header,
+    .tabs-strip-grid {
+        gap: 3px;
+    }
+}
+
 @media (max-width: 900px) {
     /* Single column; hide desktop right on small screens */
     .container {
