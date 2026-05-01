@@ -30,18 +30,25 @@
         };
 
         window.adminAccess = {
-            isUnlocked: function (storageKey) {
-                return window.localStorage.getItem(storageKey) === "1";
-            },
-            unlock: function (storageKey, password) {
-                const ok = password === "labas88";
-                if (ok) {
-                    window.localStorage.setItem(storageKey, "1");
+            getToken: function (tokenKey, expiresKey) {
+                const token = window.sessionStorage.getItem(tokenKey);
+                const expiresUtc = window.sessionStorage.getItem(expiresKey);
+
+                if (!token || !expiresUtc || Date.parse(expiresUtc) <= Date.now()) {
+                    window.sessionStorage.removeItem(tokenKey);
+                    window.sessionStorage.removeItem(expiresKey);
+                    return "";
                 }
-                return ok;
+
+                return token;
             },
-            lock: function (storageKey) {
-                window.localStorage.removeItem(storageKey);
+            setToken: function (tokenKey, expiresKey, token, expiresUtc) {
+                window.sessionStorage.setItem(tokenKey, token || "");
+                window.sessionStorage.setItem(expiresKey, expiresUtc || "");
+            },
+            lock: function (tokenKey, expiresKey) {
+                window.sessionStorage.removeItem(tokenKey);
+                window.sessionStorage.removeItem(expiresKey);
             }
         };
 

@@ -8,8 +8,8 @@ namespace Astrodaiva.Blazor.Services;
 /// Single source of truth for the AppDB JSON in the Blazor client.
 ///
 /// Load order:
-/// 1) Local wwwroot/data/astrodb.json (fast, always available on GH Pages)
-/// 2) Default snapshot from API (if present) – overrides local
+/// 1) Default snapshot from API (if present and quick)
+/// 2) Local wwwroot/data/astrodb.json fallback (fast, always available on GH Pages)
 /// </summary>
 public class AstroDbStore
 {
@@ -17,6 +17,7 @@ public class AstroDbStore
     private readonly AstroApiClient _api;
 
     private bool _apiRefreshStarted;
+    private bool _serverUnavailableNotified;
     private Task? _apiRefreshTask;
 
     public AstroDbStore(HttpClient localHttp, AstroApiClient api)
@@ -29,6 +30,7 @@ public class AstroDbStore
     public bool IsLoaded => Db is not null;
 
     public event Action? Changed;
+    public event Action? ServerUnavailable;
 
     public async Task<AppDB?> EnsureLoadedAsync()
     {
@@ -48,17 +50,13 @@ public class AstroDbStore
             var completed = await Task.WhenAny(apiTask, Task.Delay(apiTimeoutMs));
             if (completed == apiTask)
             {
-                var json = await apiTask; // may be null/empty when no snapshot exists
-                if (!string.IsNullOrWhiteSpace(json))
-                {
-                    var apiDb = Deserialize(json);
-                    if (apiDb is not null)
-                    {
-                        Db = apiDb;
-                        Changed?.Invoke();
-                        return Db;
-                    }
-                }
+                var result = await apiTask; // may be empty when no snapshot exists
+                if (result.IsServerUnavailable)
+                    NotifyServerUnavailable();
+
+                if (TryApplyApiSnapshot(result.Json))
+                    return Db;
+
                 // No snapshot (or failed to deserialize) -> fall through to local JSON.
             }
             else
@@ -69,23 +67,25 @@ public class AstroDbStore
                     try
                     {
                         if (t.Status != TaskStatus.RanToCompletion) return;
-                        var json = t.Result;
-                        if (string.IsNullOrWhiteSpace(json)) return;
-                        var apiDb = Deserialize(json);
-                        if (apiDb is null) return;
-                        Db = apiDb;
-                        Changed?.Invoke();
+                        var result = t.Result;
+                        if (result.IsServerUnavailable)
+                        {
+                            NotifyServerUnavailable();
+                            return;
+                        }
+
+                        TryApplyApiSnapshot(result.Json);
                     }
                     catch
                     {
-                        // ignore
+                        NotifyServerUnavailable();
                     }
                 });
             }
         }
         catch
         {
-            // Ignore API failures; we'll fall back to local JSON.
+            NotifyServerUnavailable();
         }
 
         // Fallback: local JSON (single canonical location)
@@ -114,19 +114,64 @@ public class AstroDbStore
     {
         try
         {
-            var json = await _api.TryGetDefaultSnapshotJsonAsync();
-            if (string.IsNullOrWhiteSpace(json)) return;
+            var result = await _api.TryGetDefaultSnapshotJsonAsync();
+            if (result.IsServerUnavailable)
+            {
+                NotifyServerUnavailable();
+                return;
+            }
 
-            var apiDb = Deserialize(json);
-            if (apiDb is null) return;
-
-            Db = apiDb;
-            Changed?.Invoke();
+            TryApplyApiSnapshot(result.Json);
         }
         catch
         {
-            // Ignore API failures (common on GitHub Pages if ApiBaseUrl is not configured).
+            NotifyServerUnavailable();
         }
+    }
+
+    public async Task<bool> RetryDefaultSnapshotAsync()
+    {
+        try
+        {
+            var result = await _api.TryGetDefaultSnapshotJsonAsync();
+            if (result.IsServerUnavailable)
+            {
+                NotifyServerUnavailable(force: true);
+                return false;
+            }
+
+            _serverUnavailableNotified = false;
+            TryApplyApiSnapshot(result.Json);
+            return true;
+        }
+        catch
+        {
+            NotifyServerUnavailable(force: true);
+            return false;
+        }
+    }
+
+    private bool TryApplyApiSnapshot(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return false;
+
+        var apiDb = Deserialize(json);
+        if (apiDb is null)
+            return false;
+
+        Db = apiDb;
+        _serverUnavailableNotified = false;
+        Changed?.Invoke();
+        return true;
+    }
+
+    private void NotifyServerUnavailable(bool force = false)
+    {
+        if (_serverUnavailableNotified && !force) return;
+
+        _serverUnavailableNotified = true;
+        ServerUnavailable?.Invoke();
     }
 
     public async Task<AppDB?> ReloadFromLocalAsync()

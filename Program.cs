@@ -34,7 +34,7 @@ builder.Services.AddScoped(sp =>
     var http = new HttpClient
     {
         BaseAddress = new Uri(apiBase),
-        Timeout = TimeSpan.FromSeconds(8)
+        Timeout = TimeSpan.FromSeconds(35)
     };
 
     return new AstroApiClient(http);

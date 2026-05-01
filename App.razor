@@ -25,12 +25,28 @@ else
     </Router>
 }
 
+@if (_showServerSnackbar)
+{
+    <div class="app-snackbar" role="status" aria-live="polite">
+        <span class="app-snackbar__message">Server is unavailable</span>
+        <span class="app-snackbar__actions">
+            <button type="button" class="app-snackbar__button" @onclick="DismissServerSnackbar">OK</button>
+            <button type="button" class="app-snackbar__button app-snackbar__button--retry" @onclick="RetryServerConnection" disabled="@_isRetryingServer">
+                Retry
+            </button>
+        </span>
+    </div>
+}
+
 @code {
     private bool _bootAttempted;
+    private bool _showServerSnackbar;
+    private bool _isRetryingServer;
 
     protected override async Task OnInitializedAsync()
     {
         Store.Changed += OnStoreChanged;
+        Store.ServerUnavailable += OnServerUnavailable;
 
         // Kick off a single, app-wide load attempt (same Store instance for all pages).
         await Store.EnsureLoadedAsync();
@@ -40,8 +56,39 @@ else
 
     private void OnStoreChanged() => InvokeAsync(StateHasChanged);
 
+    private void OnServerUnavailable()
+    {
+        _showServerSnackbar = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void DismissServerSnackbar()
+    {
+        _showServerSnackbar = false;
+    }
+
+    private async Task RetryServerConnection()
+    {
+        if (_isRetryingServer)
+            return;
+
+        _isRetryingServer = true;
+        StateHasChanged();
+
+        try
+        {
+            var serverReached = await Store.RetryDefaultSnapshotAsync();
+            _showServerSnackbar = !serverReached;
+        }
+        finally
+        {
+            _isRetryingServer = false;
+        }
+    }
+
     public void Dispose()
     {
         Store.Changed -= OnStoreChanged;
+        Store.ServerUnavailable -= OnServerUnavailable;
     }
 }
