@@ -93,7 +93,7 @@ else
                                 title="@activityTitle"
                                 @onclick="(() => SelectActivity(a))">
                             <span class="activity-btn__icon" aria-hidden="true">
-                                <span class="activity-icon-img" style="@GetActivityIconStyle(a)"></span>
+                                <img class="activity-icon-img" src="@GetActivityIconPath(a)" alt="" />
                             </span>
                             <span class="activity-btn__label">@GetActivityShortLabel(a)</span>
                         </button>
@@ -355,9 +355,6 @@ else
         _ => "img/activity/tasks.svg"
     };
 
-    private static string GetActivityIconStyle(ActivitySymbol a)
-        => $"--activity-icon: url('{GetActivityIconPath(a)}')";
-
     private static string GetActivityShortLabel(ActivitySymbol a)
         => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt"
             ? EnumText.GetActivityName(a)
@@ -424,10 +421,10 @@ else
             {
                 var cls = x.Q == ActivityQuality.Good ? "tag-good" : "tag-bad";
                 var title = EnumText.GetActivityName(x.A);
-                var iconStyle = WebUtility.HtmlEncode(GetActivityIconStyle(x.A));
+                var iconPath = WebUtility.HtmlEncode(GetActivityIconPath(x.A));
                 var safeTitle = WebUtility.HtmlEncode(title);
                 return $@"<div class=""gb-tag {cls}"" title=""{safeTitle}"">
-                        <span class=""gb-tag__icon"" aria-hidden=""true""><span class=""activity-icon-img"" style=""{iconStyle}""></span></span>
+                        <span class=""gb-tag__icon"" aria-hidden=""true""><img class=""activity-icon-img"" src=""{iconPath}"" alt="""" /></span>
                         <span class=""gb-tag__label"">{safeTitle}</span>
                       </div>";
             })

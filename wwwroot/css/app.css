@@ -9,6 +9,8 @@
     --PrimaryDarkText: #074252;
     --ActivityIconColor: #074252;
     --ActivityIconSelectedColor: #F8FCD1;
+    --ActivityIconFilter: brightness(0) saturate(100%) invert(18%) sepia(27%) saturate(1917%) hue-rotate(153deg) brightness(89%) contrast(96%);
+    --ActivityIconSelectedFilter: brightness(0) saturate(100%) invert(95%) sepia(14%) saturate(702%) hue-rotate(18deg) brightness(104%) contrast(98%);
     --PrimaryBackground: #074252;
     --SecondaryBackground: #48A6B1;
     --LightOrangeBackground: #f0c986;
@@ -478,6 +480,10 @@ a {
     color: var(--ActivityIconSelectedColor);
 }
 
+.activity-btn.selected .activity-icon-img {
+    filter: var(--ActivityIconSelectedFilter);
+}
+
 .activity-btn:not(.selected):hover {
     background: rgba(255,255,255,.28);
     border-color: rgba(7,66,82,.08);
@@ -495,11 +501,10 @@ a {
 }
 
 .activity-icon-img {
-    background-color: currentColor;
     display: block;
+    filter: var(--ActivityIconFilter);
     height: 100%;
-    mask: var(--activity-icon) center / contain no-repeat;
-    -webkit-mask: var(--activity-icon) center / contain no-repeat;
+    object-fit: contain;
     width: 100%;
 }
 .activity-btn__label {
