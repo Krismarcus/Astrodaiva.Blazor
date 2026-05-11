@@ -92,7 +92,9 @@ else
                                 class="activity-btn @sel" data-activity-btn="true"
                                 title="@activityTitle"
                                 @onclick="(() => SelectActivity(a))">
-                            <span class="activity-btn__icon">@GetActivityIcon(a)</span>
+                            <span class="activity-btn__icon" aria-hidden="true">
+                                <img class="activity-icon-img" src="@GetActivityIconPath(a)" alt="" />
+                            </span>
                             <span class="activity-btn__label">@GetActivityShortLabel(a)</span>
                         </button>
                     }
@@ -337,20 +339,20 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    private static string GetActivityIcon(ActivitySymbol a) => a switch
+    private static string GetActivityIconPath(ActivitySymbol a) => a switch
     {
-        ActivitySymbol.Barber => "💇",
-        ActivitySymbol.Beauty => "💄",
-        ActivitySymbol.BuyStuff => "🛍️",
-        ActivitySymbol.Contracts => "📝",
-        ActivitySymbol.ImportantTasks => "✅",
-        ActivitySymbol.Love => "❤️",
-        ActivitySymbol.Meetings => "🤝",
-        ActivitySymbol.NewIdeas => "💡",
-        ActivitySymbol.Gardening => "🪴",
-        ActivitySymbol.Technologies => "💻",
-        ActivitySymbol.Travel => "✈️",
-        _ => "•"
+        ActivitySymbol.Barber => "img/activity/barber.svg",
+        ActivitySymbol.Beauty => "img/activity/beauty.svg",
+        ActivitySymbol.BuyStuff => "img/activity/shopping.svg",
+        ActivitySymbol.Contracts => "img/activity/contracts.svg",
+        ActivitySymbol.ImportantTasks => "img/activity/tasks.svg",
+        ActivitySymbol.Love => "img/activity/love.svg",
+        ActivitySymbol.Meetings => "img/activity/meetings.svg",
+        ActivitySymbol.NewIdeas => "img/activity/ideas.svg",
+        ActivitySymbol.Gardening => "img/activity/garden.svg",
+        ActivitySymbol.Technologies => "img/activity/tech.svg",
+        ActivitySymbol.Travel => "img/activity/travel.svg",
+        _ => "img/activity/tasks.svg"
     };
 
     private static string GetActivityShortLabel(ActivitySymbol a)
@@ -419,10 +421,11 @@ else
             {
                 var cls = x.Q == ActivityQuality.Good ? "tag-good" : "tag-bad";
                 var title = EnumText.GetActivityName(x.A);
-                var icon = GetActivityIcon(x.A);
-                return $@"<div class=""gb-tag {cls}"" title=""{title}"">
-                        <span class=""gb-tag__icon"">{icon}</span>
-                        <span class=""gb-tag__label"">{title}</span>
+                var iconPath = WebUtility.HtmlEncode(GetActivityIconPath(x.A));
+                var safeTitle = WebUtility.HtmlEncode(title);
+                return $@"<div class=""gb-tag {cls}"" title=""{safeTitle}"">
+                        <span class=""gb-tag__icon"" aria-hidden=""true""><img class=""activity-icon-img"" src=""{iconPath}"" alt="""" /></span>
+                        <span class=""gb-tag__label"">{safeTitle}</span>
                       </div>";
             })
             .ToList();
