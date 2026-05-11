@@ -483,10 +483,16 @@ a {
     transition: color .18s ease, opacity .18s ease, transform .18s ease;
 }
 .activity-btn__label {
+    display: block;
+    max-width: 100%;
     font-size: 12px;
     font-weight: 700;
+    line-height: 1.15;
     opacity: .88;
+    overflow-wrap: anywhere;
+    text-align: center;
     transition: color .18s ease, opacity .18s ease;
+    white-space: normal;
 }
 
 .activity-btn:hover .activity-btn__icon,
@@ -513,11 +519,14 @@ a {
     }
 
     .activity-btn {
-        min-height: 66px;
-        padding: 10px 6px;
+        min-height: 74px;
+        padding: 9px 4px;
     }
 
-    .activity-btn__label { font-size: 11px; }
+    .activity-btn__label {
+        font-size: 10px;
+        line-height: 1.1;
+    }
 }
 
 

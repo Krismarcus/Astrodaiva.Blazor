@@ -355,20 +355,7 @@ else
 
     private static string GetActivityShortLabel(ActivitySymbol a)
         => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt"
-            ? a switch
-            {
-                ActivitySymbol.BuyStuff => "Pirkti",
-                ActivitySymbol.ImportantTasks => "Darbai",
-                ActivitySymbol.Technologies => "Tech",
-                ActivitySymbol.Meetings => "Susit.",
-                ActivitySymbol.Contracts => "Sutart.",
-                ActivitySymbol.Barber => "Kirpyk.",
-                ActivitySymbol.Beauty => "Grožis",
-                ActivitySymbol.Love => "Meilė",
-                ActivitySymbol.Gardening => "Sod.",
-                ActivitySymbol.Travel => "Kel.",
-                _ => EnumText.GetActivityName(a)
-            }
+            ? EnumText.GetActivityName(a)
             : a switch
             {
                 ActivitySymbol.BuyStuff => "Buy",
