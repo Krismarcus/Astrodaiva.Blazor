@@ -1,23 +1,40 @@
 ﻿/* ========================
    THEME & TOKENS
 ======================== */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
-    --ShadedBackground: #F9F9F7;
-    --Primary: #074252;
-    --PrimaryDark: #ac99ea;
-    --PrimaryLightText: #F8FCD1;
-    --PrimaryDarkText: #074252;
-    --PrimaryBackground: #074252;
-    --SecondaryBackground: #48A6B1;
-    --LightOrangeBackground: #f0c986;
-    --LightBlueBackground: #c3e9f8;
+    --color-bg-main: #F7F5F1;
+    --color-bg-panel: #E8EEE8;
+    --color-bg-selected: #D7E2D6;
+    --color-warm-sand: #DDD2C2;
+    --color-champagne: #E9DDC7;
+    --color-accent-gold: #BE9B62;
+    --color-teal-dark: #254844;
+    --color-teal-muted: #55736C;
+    --color-text-primary: #2A3533;
+    --color-text-secondary: #6A7571;
+    --color-border: #D8DDD7;
+    --color-positive: #7FA58D;
+    --color-negative: #C98A6A;
+    --font-heading: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    --font-ui: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --ShadedBackground: rgba(247,245,241,.72);
+    --Primary: var(--color-teal-dark);
+    --PrimaryDark: var(--color-accent-gold);
+    --PrimaryLightText: var(--color-bg-main);
+    --PrimaryDarkText: var(--color-text-primary);
+    --PrimaryBackground: var(--color-teal-dark);
+    --SecondaryBackground: var(--color-bg-panel);
+    --LightOrangeBackground: var(--color-champagne);
+    --LightBlueBackground: var(--color-bg-selected);
     --GreyBackground: #919191;
-    --DarkBlueBackground: #08385a;
-    --Secondary: #074252;
-    --SecondaryDarkText: #9880e5;
-    --Tertiary: #2B0B98;
-    --GreenGlowEffect: #04c8c7;
-    --RedGlowEffect: #babcbb;
+    --DarkBlueBackground: var(--color-teal-dark);
+    --Secondary: var(--color-teal-muted);
+    --SecondaryDarkText: var(--color-text-secondary);
+    --Tertiary: var(--color-accent-gold);
+    --GreenGlowEffect: var(--color-positive);
+    --RedGlowEffect: var(--color-negative);
     --White: #fff;
     --Black: #000;
     --Magenta: #D600AA;
@@ -46,9 +63,9 @@
     --SunMoonBadge: clamp(28px, 2.5vw, 48px);
     --ZodiacIconSize: clamp(40px, 3.5vw, 96px);
     /* Home background gradient (like the app mockups) */
-    --PageGradientTop: #F6F9DD;
-    --PageGradientMid: #D8EBD7;
-    --PageGradientBottom: #6AAEB4;
+    --PageGradientTop: var(--color-bg-main);
+    --PageGradientMid: var(--color-bg-panel);
+    --PageGradientBottom: var(--color-warm-sand);
     /* 8pt spacing system */
     --space-1: 4px;
     --space-2: 8px;
@@ -61,8 +78,8 @@
     --radius-sm: 12px;
     --radius-md: 16px;
     --radius-lg: 24px;
-    --shadow-soft: 0 12px 28px rgba(7,66,82,.10);
-    --shadow-card: 0 18px 40px rgba(19,46,54,.12);
+    --shadow-soft: 0 14px 34px rgba(37,72,68,.08);
+    --shadow-card: 0 22px 54px rgba(42,53,51,.10);
 }
 
 /* ========================
@@ -1821,5 +1838,373 @@ body {
     .md-side img {
         width: clamp(52px, 14vw, 72px);
         height: clamp(52px, 14vw, 72px);
+    }
+}
+
+/* ========================
+   PREMIUM CALM THEME PASS
+   Token-driven visual refresh only.
+======================== */
+html,
+body {
+    background: linear-gradient(180deg, var(--color-bg-main) 0%, var(--color-bg-panel) 100%);
+    color: var(--color-text-primary);
+    font-family: var(--font-ui);
+    text-rendering: geometricPrecision;
+}
+
+.app-shell::before {
+    background:
+        radial-gradient(circle at 10% 4%, rgba(233,221,199,.38) 0, rgba(233,221,199,0) 30%),
+        radial-gradient(circle at 92% 12%, rgba(215,226,214,.44) 0, rgba(215,226,214,0) 32%),
+        linear-gradient(180deg, rgba(190,155,98,.035), rgba(37,72,68,.025));
+}
+
+.header-row,
+.card,
+.calendar-shell,
+.activity-selector--inline,
+.info-modal__panel,
+.admin-gate__panel {
+    background: rgba(247,245,241,.78);
+    border-color: rgba(216,221,215,.92);
+    box-shadow: var(--shadow-card);
+}
+
+.header-row {
+    border-radius: var(--radius-lg);
+}
+
+.brand-title,
+.month-title,
+.day-layout .month-row,
+.day-layout .daynum-row,
+.info-modal__title,
+.admin-gate__title {
+    font-family: var(--font-heading);
+    color: var(--color-text-primary);
+}
+
+.brand-title {
+    font-size: clamp(1.55rem, 1.7vw, 2.1rem);
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.brand-subtitle,
+.weekday-cell,
+.activity-selector__title,
+.day-layout .weekday-row,
+.admin-gate__eyebrow,
+.admin-gate__hint,
+.muted {
+    color: var(--color-text-secondary);
+}
+
+.brand-mark {
+    background:
+        radial-gradient(circle at 30% 30%, var(--color-champagne) 0, var(--color-accent-gold) 18%, rgba(190,155,98,.12) 21%),
+        linear-gradient(145deg, var(--color-teal-dark) 0%, var(--color-teal-muted) 100%);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,.35), 0 10px 24px rgba(37,72,68,.16);
+}
+
+.main-nav,
+.lang-switcher {
+    background: rgba(232,238,232,.68);
+    border: 1px solid rgba(216,221,215,.88);
+}
+
+.main-nav__slider,
+.lang-btn.active {
+    background: linear-gradient(135deg, var(--color-teal-dark) 0%, var(--color-teal-muted) 100%);
+    box-shadow: 0 10px 22px rgba(37,72,68,.18);
+}
+
+.main-nav__link,
+.main-nav a,
+.lang-btn,
+.brand-trigger {
+    color: var(--color-text-primary);
+}
+
+.main-nav__link.active,
+.main-nav a.active,
+.lang-btn.active {
+    color: var(--color-bg-main);
+}
+
+.main-nav__link:not(.active):hover,
+.main-nav a:not(.active):hover,
+.lang-btn:hover {
+    color: var(--color-teal-dark);
+    background: rgba(233,221,199,.48);
+}
+
+.card.split-2 {
+    gap: var(--space-6);
+    padding: clamp(16px, 2vw, 28px);
+    background:
+        radial-gradient(circle at 8% 4%, rgba(233,221,199,.42), rgba(233,221,199,0) 30%),
+        radial-gradient(circle at 96% 16%, rgba(215,226,214,.58), rgba(215,226,214,0) 34%),
+        linear-gradient(180deg, var(--color-bg-main) 0%, var(--color-bg-panel) 100%);
+    border: 1px solid rgba(216,221,215,.94);
+    box-shadow: 0 24px 70px rgba(42,53,51,.09);
+}
+
+.calendar-shell,
+.activity-selector--inline {
+    background: rgba(247,245,241,.62);
+    border: 1px solid rgba(216,221,215,.86);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.48), 0 12px 34px rgba(42,53,51,.07);
+}
+
+.month-header--inside {
+    background: rgba(232,238,232,.70);
+    border-color: rgba(216,221,215,.86);
+}
+
+.month-title {
+    font-size: clamp(1.3rem, 1.35vw, 1.65rem);
+    font-weight: 700;
+    letter-spacing: .01em;
+}
+
+.nav-btn,
+.overlay-close,
+.info-modal__close,
+.admin-gate__close {
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    box-shadow: 0 8px 18px rgba(42,53,51,.07);
+}
+
+.nav-btn:hover,
+.overlay-close:hover,
+.info-modal__close:hover,
+.admin-gate__close:hover {
+    background: var(--color-champagne);
+    border-color: var(--color-accent-gold);
+}
+
+.daycard {
+    background: linear-gradient(180deg, rgba(247,245,241,.94) 0%, rgba(232,238,232,.88) 100%);
+    border: 1px solid rgba(216,221,215,.95);
+    border-radius: clamp(16px, 1.25vw, 18px);
+    color: var(--color-text-primary);
+    box-shadow: 0 8px 20px rgba(42,53,51,.07);
+}
+
+.daycard::before {
+    background: linear-gradient(180deg, rgba(233,221,199,.24) 0%, rgba(233,221,199,0) 48%);
+}
+
+.daycard:hover {
+    background: linear-gradient(180deg, rgba(233,221,199,.84) 0%, rgba(247,245,241,.92) 100%);
+    border-color: rgba(190,155,98,.58);
+    box-shadow: 0 12px 26px rgba(42,53,51,.09);
+}
+
+.daycard:focus-visible {
+    border-color: var(--color-accent-gold);
+    box-shadow: 0 0 0 3px rgba(190,155,98,.18), 0 12px 26px rgba(42,53,51,.10);
+}
+
+.daycard.active {
+    background: var(--color-bg-selected);
+    border-color: var(--color-accent-gold);
+    box-shadow: 0 0 0 2px rgba(190,155,98,.18), 0 14px 28px rgba(42,53,51,.10);
+}
+
+.daycard-day {
+    color: var(--color-text-primary);
+    text-shadow: none;
+}
+
+.daycard-icon img {
+    filter: drop-shadow(0 4px 8px rgba(42,53,51,.12));
+}
+
+.quality-dot {
+    border: 1px solid rgba(247,245,241,.85);
+    box-shadow: 0 0 0 2px rgba(42,53,51,.10), 0 3px 8px rgba(42,53,51,.16);
+}
+
+.quality-dot.good,
+.daycard.active .quality-dot.good {
+    background: var(--color-positive);
+    box-shadow: 0 0 0 2px rgba(127,165,141,.22), 0 3px 8px rgba(42,53,51,.16);
+}
+
+.quality-dot.bad,
+.daycard.active .quality-dot.bad {
+    background: var(--color-negative);
+    box-shadow: 0 0 0 2px rgba(201,138,106,.22), 0 3px 8px rgba(42,53,51,.16);
+}
+
+.activity-grid {
+    background: rgba(232,238,232,.72);
+    border-color: rgba(216,221,215,.92);
+    border-radius: var(--radius-lg);
+}
+
+.activity-grid__slider {
+    background: var(--color-bg-selected);
+    border-color: rgba(190,155,98,.58);
+    box-shadow: 0 10px 22px rgba(42,53,51,.10);
+}
+
+.activity-btn {
+    border-radius: 14px;
+    color: var(--color-text-primary);
+}
+
+.activity-btn__icon {
+    color: var(--color-accent-gold);
+}
+
+.activity-btn:not(.selected):hover {
+    background: var(--color-champagne);
+    border-color: rgba(190,155,98,.36);
+}
+
+.activity-btn.selected,
+.activity-btn.selected .activity-btn__label,
+.activity-btn.selected .activity-btn__icon {
+    color: var(--color-teal-dark);
+}
+
+.day-layout {
+    gap: var(--space-5);
+}
+
+.day-layout .month-row {
+    font-size: clamp(1.2rem, 1.45vw, 1.7rem);
+    font-weight: 700;
+}
+
+.day-layout .daynum-row {
+    font-size: clamp(2.4rem, 3.4vw, 3.4rem);
+    font-weight: 700;
+}
+
+.day-layout .astro-frame,
+.desktop-right .astro-frame,
+.mobile-overlay__panel .astro-frame {
+    background: linear-gradient(180deg, var(--color-teal-dark) 0%, #2F5651 100%);
+    border: 1px solid rgba(233,221,199,.18);
+    box-shadow: inset 0 1px 0 rgba(247,245,241,.07), 0 16px 36px rgba(37,72,68,.14);
+}
+
+.day-layout .astro-frame .frame-title,
+.desktop-right .astro-frame .frame-title,
+.mobile-overlay__panel .astro-frame .frame-title,
+.day-layout .astro-frame,
+.desktop-right .astro-frame,
+.mobile-overlay__panel .astro-frame {
+    color: var(--color-bg-main);
+}
+
+.astro-frame .astro-transition__time,
+.astro-frame .md-marker-label {
+    background: rgba(233,221,199,.14);
+    border-color: rgba(233,221,199,.22);
+    color: var(--color-bg-main);
+}
+
+.astro-frame .md-line {
+    background: linear-gradient(90deg, rgba(233,221,199,.20) 0%, rgba(190,155,98,.78) 50%, rgba(233,221,199,.20) 100%);
+}
+
+.astro-frame .md-marker-bar {
+    background: var(--color-champagne);
+}
+
+.events-list,
+.astro-frame--events .events-list li {
+    color: var(--color-bg-main);
+}
+
+.astro-frame--events .events-list li::marker {
+    color: var(--color-accent-gold);
+}
+
+.gb-tag {
+    background: rgba(247,245,241,.08);
+    border-color: rgba(233,221,199,.18);
+    border-radius: 12px;
+}
+
+.gb-tag.tag-good {
+    border-color: rgba(127,165,141,.42);
+    background: rgba(127,165,141,.16);
+}
+
+.gb-tag.tag-bad {
+    border-color: rgba(201,138,106,.42);
+    background: rgba(201,138,106,.16);
+}
+
+.mobile-overlay__backdrop,
+.info-modal__backdrop,
+.admin-gate__backdrop {
+    background: rgba(42,53,51,.36);
+}
+
+.mobile-overlay__panel {
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 -18px 46px rgba(42,53,51,.16);
+}
+
+.mobile-overlay__header,
+.info-modal__header {
+    background: rgba(232,238,232,.72);
+    border-color: rgba(216,221,215,.86);
+}
+
+.mobile-overlay__body {
+    background:
+        radial-gradient(circle at 10% 0%, rgba(233,221,199,.34), rgba(233,221,199,0) 32%),
+        linear-gradient(180deg, var(--color-bg-main) 0%, var(--color-bg-panel) 100%);
+}
+
+.info-modal__text,
+.admin-gate__input {
+    color: var(--color-text-primary);
+}
+
+.admin-gate__input {
+    background: rgba(247,245,241,.88);
+    border-color: var(--color-border);
+}
+
+.admin-gate__input:focus {
+    border-color: var(--color-accent-gold);
+    box-shadow: 0 0 0 4px rgba(190,155,98,.16);
+}
+
+.admin-gate__error {
+    color: var(--color-negative);
+}
+
+.app-snackbar {
+    background: rgba(37,72,68,.96);
+    color: var(--color-bg-main);
+    box-shadow: 0 16px 36px rgba(37,72,68,.22);
+}
+
+.app-snackbar__button {
+    color: var(--color-champagne);
+}
+
+.app-snackbar__button--retry {
+    color: #CFE1D1;
+}
+
+@media (max-width: 900px) {
+    .card.split-2 {
+        gap: var(--space-4);
+        padding: var(--space-3);
     }
 }
