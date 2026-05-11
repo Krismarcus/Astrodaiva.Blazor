@@ -419,7 +419,9 @@ else
             {
                 var cls = x.Q == ActivityQuality.Good ? "tag-good" : "tag-bad";
                 var title = EnumText.GetActivityName(x.A);
+                var icon = GetActivityIcon(x.A);
                 return $@"<div class=""gb-tag {cls}"" title=""{title}"">
+                        <span class=""gb-tag__icon"">{icon}</span>
                         <span class=""gb-tag__label"">{title}</span>
                       </div>";
             })
