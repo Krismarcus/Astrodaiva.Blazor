@@ -7,6 +7,8 @@
     --PrimaryDark: #ac99ea;
     --PrimaryLightText: #F8FCD1;
     --PrimaryDarkText: #074252;
+    --ActivityIconColor: #074252;
+    --ActivityIconSelectedColor: #F8FCD1;
     --PrimaryBackground: #074252;
     --SecondaryBackground: #48A6B1;
     --LightOrangeBackground: #f0c986;
@@ -472,6 +474,10 @@ a {
     opacity: 1;
 }
 
+.activity-btn.selected .activity-btn__icon {
+    color: var(--ActivityIconSelectedColor);
+}
+
 .activity-btn:not(.selected):hover {
     background: rgba(255,255,255,.28);
     border-color: rgba(7,66,82,.08);
@@ -479,6 +485,7 @@ a {
 
 .activity-btn__icon {
     align-items: center;
+    color: var(--ActivityIconColor);
     display: inline-flex;
     height: 34px;
     justify-content: center;
@@ -488,9 +495,11 @@ a {
 }
 
 .activity-icon-img {
+    background-color: currentColor;
     display: block;
     height: 100%;
-    object-fit: contain;
+    mask: var(--activity-icon) center / contain no-repeat;
+    -webkit-mask: var(--activity-icon) center / contain no-repeat;
     width: 100%;
 }
 .activity-btn__label {
@@ -1360,6 +1369,7 @@ a {
 
 .gb-tag__icon {
     align-items: center;
+    color: var(--ActivityIconColor);
     display: inline-flex;
     flex: 0 0 auto;
     height: 22px;
