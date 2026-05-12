@@ -677,10 +677,11 @@
 
     .year-topbar__eyebrow {
         font-size: .78rem;
-        font-weight: 700;
-        letter-spacing: .08em;
+        font-weight: 600;
+        line-height: 1.4;
+        letter-spacing: .06em;
         text-transform: uppercase;
-        color: rgba(7,66,82,.72);
+        color: var(--TextSecondary);
     }
 
     .year-surface {
@@ -749,8 +750,9 @@
         align-items: center;
         justify-content: center;
         font-size: 0.92em;
-        color: rgba(7,66,82,.78);
-        font-weight: 700;
+        color: var(--TextSecondary);
+        font-weight: 500;
+        line-height: 1.35;
         border-right: 1px solid rgba(7,66,82,.08);
         background: rgba(255,255,255,.28);
         white-space: nowrap;
@@ -760,8 +762,8 @@
 
         .month-label.highlighted {
             background: rgba(255,255,255,.84);
-            color: #074252;
-            font-weight: 800;
+            color: var(--TextPrimary);
+            font-weight: 600;
             box-shadow: inset 0 0 0 2px rgba(7,66,82,.38);
         }
 
@@ -777,12 +779,13 @@
 
     .planet-label {
         width: 80px;
-        font-weight: 800;
+        font-weight: 600;
         text-align: right;
         padding-right: 1em;
-        color: #074252;
+        color: var(--TextPrimary);
         flex-shrink: 0;
         letter-spacing: .01em;
+        line-height: 1.35;
     }
 
     .planet-bar-container {
@@ -827,7 +830,7 @@
         top: 50%;
         transform: translateY(-50%);
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 600;
         color: #fff;
         text-shadow: 0 1px 2px rgba(0,0,0,.6);
         letter-spacing: .2px;
@@ -928,8 +931,8 @@
         background: transparent;
         color: #444;
         font-size: 0.95em;
-        font-weight: 500;
-        line-height: 1;
+        font-weight: 400;
+        line-height: 1.2;
         white-space: nowrap;
     }
 
@@ -957,6 +960,7 @@
         color: #222;
         font-size: 0.9em;
         font-weight: 500;
+        line-height: 1.35;
         white-space: nowrap;
         border-right: 1px solid #fff3;
         transition: all 0.3s ease;
@@ -978,7 +982,7 @@
     .start-day {
         font-size: 0.95em;
         font-weight: 500;
-        color: #444;
+        color: var(--TextPrimary);
         white-space: nowrap;
         position: absolute;
         left: 8px;
@@ -1044,7 +1048,10 @@
 
         .event-details-header h3 {
             margin: 0;
-            color: #333;
+            color: var(--TextPrimary);
+            font-family: var(--FontHeading);
+            font-weight: 600;
+            line-height: 1.2;
         }
 
     .close-button {
@@ -1070,12 +1077,13 @@
 
     .date-range {
         font-size: 0.9em;
-        color: #666;
+        color: var(--TextSecondary);
+        line-height: 1.45;
     }
 
     .event-info {
-        line-height: 1.5;
-        color: #333;
+        line-height: 1.6;
+        color: var(--TextPrimary);
         white-space: pre-line;
     }
 
@@ -1102,12 +1110,15 @@
 
     .year-label {
         font-size: 1.4em;
-        font-weight: 800;
+        font-family: var(--FontHeading);
+        font-weight: 700;
+        line-height: 1;
         margin: 0 .4em;
         vertical-align: middle;
         min-width: 4ch;
         text-align: center;
-        color: #074252;
+        color: var(--TextPrimary);
+        letter-spacing: .01em;
     }
 
     .year-arrow {
