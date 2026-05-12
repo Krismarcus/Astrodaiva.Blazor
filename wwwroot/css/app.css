@@ -150,7 +150,10 @@ a {
 
 /* Apply gradient to the shared split surface (the container is .card.split-2) */
 .card.split-2 {
-    background: linear-gradient(180deg,
+    background:
+        radial-gradient(ellipse 140% 80% at 12% 0%, rgba(255,255,255,.16) 0%, rgba(255,255,255,0) 48%),
+        radial-gradient(ellipse 110% 86% at 100% 100%, rgba(7,66,82,.055) 0%, rgba(7,66,82,0) 58%),
+        linear-gradient(180deg,
         var(--PageGradientTop) 0%,
         var(--PageGradientMid) 38%,
         var(--PageGradientBottom) 100%);
@@ -170,7 +173,10 @@ a {
 
 /* Mobile overlay remains gradient (full panel) */
 .mobile-overlay__body {
-    background: linear-gradient(180deg,
+    background:
+        radial-gradient(ellipse 130% 78% at 12% 0%, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 48%),
+        radial-gradient(ellipse 115% 90% at 100% 100%, rgba(7,66,82,.05) 0%, rgba(7,66,82,0) 58%),
+        linear-gradient(180deg,
         var(--PageGradientTop) 0%,
         var(--PageGradientMid) 38%,
         var(--PageGradientBottom) 100%);
@@ -1418,7 +1424,11 @@ a {
 ======================== */
 html, body {
     background:
-        radial-gradient(circle at top, rgba(255,255,255,.92) 0%, rgba(240,247,245,.9) 18%, rgba(230,240,238,.9) 36%, rgba(218,231,228,.95) 62%, #dbe7e4 100%);
+        radial-gradient(ellipse 120% 86% at 50% 18%, rgba(255,255,255,.56) 0%, rgba(255,255,255,.18) 36%, rgba(255,255,255,0) 64%),
+        radial-gradient(ellipse 112% 80% at 0% 0%, rgba(248,252,209,.26) 0%, rgba(248,252,209,.08) 32%, rgba(248,252,209,0) 58%),
+        radial-gradient(ellipse 95% 78% at 100% 100%, rgba(7,66,82,.075) 0%, rgba(7,66,82,.035) 38%, rgba(7,66,82,0) 72%),
+        linear-gradient(180deg, rgba(246,249,221,.96) 0%, rgba(216,235,215,.94) 43%, rgba(106,174,180,.88) 100%);
+    background-attachment: fixed;
 }
 
 body {
@@ -1428,17 +1438,37 @@ body {
 .app-shell {
     min-height: 100vh;
     position: relative;
+    isolation: isolate;
 }
 
 .app-shell::before {
     content: "";
     position: fixed;
     inset: 0;
+    z-index: 0;
     pointer-events: none;
     background:
-        radial-gradient(circle at 12% 12%, rgba(255,255,255,.9) 0, rgba(255,255,255,0) 28%),
-        radial-gradient(circle at 88% 10%, rgba(72,166,177,.12) 0, rgba(72,166,177,0) 26%),
-        linear-gradient(180deg, rgba(7,66,82,.03), rgba(7,66,82,0));
+        radial-gradient(ellipse 120% 82% at 18% 0%, rgba(255,255,255,.18) 0%, rgba(255,255,255,.055) 34%, rgba(255,255,255,0) 64%),
+        radial-gradient(ellipse 120% 88% at 86% 8%, rgba(72,166,177,.075) 0%, rgba(72,166,177,.025) 38%, rgba(72,166,177,0) 70%),
+        radial-gradient(ellipse 110% 94% at 50% 50%, rgba(255,255,255,.045) 0%, rgba(255,255,255,0) 45%, rgba(7,66,82,.045) 100%),
+        linear-gradient(180deg, rgba(7,66,82,.018) 0%, rgba(7,66,82,0) 46%, rgba(7,66,82,.035) 100%);
+}
+
+.app-shell::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: .32;
+    background:
+        linear-gradient(115deg, rgba(255,255,255,.018) 0%, rgba(255,255,255,0) 34%, rgba(7,66,82,.018) 100%),
+        radial-gradient(ellipse 118% 78% at 50% 42%, rgba(255,255,255,.035) 0%, rgba(255,255,255,0) 46%, rgba(7,66,82,.04) 100%);
+}
+
+.app-main {
+    position: relative;
+    z-index: 1;
 }
 
 .app-header {
