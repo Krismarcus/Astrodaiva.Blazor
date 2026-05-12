@@ -53,10 +53,6 @@
     --PageGradientTop: #F6F9DD;
     --PageGradientMid: #D8EBD7;
     --PageGradientBottom: #6AAEB4;
-    --FontUi: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    --FontHeading: "Cormorant Garamond", Georgia, "Times New Roman", serif;
-    --TextPrimary: #243230;
-    --TextSecondary: #506160;
     /* 8pt spacing system */
     --space-1: 4px;
     --space-2: 8px;
@@ -87,21 +83,8 @@ html, body {
     margin: 0;
     /* main page background stays clean/white */
     background: #ffffff;
-    color: var(--TextPrimary);
-    font-family: var(--FontUi);
-    font-weight: 400;
-    line-height: 1.55;
-    letter-spacing: .01em;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-button,
-input,
-select,
-textarea {
-    font: inherit;
+    color: var(--PrimaryDarkText);
+    font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
 }
 
 a {
@@ -137,9 +120,7 @@ a {
 }
 
 .month-title {
-    font-family: var(--FontHeading);
-    font-weight: 600;
-    line-height: 1.15;
+    font-weight: 700;
     text-transform: capitalize;
 }
 
@@ -241,10 +222,9 @@ a {
 
 .weekday-cell {
     text-align: center;
-    font-weight: 600;
+    font-weight: 700;
     font-size: .9rem;
-    color: var(--TextPrimary);
-    line-height: 1.4;
+    color: var(--PrimaryDarkText);
 }
 
 .weekday-header {
@@ -314,7 +294,7 @@ a {
 }
 
 .daycard-day {
-    font-weight: 700;
+    font-weight: 800;
     font-size: var(--DayNumSize);
     line-height: 1;
     color: #fff;
@@ -427,11 +407,11 @@ a {
 }
 
 .activity-selector__title {
-    font-weight: 600;
+    font-weight: 700;
     margin: 0 0 .8rem;
-    color: var(--TextPrimary);
+    color: var(--PrimaryDarkText);
     text-align: center;
-    letter-spacing: .06em;
+    letter-spacing: .08em;
     text-transform: uppercase;
     font-size: .76rem;
     opacity: .78;
@@ -543,8 +523,8 @@ a {
     display: block;
     max-width: 100%;
     font-size: 12px;
-    font-weight: 500;
-    line-height: 1.25;
+    font-weight: 700;
+    line-height: 1.15;
     opacity: .88;
     overflow-wrap: anywhere;
     text-align: center;
@@ -638,23 +618,19 @@ a {
 
 .day-layout .month-row {
     font-size: clamp(1rem, 1.2vw, 1.25rem);
-    font-family: var(--FontHeading);
-    font-weight: 600;
-    line-height: 1.15;
+    font-weight: 700;
     text-transform: capitalize;
 }
 
 .day-layout .daynum-row {
     font-size: clamp(2rem, 3.2vw, 2.8rem);
-    font-family: var(--FontHeading);
-    font-weight: 700;
+    font-weight: 800;
     line-height: 1;
 }
 
 .day-layout .weekday-row {
     font-size: clamp(0.9rem, 1vw, 1.1rem);
-    font-weight: 500;
-    line-height: 1.4;
+    font-weight: 600;
     opacity: .85;
     text-transform: capitalize;
 }
@@ -966,7 +942,7 @@ a {
 }
 
 .muted {
-    color: var(--TextSecondary);
+    color: var(--Gray500);
 }
 
 /* Row 5: two columns Sun(left) / Moon(right) */
@@ -994,7 +970,7 @@ a {
 }
 
 .astro-label {
-    font-weight: 500;
+    font-weight: 600;
 }
 
 /* Planet sign transitioning (Prev sign • time • New sign) */
@@ -1012,7 +988,7 @@ a {
 }
 
 .astro-transition__time {
-    font-weight: 600;
+    font-weight: 700;
     font-size: .95rem;
     padding: .12rem .45rem;
     border-radius: var(--radius-tag);
@@ -1052,8 +1028,7 @@ a {
 
 .astro-frame--events .events-list li {
     color: var(--PrimaryLightText, #F8FCD1);
-    font-weight: 500;
-    line-height: 1.55;
+    font-weight: 600;
 }
 
 .astro-frame--events .events-list li::marker {
@@ -1163,10 +1138,8 @@ a {
 }
 
 .info-modal__title{
-    font-family: var(--FontHeading);
-    font-weight: 600;
-    line-height: 1.15;
-    color: var(--TextPrimary);
+    font-weight: 800;
+    color: #063646;
 }
 
 .info-modal__close{
@@ -1187,8 +1160,8 @@ a {
 
 .info-modal__text{
     white-space: normal;
-    line-height: 1.6;
-    color: var(--TextPrimary);
+    line-height: 1.55;
+    color: #05303d;
 }
 
 /* ========================
@@ -1427,9 +1400,8 @@ a {
 }
 
 .gb-tag__label {
-    font-weight: 500;
+    font-weight: 600;
     font-size: 14px;
-    line-height: 1.4;
 }
 
 .gb-tag.tag-good {
@@ -1536,7 +1508,7 @@ body {
     background: transparent;
     padding: 0;
     cursor: default;
-    color: var(--TextPrimary);
+    color: var(--PrimaryDarkText);
 }
 
 .brand-mark {
@@ -1569,17 +1541,15 @@ body {
 
 .brand-title {
     font-size: clamp(1.35rem, 1.35vw, 1.75rem);
-    font-family: var(--FontHeading);
-    font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: .015em;
+    font-weight: 750;
+    line-height: 1;
+    letter-spacing: .04em;
 }
 
 .brand-subtitle {
     font-size: .82rem;
-    font-weight: 500;
-    color: var(--TextSecondary);
-    letter-spacing: .08em;
+    color: rgba(7,66,82,.72);
+    letter-spacing: .12em;
     text-transform: uppercase;
 }
 
@@ -1625,8 +1595,7 @@ body {
     color: rgba(7,66,82,.82);
     padding: 10px 18px;
     border-radius: var(--radius-button);
-    font-weight: 500;
-    line-height: 1.35;
+    font-weight: 700;
     transition: color .24s ease, opacity .24s ease;
 }
 
@@ -1662,8 +1631,7 @@ body {
     border-radius: var(--radius-button);
     padding: 8px 14px;
     cursor: pointer;
-    font-weight: 500;
-    line-height: 1.35;
+    font-weight: 700;
     transition: all .2s ease;
 }
 
@@ -1711,14 +1679,14 @@ body {
 
 .month-title {
     font-size: clamp(1.05rem, 1vw, 1.25rem);
-    letter-spacing: .01em;
+    letter-spacing: .04em;
 }
 
 .nav-btn {
     min-width: 42px;
     min-height: 42px;
-    font-weight: 600;
-    color: var(--TextPrimary);
+    font-weight: 700;
+    color: var(--PrimaryDarkText);
     background: rgba(255,255,255,.72);
     border: 1px solid rgba(7,66,82,.08);
     box-shadow: 0 6px 14px rgba(7,66,82,.08);
@@ -1766,25 +1734,23 @@ body {
 
 .admin-gate__eyebrow {
     font-size: .72rem;
-    font-weight: 600;
-    letter-spacing: .08em;
+    font-weight: 800;
+    letter-spacing: .16em;
     text-transform: uppercase;
-    color: var(--TextSecondary);
+    color: rgba(7,66,82,.58);
     margin-bottom: 4px;
 }
 
 .admin-gate__title {
     font-size: 1.1rem;
-    font-family: var(--FontHeading);
-    font-weight: 600;
-    line-height: 1.2;
-    color: var(--TextPrimary);
+    font-weight: 750;
+    color: var(--PrimaryDarkText);
 }
 
 .admin-gate__close {
     border: none;
     background: rgba(7,66,82,.06);
-    color: var(--TextPrimary);
+    color: var(--PrimaryDarkText);
     width: 34px;
     height: 34px;
     border-radius: var(--radius-button);
@@ -1804,7 +1770,6 @@ body {
     border-radius: 14px;
     border: 1px solid rgba(7,66,82,.12);
     font-size: 1rem;
-    line-height: 1.45;
     outline: none;
 }
 
@@ -1815,13 +1780,12 @@ body {
 
 .admin-gate__hint {
     font-size: .86rem;
-    line-height: 1.5;
-    color: var(--TextSecondary);
+    color: rgba(7,66,82,.65);
 }
 
 .admin-gate__error {
     color: #a32929;
-    font-weight: 500;
+    font-weight: 600;
     font-size: .92rem;
 }
 
@@ -1846,8 +1810,7 @@ body {
     background: rgba(17, 24, 27, .94);
     color: #fff;
     font-size: .95rem;
-    font-weight: 500;
-    line-height: 1.45;
+    font-weight: 650;
     box-shadow: 0 14px 30px rgba(7, 31, 38, .24);
 }
 
@@ -1869,7 +1832,7 @@ body {
     cursor: pointer;
     font: inherit;
     font-size: .86rem;
-    font-weight: 600;
+    font-weight: 800;
     padding: 6px 8px;
     border-radius: var(--radius-button);
 }
