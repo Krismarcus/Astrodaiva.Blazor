@@ -53,6 +53,8 @@
     --PageGradientTop: #F6F9DD;
     --PageGradientMid: #D8EBD7;
     --PageGradientBottom: #6AAEB4;
+    --font-heading: "Josefin Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-ui: "Muli", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     /* 8pt spacing system */
     --space-1: 4px;
     --space-2: 8px;
@@ -84,7 +86,30 @@ html, body {
     /* main page background stays clean/white */
     background: #ffffff;
     color: var(--PrimaryDarkText);
-    font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    font-family: var(--font-ui);
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-ui);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.brand-title,
+.month-title,
+.day-layout .month-row,
+.day-layout .daynum-row,
+.info-modal__title,
+.admin-gate__title,
+.year-label {
+    font-family: var(--font-heading);
 }
 
 a {
