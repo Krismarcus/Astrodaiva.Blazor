@@ -1207,6 +1207,24 @@ a {
    SMALL MOBILE WIDTH RECOVERY
 ======================== */
 @media (max-width: 640px) {
+    .header-actions {
+        flex-shrink: 0;
+    }
+
+    .header-actions .lang-switcher {
+        flex-direction: column;
+        gap: 4px;
+        padding: 4px;
+        border-radius: var(--radius-tag);
+    }
+
+    .header-actions .lang-btn {
+        min-width: 38px;
+        padding: 6px 8px;
+        line-height: 1;
+        border-radius: var(--radius-tag);
+    }
+
     .info-modal {
         align-items: flex-start;
         padding: max(1rem, env(safe-area-inset-top)) 10px max(1rem, env(safe-area-inset-bottom));
