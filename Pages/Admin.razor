@@ -1,4 +1,5 @@
 @page "/admin"
+@implements IAsyncDisposable
 @using System.Linq
 @using Astrodaiva.Blazor.Data.Models
 @using Astrodaiva.Data.Models
@@ -679,7 +680,7 @@ else
     }
 
     // ----- INTERPRETATIONS MODAL -----
-    private void OpenInterpretations()
+    private async Task OpenInterpretations()
     {
         var db = Editor.Db;
         if (db is null)
@@ -708,13 +709,32 @@ else
 
         _interpStatus = "";
         _showInterpretations = true;
+        await SetInterpretationsModalLayerAsync(true);
     }
 
-    private void CloseInterpretations()
+    private async Task CloseInterpretations()
     {
         if (_interpBusy) return;
         _showInterpretations = false;
         _interpStatus = "";
+        await SetInterpretationsModalLayerAsync(false);
+    }
+
+    private async Task SetInterpretationsModalLayerAsync(bool open)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("modalLayer.setInterpretationsOpen", open);
+        }
+        catch
+        {
+            // CSS :has() below handles modern browsers even if the helper is unavailable.
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await SetInterpretationsModalLayerAsync(false);
     }
 
     private void OnInterpPlanetOrZodiacChanged()
@@ -1668,14 +1688,29 @@ else
         gap: 0.5rem;
     }
 
+    body.admin-interpretations-open,
+    body:has(.interp-modal-shell) {
+        overflow: hidden;
+    }
+
+    body.admin-interpretations-open .app-main,
+    body:has(.interp-modal-shell) .app-main {
+        z-index: 120;
+    }
+
+    body.admin-interpretations-open .app-header,
+    body:has(.interp-modal-shell) .app-header {
+        z-index: 1;
+    }
+
     .interp-modal-shell {
         position: fixed;
         inset: 0;
-        z-index: 9999;
+        z-index: 50000;
         display: flex;
         align-items: flex-start;
         justify-content: center;
-        padding: 4vh 16px;
+        padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
         background: rgba(0,0,0,.6);
         overflow-y: auto;
         box-sizing: border-box;
@@ -1683,8 +1718,8 @@ else
 
     .interp-modal-panel {
         width: min(980px, 100%);
-        max-height: 92vh;
-        max-height: min(92vh, calc(100dvh - 8vh));
+        max-height: calc(100vh - 32px);
+        max-height: calc(100dvh - 32px);
         display: flex;
         flex-direction: column;
         background: #fff;

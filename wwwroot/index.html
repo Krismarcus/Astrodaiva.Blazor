@@ -55,6 +55,12 @@
             }
         };
 
+        window.modalLayer = {
+            setInterpretationsOpen: function (open) {
+                document.body.classList.toggle('admin-interpretations-open', !!open);
+            }
+        };
+
         window.downloadTextFile = function (fileName, text) {
             const blob = new Blob([text], { type: "application/json;charset=utf-8" });
             const url = URL.createObjectURL(blob);
