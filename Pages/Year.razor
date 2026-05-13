@@ -716,6 +716,9 @@
             repeating-linear-gradient(90deg, rgba(36,50,48,.055) 0 1px, transparent 1px calc(100% / 12)),
             linear-gradient(90deg, rgba(255,246,224,.12), rgba(37,72,68,.10)),
             rgba(231,238,234,.22);
+        --year-label-bg:
+            linear-gradient(90deg, rgba(255,246,224,.12), rgba(37,72,68,.10)),
+            rgba(231,238,234,.22);
     }
 
     .year-topbar {
@@ -883,7 +886,7 @@
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        background: var(--year-track-bg);
+        background: var(--year-label-bg);
         border: 1px solid rgba(36,50,48,.075);
         border-right: 0;
         border-radius: 10px 0 0 10px;
