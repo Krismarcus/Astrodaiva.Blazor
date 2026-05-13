@@ -698,9 +698,11 @@
         --year-water: #4E8394;
         --year-ink: #243230;
         --year-muted: #506160;
-        --year-line: rgba(50,70,65,.06);
-        --year-track: rgba(255,255,255,.10);
-        --year-track-strong: rgba(231,238,234,.22);
+        --year-line: rgba(36,50,48,.09);
+        --year-track: rgba(37,72,68,.10);
+        --year-track-strong: rgba(231,238,234,.30);
+        --year-gold: #BE9B62;
+        --year-champagne: #E9DDC7;
     }
 
     .year-topbar {
@@ -724,15 +726,15 @@
 
     .year-surface {
         background:
-            radial-gradient(ellipse 120% 70% at 18% 0%, rgba(255,255,255,.32) 0%, rgba(255,255,255,.10) 36%, rgba(255,255,255,0) 68%),
-            radial-gradient(ellipse 100% 78% at 92% 100%, rgba(86,122,132,.14) 0%, rgba(86,122,132,.05) 42%, rgba(86,122,132,0) 72%),
+            radial-gradient(ellipse 110% 72% at 18% -8%, rgba(233,221,199,.28) 0%, rgba(233,221,199,.10) 38%, rgba(233,221,199,0) 66%),
+            radial-gradient(ellipse 100% 78% at 92% 100%, rgba(37,72,68,.26) 0%, rgba(78,131,148,.18) 44%, rgba(78,131,148,0) 74%),
             linear-gradient(180deg,
-            rgba(246,249,221,.93) 0%,
-            rgba(216,235,215,.90) 42%,
-            rgba(106,174,180,.82) 100%);
+            rgba(238,234,211,.92) 0%,
+            rgba(199,223,203,.88) 45%,
+            rgba(78,131,148,.78) 100%);
         border-radius: 24px;
-        border: 1px solid rgba(50,70,65,.06);
-        box-shadow: 0 18px 40px rgba(19,46,54,.10);
+        border: 1px solid rgba(36,50,48,.08);
+        box-shadow: 0 20px 46px rgba(19,46,54,.16);
         position: relative;
         overflow: hidden;
     }
@@ -742,9 +744,22 @@
         position: absolute;
         inset: 0;
         background:
-            linear-gradient(90deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 28%, rgba(36,50,48,.025) 100%),
-            radial-gradient(circle at 14% 12%, rgba(255,255,255,.22) 0, rgba(255,255,255,0) 28%),
-            radial-gradient(circle at 84% 10%, rgba(143,175,154,.10) 0, rgba(143,175,154,0) 26%);
+            linear-gradient(90deg, rgba(255,255,255,.035) 0%, rgba(255,255,255,0) 30%, rgba(36,50,48,.07) 100%),
+            radial-gradient(circle at 14% 12%, rgba(190,155,98,.18) 0, rgba(190,155,98,0) 28%),
+            radial-gradient(circle at 84% 10%, rgba(37,72,68,.16) 0, rgba(37,72,68,0) 30%);
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .year-surface::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 70% 55% at 50% 45%, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 58%),
+            linear-gradient(180deg, rgba(36,50,48,0) 0%, rgba(36,50,48,.07) 100%),
+            linear-gradient(90deg, rgba(36,50,48,.035), transparent 18%, transparent 82%, rgba(36,50,48,.045));
+        z-index: 0;
         pointer-events: none;
     }
 
@@ -782,9 +797,11 @@
         flex: 1;
         border-radius: 10px;
         overflow: hidden;
-        background: rgba(255,255,255,.26);
+        background:
+            linear-gradient(180deg, rgba(233,221,199,.28), rgba(37,72,68,.08)),
+            rgba(255,255,255,.16);
         border: 1px solid var(--year-line);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 6px 16px rgba(7,66,82,.055);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 6px 16px rgba(7,66,82,.075);
         min-width: 1360px; /* 1440px - 80px (spacer width) */
         backdrop-filter: blur(8px);
     }
@@ -794,20 +811,20 @@
         align-items: center;
         justify-content: center;
         font-size: 0.88em;
-        color: rgba(36,50,48,.72);
+        color: rgba(36,50,48,.78);
         font-weight: 600;
-        border-right: 1px solid rgba(50,70,65,.06);
-        background: rgba(255,255,255,.12);
+        border-right: 1px solid rgba(36,50,48,.07);
+        background: rgba(255,255,255,.08);
         white-space: nowrap;
         flex-shrink: 0;
         transition: all 0.24s ease;
     }
 
         .month-label.highlighted {
-            background: rgba(255,255,255,.48);
+            background: linear-gradient(180deg, rgba(233,221,199,.42), rgba(119,169,140,.18));
             color: var(--year-ink);
             font-weight: 600;
-            box-shadow: inset 0 -2px 0 rgba(185,121,88,.32);
+            box-shadow: inset 0 -2px 0 rgba(190,155,98,.55), 0 0 16px rgba(190,155,98,.12);
         }
 
         .month-label:last-child {
@@ -825,7 +842,7 @@
         font-weight: 500;
         text-align: right;
         padding-right: 1em;
-        color: rgba(36,50,48,.82);
+        color: rgba(36,50,48,.90);
         flex-shrink: 0;
         letter-spacing: .01em;
     }
@@ -839,10 +856,11 @@
         padding: 2px 0 6px;
         border-radius: 10px;
         background:
-            repeating-linear-gradient(90deg, rgba(50,70,65,.032) 0 1px, transparent 1px calc(100% / 12)),
-            linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.035)),
-            rgba(231,238,234,.14);
-        border: 1px solid rgba(50,70,65,.045);
+            repeating-linear-gradient(90deg, rgba(36,50,48,.055) 0 1px, transparent 1px calc(100% / 12)),
+            linear-gradient(90deg, rgba(255,246,224,.12), rgba(37,72,68,.10)),
+            rgba(231,238,234,.22);
+        border: 1px solid rgba(36,50,48,.075);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 2px 10px rgba(20,30,25,.045);
     }
 
     .year-bar {
@@ -850,9 +868,9 @@
         height: 34px;
         border-radius: 10px;
         overflow: hidden;
-        background: rgba(255,255,255,.08);
-        border: 1px solid rgba(50,70,65,.045);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 2px 10px rgba(20,30,25,.04);
+        background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(37,72,68,.08));
+        border: 1px solid rgba(36,50,48,.07);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.16), inset 0 -1px 0 rgba(36,50,48,.05), 0 2px 10px rgba(20,30,25,.06);
     }
 
     /* Retrograde line: thin by default */
@@ -866,11 +884,12 @@
     .retrograde-bar {
         position: absolute;
         height: 100%;
-        background: linear-gradient(90deg, rgba(185,121,88,.42), rgba(86,122,132,.34));
-        border: 1px solid rgba(255,255,255,.16);
+        background: linear-gradient(90deg, rgba(198,95,74,.58), rgba(190,155,98,.42) 44%, rgba(78,131,148,.52));
+        border: 1px solid rgba(233,221,199,.30);
         border-radius: 999px;
-        opacity: 0.78;
+        opacity: 0.86;
         backdrop-filter: blur(4px);
+        box-shadow: 0 1px 6px rgba(36,50,48,.10);
         transform-origin: center;
         transform: translateY(0) scaleY(1);
         transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
@@ -897,7 +916,7 @@
         .retrograde-bar:hover {
             transform: translateY(-6px) scaleY(4); /* ~16px visual thickness */
             filter: brightness(1.04);
-            box-shadow: 0 2px 10px rgba(20,30,25,.12);
+            box-shadow: 0 3px 12px rgba(20,30,25,.16), 0 0 0 1px rgba(190,155,98,.24);
             opacity: .9;
         }
 
@@ -911,7 +930,7 @@
         .retrograde-bar.is-active {
             transform: translateY(-6px) scaleY(4);
             filter: brightness(1.04);
-            box-shadow: 0 2px 10px rgba(20,30,25,.12);
+            box-shadow: 0 3px 12px rgba(20,30,25,.16), 0 0 0 1px rgba(190,155,98,.24);
             opacity: .9;
         }
 
@@ -938,10 +957,10 @@
         top: 40%;
         height: 4px;
         transform: translateY(-50%);
-        background: linear-gradient(90deg, rgba(36,50,48,.62), rgba(86,122,132,.55));
+        background: linear-gradient(90deg, rgba(36,50,48,.74), rgba(190,155,98,.42) 45%, rgba(78,131,148,.70));
         border-radius: 999px;
-        opacity: 0.82;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+        opacity: 0.90;
+        box-shadow: inset 0 0 0 1px rgba(233,221,199,.16), 0 1px 8px rgba(20,30,25,.10);
     }
 
     .eclipse-marker {
@@ -966,7 +985,7 @@
         height: 10px;
         border-radius: 999px;
         transform: translate(-50%, -50%);
-        box-shadow: 0 0 0 1px rgba(50,70,65,.20), 0 2px 8px rgba(20,30,25,.10);
+        box-shadow: 0 0 0 1px rgba(50,70,65,.24), 0 2px 8px rgba(20,30,25,.14);
     }
 
     .sun-eclipse-dot {
@@ -1000,6 +1019,11 @@
         .eclipse-marker.is-active {
             transform: translateX(-50%) scale(1.08);
         }
+
+            .eclipse-marker:hover .eclipse-marker-dot,
+            .eclipse-marker.is-active .eclipse-marker-dot {
+                box-shadow: 0 0 0 1px rgba(50,70,65,.24), 0 0 0 4px rgba(190,155,98,.14), 0 3px 10px rgba(20,30,25,.18);
+            }
     }
 
     @@media (hover: none) {
@@ -1016,13 +1040,14 @@
         font-size: 0.9em;
         font-weight: 500;
         white-space: nowrap;
-        border-right: 1px solid rgba(255,255,255,.18);
+        border-right: 1px solid rgba(36,50,48,.10);
         transition: filter 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
         cursor: pointer;
         position: relative;
         flex-shrink: 0;
         overflow: hidden;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.10), inset 0 -1px 0 rgba(36,50,48,.07);
+        filter: saturate(1.05) contrast(1.02);
     }
 
     .bar-content {
@@ -1067,16 +1092,16 @@
     }
 
     .zodiac-bar.selected {
-        outline: 1px solid rgba(255,255,255,.80);
+        outline: 1px solid rgba(233,221,199,.92);
         outline-offset: -2px;
-        box-shadow: inset 0 0 0 2px rgba(36,50,48,.18), 0 2px 10px rgba(20,30,25,.10);
+        box-shadow: inset 0 0 0 2px rgba(36,50,48,.24), 0 0 0 1px rgba(190,155,98,.28), 0 4px 14px rgba(20,30,25,.16);
         z-index: 10;
-        filter: brightness(1.04);
+        filter: brightness(1.08) saturate(1.10) contrast(1.03);
     }
 
     .zodiac-bar:hover {
-        filter: brightness(1.06) saturate(1.03);
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 2px 10px rgba(20,30,25,.08);
+        filter: brightness(1.08) saturate(1.09) contrast(1.02);
+        box-shadow: inset 0 0 0 1px rgba(233,221,199,.28), 0 3px 12px rgba(20,30,25,.12);
         z-index: 5;
     }
 
@@ -1165,9 +1190,9 @@
         gap: 14px;
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(255,255,255,.30);
-        border: 1px solid rgba(50,70,65,.06);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.36), 0 6px 16px rgba(7,66,82,.06);
+        background: linear-gradient(180deg, rgba(233,221,199,.28), rgba(255,255,255,.16));
+        border: 1px solid rgba(36,50,48,.08);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.26), 0 6px 16px rgba(7,66,82,.08);
         backdrop-filter: blur(8px);
     }
 
@@ -1182,8 +1207,8 @@
     }
 
     .year-arrow {
-        background: rgba(255,255,255,.20);
-        border: 1px solid rgba(50,70,65,.06);
+        background: rgba(255,255,255,.16);
+        border: 1px solid rgba(36,50,48,.08);
         font-size: 1.35em;
         cursor: pointer;
         color: var(--year-ink);
@@ -1204,8 +1229,8 @@
 
     .year-arrow:hover {
         transform: translateY(-1px);
-        background: rgba(255,255,255,.34);
-        box-shadow: 0 6px 16px rgba(7,66,82,.08);
+        background: rgba(233,221,199,.30);
+        box-shadow: 0 6px 16px rgba(7,66,82,.10), 0 0 0 1px rgba(190,155,98,.14);
     }
 
     .year-arrow:active {
@@ -1217,12 +1242,12 @@
     }
 
     .timeline-container::-webkit-scrollbar-thumb {
-        background: rgba(7,66,82,.24);
+        background: rgba(37,72,68,.34);
         border-radius: 999px;
     }
 
     .timeline-container::-webkit-scrollbar-track {
-        background: rgba(255,255,255,.22);
+        background: rgba(233,221,199,.22);
         border-radius: 999px;
     }
 
