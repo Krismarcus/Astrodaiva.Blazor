@@ -25,7 +25,7 @@
     else
     {
         <div class="timeline-container">
-            <div class="timeline-content">
+            <div class="timeline-content" style="--year-month-grid:@BuildMonthGridGradientStops()">
                 <!-- Month labels -->
                 <div class="month-labels-container">
                     <div class="planet-label-spacer"></div>
@@ -221,6 +221,30 @@
         return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(monthName);
     }
 
+    private int DaysInSelectedYear => DateTime.IsLeapYear(_year) ? 366 : 365;
+
+    private string BuildMonthGridGradientStops()
+    {
+        if (_monthSegments.Count <= 1)
+            return "transparent 0 100%";
+
+        var stops = new List<string> { "transparent 0" };
+        var cursor = 0.0;
+
+        foreach (var month in _monthSegments.Take(_monthSegments.Count - 1))
+        {
+            cursor += month.WidthPercentage;
+            var position = Math.Clamp(cursor, 0, 100).ToString("0.###", CultureInfo.InvariantCulture);
+            stops.Add($"transparent calc({position}% - .5px)");
+            stops.Add($"rgba(36,50,48,.055) calc({position}% - .5px)");
+            stops.Add($"rgba(36,50,48,.055) calc({position}% + .5px)");
+            stops.Add($"transparent calc({position}% + .5px)");
+        }
+
+        stops.Add("transparent 100%");
+        return string.Join(", ", stops);
+    }
+
     // Order shown in the UI
     private static readonly Planet[] PlanetsOrder = new[]
     {
@@ -393,8 +417,8 @@
         var daysFromStart = (startDate - startOfYear).Days;
         var duration = (endDate - startDate).Days + 1;
 
-        var leftPosition = (daysFromStart * 100.0) / 365;
-        var widthPercentage = (duration * 100.0) / 365;
+        var leftPosition = (daysFromStart * 100.0) / DaysInSelectedYear;
+        var widthPercentage = (duration * 100.0) / DaysInSelectedYear;
 
         return new RetrogradeSegment
         {
@@ -450,8 +474,8 @@
     {
         var startOfYear = new DateTime(_year, 1, 1);
         var daysFromStart = (date - startOfYear).Days;
-        var widthPercentage = Math.Max(0.12, 100.0 / 365.0);
-        var leftPosition = (daysFromStart * 100.0) / 365;
+        var widthPercentage = Math.Max(0.12, 100.0 / DaysInSelectedYear);
+        var leftPosition = (daysFromStart * 100.0) / DaysInSelectedYear;
         var centerPosition = leftPosition + (widthPercentage / 2.0);
 
         return new EclipseSegment
@@ -570,7 +594,7 @@
             if (monthEnd > lastEvent.Date) monthEnd = lastEvent.Date;
 
             var daysInMonth = (monthEnd - monthStart).Days + 1;
-            var width = (daysInMonth * 100.0) / 365;
+            var width = (daysInMonth * 100.0) / DaysInSelectedYear;
 
             _monthSegments.Add(new MonthSegment
             {
@@ -620,10 +644,10 @@
         return segments;
     }
 
-    private static ZodiacSegment CreateZodiacSegment(ZodiacSign sign, DateTime start, DateTime end)
+    private ZodiacSegment CreateZodiacSegment(ZodiacSign sign, DateTime start, DateTime end)
     {
         var duration = (end - start).Days + 1;
-        var width = (duration * 100.0) / 365;
+        var width = (duration * 100.0) / DaysInSelectedYear;
 
         return new ZodiacSegment
         {
@@ -713,7 +737,7 @@
         --year-label-column: 96px;
         --year-label-padding: 16px;
         --year-track-bg:
-            repeating-linear-gradient(90deg, rgba(36,50,48,.055) 0 1px, transparent 1px calc(100% / 12)),
+            linear-gradient(90deg, var(--year-month-grid, transparent 0 100%)),
             linear-gradient(90deg, rgba(255,246,224,.12), rgba(37,72,68,.10)),
             rgba(231,238,234,.22);
         --year-label-bg:
