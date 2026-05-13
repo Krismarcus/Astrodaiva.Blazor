@@ -189,145 +189,159 @@ else
 
 @if (_showInterpretations)
 {
-    <div style="position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;">
-        <div style="max-width:980px; margin:5vh auto; background:#fff; padding:16px; border-radius:12px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div class="interp-modal-shell">
+        <div class="interp-modal-panel">
+            <div class="interp-modal-header">
                 <h4 style="margin:0;">Interpretations</h4>
                 <button class="btn btn-sm btn-outline-secondary" @onclick="CloseInterpretations" disabled="@_interpBusy">Close</button>
             </div>
 
-            <div class="mt-3" style="display:flex; flex-direction:column; gap:14px;">
-
-                <!-- Row 1 -->
-                <div style="border:1px solid #eee; border-radius:10px; padding:12px;">
-                    <div style="font-weight:700; margin-bottom:8px;">Planet in Zodiac</div>
-
-                    <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
-                        <label style="display:flex; gap:8px; align-items:center; margin:0;">
-                            Planet
-                            <select class="form-select form-select-sm" style="width:180px;"
-                                    @bind="_interpPlanet"
-                                    @bind:event="onchange"
-                                    @bind:after="OnInterpPlanetOrZodiacChanged">
-                                @foreach (Planet p in Enum.GetValues(typeof(Planet)))
-                                {
-                                    <option value="@p">@p</option>
-                                }
-                            </select>
-                        </label>
-
-                        <label style="display:flex; gap:8px; align-items:center; margin:0;">
-                            Zodiac
-                            <select class="form-select form-select-sm" style="width:180px;"
-                                    @bind="_interpZodiacSign"
-                                    @bind:event="onchange"
-                                    @bind:after="OnInterpPlanetOrZodiacChanged">
-                                @foreach (ZodiacSign z in Enum.GetValues(typeof(ZodiacSign)))
-                                {
-                                    <option value="@z">@z</option>
-                                }
-                            </select>
-                        </label>
-                    </div>
-
-                    <div class="interp-language-grid">
-                        <label class="interp-language-field">
-                            <span>Lithuanian</span>
-                            <textarea class="form-control"
-                                      rows="10"
-                                      @bind="_interpPlanetInZodiacInfo"
-                                      @bind:event="oninput"></textarea>
-                        </label>
-                        <label class="interp-language-field">
-                            <span>English</span>
-                            <textarea class="form-control"
-                                      rows="10"
-                                      @bind="_interpPlanetInZodiacInfoEn"
-                                      @bind:event="oninput"></textarea>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Row 2 -->
-                <div style="border:1px solid #eee; border-radius:10px; padding:12px;">
-                    <div style="font-weight:700; margin-bottom:8px;">Planet in Retrograde</div>
-
-                    <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
-                        <label style="display:flex; gap:8px; align-items:center; margin:0;">
-                            Planet
-                            <select class="form-select form-select-sm" style="width:180px;"
-                                    @bind="_interpRetroPlanet"
-                                    @bind:event="onchange"
-                                    @bind:after="OnInterpRetroPlanetChanged">
-                                @foreach (Planet p in Enum.GetValues(typeof(Planet)))
-                                {
-                                    <option value="@p">@p</option>
-                                }
-                            </select>
-                        </label>
-                    </div>
-
-                    <div class="interp-language-grid">
-                        <label class="interp-language-field">
-                            <span>Lithuanian</span>
-                            <textarea class="form-control"
-                                      rows="10"
-                                      @bind="_interpPlanetInRetrogradeInfo"
-                                      @bind:event="oninput"></textarea>
-                        </label>
-                        <label class="interp-language-field">
-                            <span>English</span>
-                            <textarea class="form-control"
-                                      rows="10"
-                                      @bind="_interpPlanetInRetrogradeInfoEn"
-                                      @bind:event="oninput"></textarea>
-                        </label>
-                    </div>
-                </div>
-
-
-                <!-- Row 3 -->
-                <div style="border:1px solid #eee; border-radius:10px; padding:12px;">
-                    <div style="font-weight:700; margin-bottom:8px;">Moon Day</div>
-
-                    <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:10px;">
-                        <label style="display:flex; gap:8px; align-items:center; margin:0;">
-                            Day
-                            <select class="form-select form-select-sm" style="width:220px;"
-                                    @bind="_interpMoonDay"
-                                    @bind:event="onchange"
-                                    @bind:after="OnInterpMoonDayChanged">
-                                @for (int d = 1; d <= 30; d++)
-                                {
-                                    <option value="@d">@d – @GetMoonDaySymbol(d)</option>
-                                }
-                            </select>
-                        </label>
-                    </div>
-
-                    <div class="interp-language-grid">
-                        <label class="interp-language-field">
-                            <span>Lithuanian</span>
-                            <textarea class="form-control"
-                                      rows="10"
-                                      @bind="_interpMoonDayInfo"
-                                      @bind:event="oninput"></textarea>
-                        </label>
-                        <label class="interp-language-field">
-                            <span>English</span>
-                            <textarea class="form-control"
-                                      rows="10"
-                                      @bind="_interpMoonDayInfoEn"
-                                      @bind:event="oninput"></textarea>
-                        </label>
-                    </div>
-                </div>
-
-
+            <div class="interp-view-controls">
+                <label class="interp-selector-label">
+                    View
+                    <select class="form-select form-select-sm"
+                            @bind="_interpView"
+                            @bind:event="onchange"
+                            @bind:after="OnInterpViewChanged">
+                        <option value="@InterpretationView.PlanetInZodiacs">Planet In Zodiacs</option>
+                        <option value="@InterpretationView.PlanetInRetrograde">Planet in Retrograde</option>
+                        <option value="@InterpretationView.MoonDay">Moon Day</option>
+                    </select>
+                </label>
             </div>
 
-            <div class="mt-3" style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="min-height:20px;">
+            <div class="interp-modal-body">
+                @if (_interpView == InterpretationView.PlanetInZodiacs)
+                {
+                    <section class="interp-editor-card">
+                        <div class="interp-section-title">Planet In Zodiacs</div>
+
+                        <div class="interp-row-controls">
+                            <label class="interp-selector-label">
+                                Planet
+                                <select class="form-select form-select-sm"
+                                        @bind="_interpPlanet"
+                                        @bind:event="onchange"
+                                        @bind:after="OnInterpPlanetOrZodiacChanged">
+                                    @foreach (Planet p in Enum.GetValues(typeof(Planet)))
+                                    {
+                                        <option value="@p">@p</option>
+                                    }
+                                </select>
+                            </label>
+
+                            <label class="interp-selector-label">
+                                Zodiac
+                                <select class="form-select form-select-sm"
+                                        @bind="_interpZodiacSign"
+                                        @bind:event="onchange"
+                                        @bind:after="OnInterpPlanetOrZodiacChanged">
+                                    @foreach (ZodiacSign z in Enum.GetValues(typeof(ZodiacSign)))
+                                    {
+                                        <option value="@z">@z</option>
+                                    }
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="interp-language-grid">
+                            <label class="interp-language-field">
+                                <span>Lithuanian</span>
+                                <textarea class="form-control"
+                                          rows="16"
+                                          @bind="_interpPlanetInZodiacInfo"
+                                          @bind:event="oninput"></textarea>
+                            </label>
+                            <label class="interp-language-field">
+                                <span>English</span>
+                                <textarea class="form-control"
+                                          rows="16"
+                                          @bind="_interpPlanetInZodiacInfoEn"
+                                          @bind:event="oninput"></textarea>
+                            </label>
+                        </div>
+                    </section>
+                }
+                else if (_interpView == InterpretationView.PlanetInRetrograde)
+                {
+                    <section class="interp-editor-card">
+                        <div class="interp-section-title">Planet in Retrograde</div>
+
+                        <div class="interp-row-controls">
+                            <label class="interp-selector-label">
+                                Planet
+                                <select class="form-select form-select-sm"
+                                        @bind="_interpRetroPlanet"
+                                        @bind:event="onchange"
+                                        @bind:after="OnInterpRetroPlanetChanged">
+                                    @foreach (Planet p in Enum.GetValues(typeof(Planet)))
+                                    {
+                                        <option value="@p">@p</option>
+                                    }
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="interp-language-grid">
+                            <label class="interp-language-field">
+                                <span>Lithuanian</span>
+                                <textarea class="form-control"
+                                          rows="16"
+                                          @bind="_interpPlanetInRetrogradeInfo"
+                                          @bind:event="oninput"></textarea>
+                            </label>
+                            <label class="interp-language-field">
+                                <span>English</span>
+                                <textarea class="form-control"
+                                          rows="16"
+                                          @bind="_interpPlanetInRetrogradeInfoEn"
+                                          @bind:event="oninput"></textarea>
+                            </label>
+                        </div>
+                    </section>
+                }
+                else
+                {
+                    <section class="interp-editor-card">
+                        <div class="interp-section-title">Moon Day</div>
+
+                        <div class="interp-row-controls">
+                            <label class="interp-selector-label">
+                                Day
+                                <select class="form-select form-select-sm interp-moon-day-select"
+                                        @bind="_interpMoonDay"
+                                        @bind:event="onchange"
+                                        @bind:after="OnInterpMoonDayChanged">
+                                    @for (int d = 1; d <= 30; d++)
+                                    {
+                                        <option value="@d">@d – @GetMoonDaySymbol(d)</option>
+                                    }
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="interp-language-grid">
+                            <label class="interp-language-field">
+                                <span>Lithuanian</span>
+                                <textarea class="form-control"
+                                          rows="16"
+                                          @bind="_interpMoonDayInfo"
+                                          @bind:event="oninput"></textarea>
+                            </label>
+                            <label class="interp-language-field">
+                                <span>English</span>
+                                <textarea class="form-control"
+                                          rows="16"
+                                          @bind="_interpMoonDayInfoEn"
+                                          @bind:event="oninput"></textarea>
+                            </label>
+                        </div>
+                    </section>
+                }
+            </div>
+
+            <div class="interp-modal-footer">
+                <div class="interp-status">
                     @if (!string.IsNullOrWhiteSpace(_interpStatus))
                     {
                         <span>@_interpStatus</span>
@@ -548,6 +562,14 @@ else
     private bool _showInterpretations = false;
     private bool _interpBusy = false;
     private string _interpStatus = "";
+    private InterpretationView _interpView = InterpretationView.PlanetInZodiacs;
+
+    private enum InterpretationView
+    {
+        PlanetInZodiacs,
+        PlanetInRetrograde,
+        MoonDay
+    }
 
     // selectors
     private Planet _interpPlanet = Planet.Sun;
@@ -697,17 +719,26 @@ else
 
     private void OnInterpPlanetOrZodiacChanged()
     {
+        ApplyInterpretationBuffersToBoundRows();
         BindPlanetInZodiacRow();
     }
 
     private void OnInterpRetroPlanetChanged()
     {
+        ApplyInterpretationBuffersToBoundRows();
         BindRetroRow();
     }
 
     private void OnInterpMoonDayChanged()
     {
+        ApplyInterpretationBuffersToBoundRows();
         BindMoonDayRow();
+    }
+
+    private void OnInterpViewChanged()
+    {
+        ApplyInterpretationBuffersToBoundRows();
+        _interpStatus = "";
     }
 
     private void BindPlanetInZodiacRow()
@@ -799,23 +830,7 @@ else
             _interpBusy = true;
             _interpStatus = "Saving…";
 
-            if (_boundPizRow is not null)
-            {
-                _boundPizRow.PlanetInZodiacInfo = _interpPlanetInZodiacInfo ?? "";
-                _boundPizRow.PlanetInZodiacInfoEn = _interpPlanetInZodiacInfoEn ?? "";
-            }
-
-            if (_boundRetroRow is not null)
-            {
-                _boundRetroRow.PlanetInRetrogradeInfo = _interpPlanetInRetrogradeInfo ?? "";
-                _boundRetroRow.PlanetInRetrogradeInfoEn = _interpPlanetInRetrogradeInfoEn ?? "";
-            }
-
-            if (_boundMoonRow is not null)
-            {
-                _boundMoonRow.MoonDayInfo = _interpMoonDayInfo ?? "";
-                _boundMoonRow.MoonDayInfoEn = _interpMoonDayInfoEn ?? "";
-            }
+            ApplyInterpretationBuffersToBoundRows();
 
             // show unsaved indicator
             MarkChanged();
@@ -833,6 +848,27 @@ else
         finally
         {
             _interpBusy = false;
+        }
+    }
+
+    private void ApplyInterpretationBuffersToBoundRows()
+    {
+        if (_boundPizRow is not null)
+        {
+            _boundPizRow.PlanetInZodiacInfo = _interpPlanetInZodiacInfo ?? "";
+            _boundPizRow.PlanetInZodiacInfoEn = _interpPlanetInZodiacInfoEn ?? "";
+        }
+
+        if (_boundRetroRow is not null)
+        {
+            _boundRetroRow.PlanetInRetrogradeInfo = _interpPlanetInRetrogradeInfo ?? "";
+            _boundRetroRow.PlanetInRetrogradeInfoEn = _interpPlanetInRetrogradeInfoEn ?? "";
+        }
+
+        if (_boundMoonRow is not null)
+        {
+            _boundMoonRow.MoonDayInfo = _interpMoonDayInfo ?? "";
+            _boundMoonRow.MoonDayInfoEn = _interpMoonDayInfoEn ?? "";
         }
     }
 
@@ -1632,6 +1668,100 @@ else
         gap: 0.5rem;
     }
 
+    .interp-modal-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 4vh 16px;
+        background: rgba(0,0,0,.6);
+        overflow-y: auto;
+        box-sizing: border-box;
+    }
+
+    .interp-modal-panel {
+        width: min(980px, 100%);
+        max-height: 92vh;
+        max-height: min(92vh, calc(100dvh - 8vh));
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        box-sizing: border-box;
+    }
+
+    .interp-modal-header,
+    .interp-modal-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex: 0 0 auto;
+    }
+
+    .interp-view-controls {
+        display: flex;
+        justify-content: center;
+        margin-top: 14px;
+        flex: 0 0 auto;
+    }
+
+    .interp-modal-body {
+        min-height: 0;
+        margin-top: 14px;
+        overflow-y: auto;
+        padding-right: 4px;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .interp-modal-footer {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #eee;
+    }
+
+    .interp-status {
+        min-height: 20px;
+    }
+
+    .interp-editor-card {
+        border: 1px solid #eee;
+        border-radius: 10px;
+        padding: 12px;
+    }
+
+    .interp-section-title {
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .interp-row-controls {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+    }
+
+    .interp-selector-label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin: 0;
+    }
+
+    .interp-selector-label select {
+        width: 180px;
+    }
+
+    .interp-moon-day-select {
+        width: 220px !important;
+    }
+
     .interp-language-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1653,6 +1783,39 @@ else
     }
 
     @@media (max-width: 760px) {
+        .interp-modal-shell {
+            padding: 12px 10px;
+        }
+
+        .interp-modal-panel {
+            max-height: calc(100dvh - 24px);
+            padding: 12px;
+        }
+
+        .interp-modal-header,
+        .interp-modal-footer {
+            align-items: flex-start;
+        }
+
+        .interp-modal-footer {
+            flex-direction: column;
+        }
+
+        .interp-view-controls,
+        .interp-view-controls .interp-selector-label,
+        .interp-view-controls select,
+        .interp-selector-label,
+        .interp-selector-label select,
+        .interp-moon-day-select {
+            width: 100% !important;
+        }
+
+        .interp-selector-label {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 4px;
+        }
+
         .interp-language-grid {
             grid-template-columns: 1fr;
         }
