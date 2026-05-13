@@ -80,7 +80,7 @@
                                 @foreach (var segment in planetRow.Segments)
                                 {
                                     <span class="zodiac-bar @(IsSegmentSelected(planetRow.PlanetName, segment) ? "selected" : "")"
-                                          style="background:@Zodiac.Color(segment.ZodiacSign);width:@Css.Pct(segment.WidthPercentage)"
+                                          style="background:@GetYearZodiacColor(segment.ZodiacSign);width:@Css.Pct(segment.WidthPercentage)"
                                           title="@(BuildSegmentTitle(planetRow.PlanetName, segment))"
                                           @onclick="() => SelectSegment(planetRow.PlanetName, segment)"
                                           @onmouseover="() => OnSegmentHover(segment)"
@@ -191,6 +191,15 @@
         => IsLt
             ? $"{EnumText.GetPlanetName(planet)}: {EnumText.GetZodiacName(segment.ZodiacSign)} {segment.ZodiacStartDate.ToString("MMM d", CultureInfo.CurrentCulture)} - {segment.ZodiacEndDate.ToString("MMM d", CultureInfo.CurrentCulture)}"
             : $"{EnumText.GetPlanetName(planet)}: {Zodiac.Name(segment.ZodiacSign)} {segment.ZodiacStartDate:MMM d} - {segment.ZodiacEndDate:MMM d}";
+
+    private static string GetYearZodiacColor(ZodiacSign sign) => sign switch
+    {
+        ZodiacSign.Aries or ZodiacSign.Leo or ZodiacSign.Sagittarius => "#B97958",
+        ZodiacSign.Taurus or ZodiacSign.Virgo or ZodiacSign.Capricorn => "#8B8D5A",
+        ZodiacSign.Gemini or ZodiacSign.Libra or ZodiacSign.Aquarius => "#8FAF9A",
+        ZodiacSign.Cancer or ZodiacSign.Scorpio or ZodiacSign.Pisces => "#567A84",
+        _ => "#8FAF9A"
+    };
 
     private string BuildRetroTitle(Planet planet, RetrogradeSegment segment)
         => IsLt
@@ -682,8 +691,20 @@
 
 
 <style>
+    :root {
+        --year-fire: #B97958;
+        --year-earth: #8B8D5A;
+        --year-air: #8FAF9A;
+        --year-water: #567A84;
+        --year-ink: #243230;
+        --year-muted: #506160;
+        --year-line: rgba(50,70,65,.06);
+        --year-track: rgba(255,255,255,.10);
+        --year-track-strong: rgba(231,238,234,.22);
+    }
+
     .year-topbar {
-        margin-bottom: 14px;
+        margin-bottom: 12px;
     }
 
     .year-topbar__inner {
@@ -695,20 +716,23 @@
 
     .year-topbar__eyebrow {
         font-size: .78rem;
-        font-weight: 700;
-        letter-spacing: .08em;
+        font-weight: 500;
+        letter-spacing: .06em;
         text-transform: uppercase;
-        color: rgba(7,66,82,.72);
+        color: rgba(36,50,48,.66);
     }
 
     .year-surface {
-        background: linear-gradient(180deg,
-            rgba(246,249,221,.95) 0%,
-            rgba(216,235,215,.92) 36%,
-            rgba(106,174,180,.90) 100%);
+        background:
+            radial-gradient(ellipse 120% 70% at 18% 0%, rgba(255,255,255,.32) 0%, rgba(255,255,255,.10) 36%, rgba(255,255,255,0) 68%),
+            radial-gradient(ellipse 100% 78% at 92% 100%, rgba(86,122,132,.14) 0%, rgba(86,122,132,.05) 42%, rgba(86,122,132,0) 72%),
+            linear-gradient(180deg,
+            rgba(246,249,221,.93) 0%,
+            rgba(216,235,215,.90) 42%,
+            rgba(106,174,180,.82) 100%);
         border-radius: 24px;
-        border: 1px solid rgba(255,255,255,.55);
-        box-shadow: 0 18px 40px rgba(19,46,54,.12);
+        border: 1px solid rgba(50,70,65,.06);
+        box-shadow: 0 18px 40px rgba(19,46,54,.10);
         position: relative;
         overflow: hidden;
     }
@@ -718,8 +742,9 @@
         position: absolute;
         inset: 0;
         background:
-            radial-gradient(circle at 14% 12%, rgba(255,255,255,.34) 0, rgba(255,255,255,0) 26%),
-            radial-gradient(circle at 84% 10%, rgba(72,166,177,.09) 0, rgba(72,166,177,0) 24%);
+            linear-gradient(90deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,0) 28%, rgba(36,50,48,.025) 100%),
+            radial-gradient(circle at 14% 12%, rgba(255,255,255,.22) 0, rgba(255,255,255,0) 28%),
+            radial-gradient(circle at 84% 10%, rgba(143,175,154,.10) 0, rgba(143,175,154,0) 26%);
         pointer-events: none;
     }
 
@@ -736,6 +761,7 @@
 
     .timeline-content {
         min-width: 1440px; /* MOBILE: doubled from 720px to 1440px */
+        color: var(--year-ink);
     }
 
     .month-labels-container {
@@ -752,12 +778,13 @@
 
     .month-bar {
         display: flex;
-        height: 28px;
+        height: 26px;
         flex: 1;
-        border-radius: 12px 12px 0 0;
+        border-radius: 10px;
         overflow: hidden;
-        background: rgba(255,255,255,.56);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 8px 22px rgba(7,66,82,.08);
+        background: rgba(255,255,255,.26);
+        border: 1px solid var(--year-line);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 6px 16px rgba(7,66,82,.055);
         min-width: 1360px; /* 1440px - 80px (spacer width) */
         backdrop-filter: blur(8px);
     }
@@ -766,21 +793,21 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.92em;
-        color: rgba(7,66,82,.78);
-        font-weight: 700;
-        border-right: 1px solid rgba(7,66,82,.08);
-        background: rgba(255,255,255,.28);
+        font-size: 0.88em;
+        color: rgba(36,50,48,.72);
+        font-weight: 600;
+        border-right: 1px solid rgba(50,70,65,.06);
+        background: rgba(255,255,255,.12);
         white-space: nowrap;
         flex-shrink: 0;
         transition: all 0.24s ease;
     }
 
         .month-label.highlighted {
-            background: rgba(255,255,255,.84);
-            color: #074252;
-            font-weight: 800;
-            box-shadow: inset 0 0 0 2px rgba(7,66,82,.38);
+            background: rgba(255,255,255,.48);
+            color: var(--year-ink);
+            font-weight: 600;
+            box-shadow: inset 0 -2px 0 rgba(185,121,88,.32);
         }
 
         .month-label:last-child {
@@ -790,15 +817,15 @@
     .planet-row {
         display: flex;
         align-items: center;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
     }
 
     .planet-label {
         width: 80px;
-        font-weight: 800;
+        font-weight: 500;
         text-align: right;
         padding-right: 1em;
-        color: #074252;
+        color: rgba(36,50,48,.82);
         flex-shrink: 0;
         letter-spacing: .01em;
     }
@@ -809,30 +836,41 @@
         flex-direction: column;
         position: relative;
         min-width: 1360px; /* 1440px - 80px (label width) */
+        padding: 2px 0 6px;
+        border-radius: 10px;
+        background:
+            repeating-linear-gradient(90deg, rgba(50,70,65,.032) 0 1px, transparent 1px calc(100% / 12)),
+            linear-gradient(90deg, rgba(255,255,255,.10), rgba(255,255,255,.035)),
+            rgba(231,238,234,.14);
+        border: 1px solid rgba(50,70,65,.045);
     }
 
     .year-bar {
         display: flex;
         height: 34px;
-        border-radius: 12px;
+        border-radius: 10px;
         overflow: hidden;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 22px rgba(7,66,82,.10);
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(50,70,65,.045);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 2px 10px rgba(20,30,25,.04);
     }
 
     /* Retrograde line: thin by default */
     .retrograde-bar-container {
         position: relative;
-        height: 4px;
-        margin-top: 2px;
+        height: 5px;
+        margin-top: 4px;
         overflow: visible; /* allow hover growth to overflow */
     }
 
     .retrograde-bar {
         position: absolute;
         height: 100%;
-        background: linear-gradient(45deg, #e46d5b, #d84e2f);
-        border-radius: 2px;
-        opacity: 0.85;
+        background: linear-gradient(90deg, rgba(185,121,88,.42), rgba(86,122,132,.34));
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 999px;
+        opacity: 0.78;
+        backdrop-filter: blur(4px);
         transform-origin: center;
         transform: translateY(0) scaleY(1);
         transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
@@ -845,9 +883,9 @@
         top: 50%;
         transform: translateY(-50%);
         font-size: 11px;
-        font-weight: 700;
-        color: #fff;
-        text-shadow: 0 1px 2px rgba(0,0,0,.6);
+        font-weight: 500;
+        color: rgba(255,255,255,.92);
+        text-shadow: 0 1px 2px rgba(36,50,48,.42);
         letter-spacing: .2px;
         pointer-events: none;
         opacity: 0;
@@ -858,8 +896,9 @@
     @@media (hover: hover) {
         .retrograde-bar:hover {
             transform: translateY(-6px) scaleY(4); /* ~16px visual thickness */
-            filter: brightness(1.08);
-            box-shadow: 0 2px 10px rgba(0,0,0,.25);
+            filter: brightness(1.04);
+            box-shadow: 0 2px 10px rgba(20,30,25,.12);
+            opacity: .9;
         }
 
             .retrograde-bar:hover .retro-start-day {
@@ -871,8 +910,9 @@
     @@media (hover: none) {
         .retrograde-bar.is-active {
             transform: translateY(-6px) scaleY(4);
-            filter: brightness(1.08);
-            box-shadow: 0 2px 10px rgba(0,0,0,.25);
+            filter: brightness(1.04);
+            box-shadow: 0 2px 10px rgba(20,30,25,.12);
+            opacity: .9;
         }
 
             .retrograde-bar.is-active .retro-start-day {
@@ -898,10 +938,10 @@
         top: 40%;
         height: 4px;
         transform: translateY(-50%);
-        background: linear-gradient(90deg, rgba(47,62,73,.92), rgba(80,93,102,.92));
+        background: linear-gradient(90deg, rgba(36,50,48,.62), rgba(86,122,132,.55));
         border-radius: 999px;
-        opacity: 0.95;
-        box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+        opacity: 0.82;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
     }
 
     .eclipse-marker {
@@ -926,7 +966,7 @@
         height: 10px;
         border-radius: 999px;
         transform: translate(-50%, -50%);
-        box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+        box-shadow: 0 0 0 1px rgba(50,70,65,.20), 0 2px 8px rgba(20,30,25,.10);
     }
 
     .sun-eclipse-dot {
@@ -944,7 +984,7 @@
         transform: translateX(-50%);
         display: block;
         background: transparent;
-        color: #444;
+        color: rgba(36,50,48,.76);
         font-size: 0.95em;
         font-weight: 500;
         line-height: 1;
@@ -976,12 +1016,13 @@
         font-size: 0.9em;
         font-weight: 500;
         white-space: nowrap;
-        border-right: 1px solid #fff3;
-        transition: all 0.3s ease;
+        border-right: 1px solid rgba(255,255,255,.18);
+        transition: filter 0.22s ease, box-shadow 0.22s ease, opacity 0.22s ease;
         cursor: pointer;
         position: relative;
         flex-shrink: 0;
         overflow: hidden;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
     }
 
     .bar-content {
@@ -995,8 +1036,8 @@
 
     .start-day {
         font-size: 0.95em;
-        font-weight: 500;
-        color: #444;
+        font-weight: 400;
+        color: rgba(36,50,48,.72);
         white-space: nowrap;
         position: absolute;
         left: 8px;
@@ -1008,23 +1049,34 @@
         width: 20px;
         object-fit: contain;
         margin: 0 auto;
+        opacity: .84;
     }
 
     .zodiac-bar:last-child {
         border-right: none;
     }
 
+    .zodiac-bar:first-child {
+        border-top-left-radius: 9px;
+        border-bottom-left-radius: 9px;
+    }
+
+    .zodiac-bar:last-child {
+        border-top-right-radius: 9px;
+        border-bottom-right-radius: 9px;
+    }
+
     .zodiac-bar.selected {
-        border: 3px solid #000 !important;
-        box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+        outline: 1px solid rgba(255,255,255,.80);
+        outline-offset: -2px;
+        box-shadow: inset 0 0 0 2px rgba(36,50,48,.18), 0 2px 10px rgba(20,30,25,.10);
         z-index: 10;
-        transform: scale(1.02);
+        filter: brightness(1.04);
     }
 
     .zodiac-bar:hover {
-        filter: brightness(1.2);
-        transform: scale(1.02);
-        box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+        filter: brightness(1.06) saturate(1.03);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 2px 10px rgba(20,30,25,.08);
         z-index: 5;
     }
 
@@ -1113,27 +1165,28 @@
         gap: 14px;
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(255,255,255,.42);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 8px 20px rgba(7,66,82,.08);
+        background: rgba(255,255,255,.30);
+        border: 1px solid rgba(50,70,65,.06);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.36), 0 6px 16px rgba(7,66,82,.06);
         backdrop-filter: blur(8px);
     }
 
     .year-label {
         font-size: 1.4em;
-        font-weight: 800;
+        font-weight: 600;
         margin: 0 .4em;
         vertical-align: middle;
         min-width: 4ch;
         text-align: center;
-        color: #074252;
+        color: var(--year-ink);
     }
 
     .year-arrow {
-        background: rgba(7,66,82,.08);
-        border: 1px solid rgba(7,66,82,.08);
+        background: rgba(255,255,255,.20);
+        border: 1px solid rgba(50,70,65,.06);
         font-size: 1.35em;
         cursor: pointer;
-        color: #074252;
+        color: var(--year-ink);
         padding: 0;
         vertical-align: middle;
         width: 42px;
@@ -1151,8 +1204,8 @@
 
     .year-arrow:hover {
         transform: translateY(-1px);
-        background: rgba(7,66,82,.14);
-        box-shadow: 0 8px 18px rgba(7,66,82,.10);
+        background: rgba(255,255,255,.34);
+        box-shadow: 0 6px 16px rgba(7,66,82,.08);
     }
 
     .year-arrow:active {
