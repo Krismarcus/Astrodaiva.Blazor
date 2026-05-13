@@ -194,11 +194,11 @@
 
     private static string GetYearZodiacColor(ZodiacSign sign) => sign switch
     {
-        ZodiacSign.Aries or ZodiacSign.Leo or ZodiacSign.Sagittarius => "#B97958",
-        ZodiacSign.Taurus or ZodiacSign.Virgo or ZodiacSign.Capricorn => "#8B8D5A",
-        ZodiacSign.Gemini or ZodiacSign.Libra or ZodiacSign.Aquarius => "#8FAF9A",
-        ZodiacSign.Cancer or ZodiacSign.Scorpio or ZodiacSign.Pisces => "#567A84",
-        _ => "#8FAF9A"
+        ZodiacSign.Aries or ZodiacSign.Leo or ZodiacSign.Sagittarius => "#C65F4A",
+        ZodiacSign.Taurus or ZodiacSign.Virgo or ZodiacSign.Capricorn => "#9A8F4E",
+        ZodiacSign.Gemini or ZodiacSign.Libra or ZodiacSign.Aquarius => "#77A98C",
+        ZodiacSign.Cancer or ZodiacSign.Scorpio or ZodiacSign.Pisces => "#4E8394",
+        _ => "#77A98C"
     };
 
     private string BuildRetroTitle(Planet planet, RetrogradeSegment segment)
@@ -692,10 +692,10 @@
 
 <style>
     :root {
-        --year-fire: #B97958;
-        --year-earth: #8B8D5A;
-        --year-air: #8FAF9A;
-        --year-water: #567A84;
+        --year-fire: #C65F4A;
+        --year-earth: #9A8F4E;
+        --year-air: #77A98C;
+        --year-water: #4E8394;
         --year-ink: #243230;
         --year-muted: #506160;
         --year-line: rgba(50,70,65,.06);
