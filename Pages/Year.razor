@@ -807,6 +807,13 @@
         width: 80px;
         margin-right: 1em;
         flex-shrink: 0;
+        position: sticky;
+        left: 0;
+        z-index: 14;
+        align-self: stretch;
+        background:
+            linear-gradient(90deg, rgba(238,234,211,.96) 0%, rgba(199,223,203,.92) 78%, rgba(199,223,203,0) 100%);
+        box-shadow: 10px 0 18px rgba(19,46,54,.08);
     }
 
     .month-bar {
@@ -863,6 +870,16 @@
         color: rgba(36,50,48,.90);
         flex-shrink: 0;
         letter-spacing: .01em;
+        position: sticky;
+        left: 0;
+        z-index: 8;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        background:
+            linear-gradient(90deg, rgba(238,234,211,.94) 0%, rgba(199,223,203,.90) 78%, rgba(199,223,203,0) 100%);
+        box-shadow: 10px 0 18px rgba(19,46,54,.07);
     }
 
     .planet-bar-container {
