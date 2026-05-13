@@ -12,6 +12,8 @@ namespace Astrodaiva.Data.Models
         [ObservableProperty]
         private int moonDay;
         [ObservableProperty]
-        private string moonDayInfo;
+        private string moonDayInfo = "";
+        [ObservableProperty]
+        private string moonDayInfoEn = "";
     }
 }

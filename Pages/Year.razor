@@ -267,7 +267,7 @@
         _selectedPlanetInZodiacText = EnumText.In(planetName, segment.ZodiacSign);
         _selectedStartDateText = IsLt ? $"Nuo {segment.ZodiacStartDate.ToString("MMMM d, HH:mm", CultureInfo.CurrentCulture)}" : $"From {segment.ZodiacStartDate:MMMM d, HH:mm}";
         _selectedEndDateText = IsLt ? $"Iki {segment.ZodiacEndDate.ToString("MMMM d, HH:mm", CultureInfo.CurrentCulture)}" : $"To {segment.ZodiacEndDate:MMMM d, HH:mm}";
-        _selectedPlanetInfo = infoSourceItem?.PlanetInZodiacInfo ?? (IsLt ? "Informacijos nėra." : "No information available.");
+        _selectedPlanetInfo = GetPlanetInZodiacInfo(infoSourceItem);
 
         _selectedPlanetName = planetName;
         _selectedSegment = segment;
@@ -280,6 +280,24 @@
     {
         _hoveredSegment = segment;
         StateHasChanged();
+    }
+
+    private string GetPlanetInZodiacInfo(PlanetInZodiacDetails? details)
+    {
+        if (details is null)
+            return IsLt ? "Informacijos nėra." : "No information available.";
+
+        if (IsLt)
+            return string.IsNullOrWhiteSpace(details.PlanetInZodiacInfo)
+                ? "Informacijos nėra."
+                : details.PlanetInZodiacInfo;
+
+        if (!string.IsNullOrWhiteSpace(details.PlanetInZodiacInfoEn))
+            return details.PlanetInZodiacInfoEn;
+
+        return string.IsNullOrWhiteSpace(details.PlanetInZodiacInfo)
+            ? "No information available."
+            : details.PlanetInZodiacInfo;
     }
 
     private void OnSegmentHoverOut()

@@ -609,9 +609,8 @@ else
     {
         var name = GetMoonDayName(moonDay);
 
-        var info = _db?.MoonDayDetailsDB?
-            .FirstOrDefault(x => x.MoonDay == moonDay)
-            ?.MoonDayInfo;
+        var info = GetMoonDayInfo(_db?.MoonDayDetailsDB?
+            .FirstOrDefault(x => x.MoonDay == moonDay));
 
         _infoModalTitle = IsLt ? $"Mėnulio diena {moonDay} · {name}" : $"Moon Day {moonDay} · {name}";
         _infoModalBody = ToMultilineMarkup(info, IsLt ? "Šiam simboliui Mėnulio dienos aprašymo dar nėra." : "No Moon-day details saved yet for this symbol.");
@@ -631,9 +630,8 @@ else
         var planetName = EnumText.GetPlanetName(p.Planet);
         var signName = EnumText.GetZodiacName(p.NewZodiacSign);
 
-        var info = _db?.PlanetInZodiacsDB?
-            .FirstOrDefault(x => x.Planet == p.Planet && x.ZodiacSign == p.NewZodiacSign)
-            ?.PlanetInZodiacInfo;
+        var info = GetPlanetInZodiacInfo(_db?.PlanetInZodiacsDB?
+            .FirstOrDefault(x => x.Planet == p.Planet && x.ZodiacSign == p.NewZodiacSign));
 
         _infoModalTitle = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt" ? $"{planetName} {EnumText.GetZodiacLocative(p.NewZodiacSign)}" : $"{planetName} in {signName}";
         _infoModalBody = ToMultilineMarkup(info, IsLt ? "Šiai padėčiai planetos ženkle aprašymo dar nėra." : "No Planet-in-Zodiac details saved yet for this position.");
@@ -645,6 +643,20 @@ else
         _infoModalOpen = false;
         _infoModalTitle = "";
         _infoModalBody = default;
+    }
+
+    private string GetMoonDayInfo(MoonDayDetails? details)
+        => LocalizedInterpretation(details?.MoonDayInfo, details?.MoonDayInfoEn);
+
+    private string GetPlanetInZodiacInfo(PlanetInZodiacDetails? details)
+        => LocalizedInterpretation(details?.PlanetInZodiacInfo, details?.PlanetInZodiacInfoEn);
+
+    private string LocalizedInterpretation(string? lt, string? en)
+    {
+        if (IsLt)
+            return lt ?? "";
+
+        return !string.IsNullOrWhiteSpace(en) ? en : (lt ?? "");
     }
 
     private static MarkupString ToMultilineMarkup(string? text, string emptyMessage)

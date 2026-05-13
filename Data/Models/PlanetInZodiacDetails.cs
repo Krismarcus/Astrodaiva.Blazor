@@ -15,6 +15,8 @@ namespace Astrodaiva.Data.Models
         [ObservableProperty]
         private ZodiacSign zodiacSign;
         [ObservableProperty]
-        private string planetInZodiacInfo;
+        private string planetInZodiacInfo = "";
+        [ObservableProperty]
+        private string planetInZodiacInfoEn = "";
     }
 }

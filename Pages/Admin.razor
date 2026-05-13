@@ -230,10 +230,22 @@ else
                         </label>
                     </div>
 
-                    <textarea class="form-control" style="width:100%;"
-                              rows="10"
-                              @bind="_interpPlanetInZodiacInfo"
-                              @bind:event="oninput"></textarea>
+                    <div class="interp-language-grid">
+                        <label class="interp-language-field">
+                            <span>Lithuanian</span>
+                            <textarea class="form-control"
+                                      rows="10"
+                                      @bind="_interpPlanetInZodiacInfo"
+                                      @bind:event="oninput"></textarea>
+                        </label>
+                        <label class="interp-language-field">
+                            <span>English</span>
+                            <textarea class="form-control"
+                                      rows="10"
+                                      @bind="_interpPlanetInZodiacInfoEn"
+                                      @bind:event="oninput"></textarea>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Row 2 -->
@@ -255,10 +267,22 @@ else
                         </label>
                     </div>
 
-                    <textarea class="form-control" style="width:100%;"
-                              rows="10"
-                              @bind="_interpPlanetInRetrogradeInfo"
-                              @bind:event="oninput"></textarea>
+                    <div class="interp-language-grid">
+                        <label class="interp-language-field">
+                            <span>Lithuanian</span>
+                            <textarea class="form-control"
+                                      rows="10"
+                                      @bind="_interpPlanetInRetrogradeInfo"
+                                      @bind:event="oninput"></textarea>
+                        </label>
+                        <label class="interp-language-field">
+                            <span>English</span>
+                            <textarea class="form-control"
+                                      rows="10"
+                                      @bind="_interpPlanetInRetrogradeInfoEn"
+                                      @bind:event="oninput"></textarea>
+                        </label>
+                    </div>
                 </div>
 
 
@@ -281,10 +305,22 @@ else
                         </label>
                     </div>
 
-                    <textarea class="form-control" style="width:100%;"
-                              rows="10"
-                              @bind="_interpMoonDayInfo"
-                              @bind:event="oninput"></textarea>
+                    <div class="interp-language-grid">
+                        <label class="interp-language-field">
+                            <span>Lithuanian</span>
+                            <textarea class="form-control"
+                                      rows="10"
+                                      @bind="_interpMoonDayInfo"
+                                      @bind:event="oninput"></textarea>
+                        </label>
+                        <label class="interp-language-field">
+                            <span>English</span>
+                            <textarea class="form-control"
+                                      rows="10"
+                                      @bind="_interpMoonDayInfoEn"
+                                      @bind:event="oninput"></textarea>
+                        </label>
+                    </div>
                 </div>
 
 
@@ -521,8 +557,11 @@ else
 
     // text buffers (editable)
     private string _interpPlanetInZodiacInfo = "";
+    private string _interpPlanetInZodiacInfoEn = "";
     private string _interpPlanetInRetrogradeInfo = "";
+    private string _interpPlanetInRetrogradeInfoEn = "";
     private string _interpMoonDayInfo = "";
+    private string _interpMoonDayInfoEn = "";
 
     // bound rows in DB (so save knows what to update)
     private PlanetInZodiacDetails? _boundPizRow;
@@ -687,12 +726,14 @@ else
             {
                 Planet = _interpPlanet,
                 ZodiacSign = _interpZodiacSign,
-                PlanetInZodiacInfo = ""
+                PlanetInZodiacInfo = "",
+                PlanetInZodiacInfoEn = ""
             };
             db.PlanetInZodiacsDB.Add(_boundPizRow);
         }
 
         _interpPlanetInZodiacInfo = _boundPizRow.PlanetInZodiacInfo ?? "";
+        _interpPlanetInZodiacInfoEn = _boundPizRow.PlanetInZodiacInfoEn ?? "";
     }
 
     private void BindRetroRow()
@@ -710,12 +751,14 @@ else
             _boundRetroRow = new PlanetInRetrogradeDetails
             {
                 PlanetInRetrograde = _interpRetroPlanet,
-                PlanetInRetrogradeInfo = ""
+                PlanetInRetrogradeInfo = "",
+                PlanetInRetrogradeInfoEn = ""
             };
             db.PlanetInRetrogradeDetailsDB.Add(_boundRetroRow);
         }
 
         _interpPlanetInRetrogradeInfo = _boundRetroRow.PlanetInRetrogradeInfo ?? "";
+        _interpPlanetInRetrogradeInfoEn = _boundRetroRow.PlanetInRetrogradeInfoEn ?? "";
     }
 
     private void BindMoonDayRow()
@@ -732,12 +775,14 @@ else
             _boundMoonRow = new MoonDayDetails
             {
                 MoonDay = _interpMoonDay,
-                MoonDayInfo = ""
+                MoonDayInfo = "",
+                MoonDayInfoEn = ""
             };
             db.MoonDayDetailsDB.Add(_boundMoonRow);
         }
 
         _interpMoonDayInfo = _boundMoonRow.MoonDayInfo ?? "";
+        _interpMoonDayInfoEn = _boundMoonRow.MoonDayInfoEn ?? "";
     }
 
     private async Task SaveInterpretationsToDb()
@@ -755,13 +800,22 @@ else
             _interpStatus = "Saving…";
 
             if (_boundPizRow is not null)
+            {
                 _boundPizRow.PlanetInZodiacInfo = _interpPlanetInZodiacInfo ?? "";
+                _boundPizRow.PlanetInZodiacInfoEn = _interpPlanetInZodiacInfoEn ?? "";
+            }
 
             if (_boundRetroRow is not null)
+            {
                 _boundRetroRow.PlanetInRetrogradeInfo = _interpPlanetInRetrogradeInfo ?? "";
+                _boundRetroRow.PlanetInRetrogradeInfoEn = _interpPlanetInRetrogradeInfoEn ?? "";
+            }
 
             if (_boundMoonRow is not null)
+            {
                 _boundMoonRow.MoonDayInfo = _interpMoonDayInfo ?? "";
+                _boundMoonRow.MoonDayInfoEn = _interpMoonDayInfoEn ?? "";
+            }
 
             // show unsaved indicator
             MarkChanged();
@@ -1576,6 +1630,32 @@ else
         display: flex;
         align-items: center;
         gap: 0.5rem;
+    }
+
+    .interp-language-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .interp-language-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin: 0;
+        min-width: 0;
+    }
+
+    .interp-language-field span {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #555;
+    }
+
+    @@media (max-width: 760px) {
+        .interp-language-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     /* ----- DATE NAVIGATION ----- */

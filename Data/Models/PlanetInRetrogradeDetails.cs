@@ -13,6 +13,8 @@ namespace Astrodaiva.Data.Models
         [ObservableProperty]
         private Planet planetInRetrograde;
         [ObservableProperty]
-        private string planetInRetrogradeInfo;
+        private string planetInRetrogradeInfo = "";
+        [ObservableProperty]
+        private string planetInRetrogradeInfoEn = "";
     }
 }
