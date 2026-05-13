@@ -100,14 +100,14 @@ else
 
 @if (_showBackups)
 {
-    <div style="position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:9999;">
-        <div style="max-width:900px; margin:5vh auto; background:#fff; padding:16px; border-radius:12px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div class="admin-modal-shell backup-modal-shell">
+        <div class="backup-modal-panel">
+            <div class="admin-modal-header">
                 <h4 style="margin:0;">Backups</h4>
-                <button class="btn btn-sm btn-outline-secondary" @onclick="(()=> _showBackups=false)">Close</button>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="CloseBackups">Close</button>
             </div>
 
-            <div class="mt-3" style="display:flex;gap:8px;align-items:center;">
+            <div class="backup-toolbar">
                 <input class="form-control" style="max-width:220px;" placeholder="Label" @bind="_snapshotLabel" />
                 <label style="display:flex;gap:6px;align-items:center; margin:0;">
                     <input type="checkbox" @bind="_snapshotMakeDefault" />
@@ -119,24 +119,26 @@ else
                 @if (_busySnapshots) { <span>Working...</span> }
             </div>
 
-            @if (!string.IsNullOrWhiteSpace(_snapStatus))
-            {
-                <pre class="mt-2" style="white-space:pre-wrap;background:#111;color:#0f0;padding:10px;border-radius:8px;">@_snapStatus</pre>
-            }
+            <div class="backup-modal-body">
+                @if (!string.IsNullOrWhiteSpace(_snapStatus))
+                {
+                    <pre class="mt-2" style="white-space:pre-wrap;background:#111;color:#0f0;padding:10px;border-radius:8px;">@_snapStatus</pre>
+                }
 
-            <table class="table table-sm mt-3">
-                <thead>
-                    <tr>
-                        <th>Id</th>
-                        <th>Created (UTC)</th>
-                        <th>Label</th>
-                        <th>Size</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var s in _snapshots)
-                    {
+                <div class="backup-table-wrap">
+                    <table class="table table-sm mt-3">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Created (UTC)</th>
+                                <th>Label</th>
+                                <th>Size</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in _snapshots)
+                            {
                         <tr>
                             <td>@s.Id</td>
                             <td>@s.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
@@ -159,38 +161,40 @@ else
                                 <button class="btn btn-sm btn-danger ms-2" disabled="@_busySnapshots" @onclick="(()=>DeleteSnapshot(s.Id))">Delete</button>
                             </td>
                         </tr>
-                    }
-                </tbody>
-            </table>
-
-            @if (_showDiff)
-            {
-                <div class="mt-3" style="border:1px solid #ddd;border-radius:10px;padding:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-                        <strong>Diff result</strong>
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="(()=>_showDiff=false)">Close diff</button>
-                    </div>
-                    <div class="mt-2" style="white-space:pre-wrap;">@_diffSummary</div>
-                    @if (_diffDates.Count > 0)
-                    {
-                        <div class="mt-2" style="max-height:200px; overflow:auto;">
-                            <ul style="margin:0; padding-left:18px;">
-                                @foreach (var d in _diffDates)
-                                {
-                                    <li>@d</li>
-                                }
-                            </ul>
-                        </div>
-                    }
+                            }
+                        </tbody>
+                    </table>
                 </div>
-            }
+
+                @if (_showDiff)
+                {
+                    <div class="mt-3" style="border:1px solid #ddd;border-radius:10px;padding:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                            <strong>Diff result</strong>
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="(()=>_showDiff=false)">Close diff</button>
+                        </div>
+                        <div class="mt-2" style="white-space:pre-wrap;">@_diffSummary</div>
+                        @if (_diffDates.Count > 0)
+                        {
+                            <div class="mt-2" style="max-height:200px; overflow:auto;">
+                                <ul style="margin:0; padding-left:18px;">
+                                    @foreach (var d in _diffDates)
+                                    {
+                                        <li>@d</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
         </div>
     </div>
 }
 
 @if (_showInterpretations)
 {
-    <div class="interp-modal-shell">
+    <div class="admin-modal-shell interp-modal-shell">
         <div class="interp-modal-panel">
             <div class="interp-modal-header">
                 <h4 style="margin:0;">Interpretations</h4>
@@ -414,7 +418,7 @@ else
             <div class="moonday-box">
                 <h4>Moon Day</h4>
                 <div class="moonday-grid">
-                    <label>
+                    <label class="moonday-field">
                         New:
                         <select @onchange="@(e => SetMoonDayNumber(ev, e))">
                             @for (int i = 1; i <= 30; i++)
@@ -426,7 +430,7 @@ else
                         </select>
                     </label>
 
-                    <label>
+                    <label class="moonday-field">
                         Middle:
                         <select disabled>
                             <option>
@@ -435,7 +439,7 @@ else
                         </select>
                     </label>
 
-                    <label>
+                    <label class="moonday-field">
                         Previous:
                         <select disabled>
                             <option>
@@ -444,12 +448,12 @@ else
                         </select>
                     </label>
 
-                    <label>
+                    <label class="moonday-field moonday-field--toggle">
                         Triple:
                         @BoolIcon(ev.MoonDay.IsTripleMoonDay, v => { ev.MoonDay.IsTripleMoonDay = v; MarkChanged(); })
                     </label>
 
-                    <label>
+                    <label class="moonday-field">
                         Phase:
                         <select @onchange="@(e => SetMoonPhase(ev, e))">
                             <option value="0" selected="@(ev.MoonPhase == 0)">—</option>
@@ -460,14 +464,14 @@ else
                         </select>
                     </label>
 
-                    <label>
+                    <label class="moonday-field moonday-field--time">
                         Transition:
                         <input type="datetime-local"
                                value="@ToLocalInput(ev.MoonDay.TransitionTime)"
                                @onchange="@((ChangeEventArgs e) => { SetMoonTransition(ev, e, false); MarkChanged(); })" />
                     </label>
 
-                    <label>
+                    <label class="moonday-field moonday-field--time">
                         Middle transition:
                         <input type="datetime-local"
                                value="@ToLocalInput(ev.MoonDay.MiddleMoonDayTransitionTime)"
@@ -491,22 +495,22 @@ else
                 @RenderPlanetEditor("Lilith", ev.LilithInZodiac)
                 @RenderPlanetEditor("Rahu", ev.RahuInZodiac)
                 @RenderPlanetEditor("Ketu", ev.KetuInZodiac)
-            </div>
 
-            <div class="activities-box">
-                <h4>Activities</h4>
-                <div class="activities-grid">
-                    @RenderActivityEditor("Important tasks", ev.ImportantTasks, v => { ev.ImportantTasks = v; MarkChanged(); })
-                    @RenderActivityEditor("Contracts", ev.Contracts, v => { ev.Contracts = v; MarkChanged(); })
-                    @RenderActivityEditor("Meetings", ev.Meetings, v => { ev.Meetings = v; MarkChanged(); })
-                    @RenderActivityEditor("Love", ev.Love, v => { ev.Love = v; MarkChanged(); })
-                    @RenderActivityEditor("Buy stuff", ev.Buystuff, v => { ev.Buystuff = v; MarkChanged(); })
-                    @RenderActivityEditor("Beauty", ev.Beauty, v => { ev.Beauty = v; MarkChanged(); })
-                    @RenderActivityEditor("Barber", ev.Barber, v => { ev.Barber = v; MarkChanged(); })
-                    @RenderActivityEditor("Gardening", ev.Gardening, v => { ev.Gardening = v; MarkChanged(); })
-                    @RenderActivityEditor("New ideas", ev.NewIdeas, v => { ev.NewIdeas = v; MarkChanged(); })
-                    @RenderActivityEditor("Tech", ev.Tech, v => { ev.Tech = v; MarkChanged(); })
-                    @RenderActivityEditor("Travel", ev.Travel, v => { ev.Travel = v; MarkChanged(); })
+                <div class="activities-box planet-grid__activities">
+                    <h4>Activities</h4>
+                    <div class="activities-grid">
+                        @RenderActivityEditor("Important tasks", ev.ImportantTasks, v => { ev.ImportantTasks = v; MarkChanged(); })
+                        @RenderActivityEditor("Contracts", ev.Contracts, v => { ev.Contracts = v; MarkChanged(); })
+                        @RenderActivityEditor("Meetings", ev.Meetings, v => { ev.Meetings = v; MarkChanged(); })
+                        @RenderActivityEditor("Love", ev.Love, v => { ev.Love = v; MarkChanged(); })
+                        @RenderActivityEditor("Buy stuff", ev.Buystuff, v => { ev.Buystuff = v; MarkChanged(); })
+                        @RenderActivityEditor("Beauty", ev.Beauty, v => { ev.Beauty = v; MarkChanged(); })
+                        @RenderActivityEditor("Barber", ev.Barber, v => { ev.Barber = v; MarkChanged(); })
+                        @RenderActivityEditor("Gardening", ev.Gardening, v => { ev.Gardening = v; MarkChanged(); })
+                        @RenderActivityEditor("New ideas", ev.NewIdeas, v => { ev.NewIdeas = v; MarkChanged(); })
+                        @RenderActivityEditor("Tech", ev.Tech, v => { ev.Tech = v; MarkChanged(); })
+                        @RenderActivityEditor("Travel", ev.Travel, v => { ev.Travel = v; MarkChanged(); })
+                    </div>
                 </div>
             </div>
         </div>
@@ -717,14 +721,17 @@ else
         if (_interpBusy) return;
         _showInterpretations = false;
         _interpStatus = "";
-        await SetInterpretationsModalLayerAsync(false);
+        await SetAdminModalLayerAsync(false);
     }
 
     private async Task SetInterpretationsModalLayerAsync(bool open)
+        => await SetAdminModalLayerAsync(open);
+
+    private async Task SetAdminModalLayerAsync(bool open)
     {
         try
         {
-            await JS.InvokeVoidAsync("modalLayer.setInterpretationsOpen", open);
+            await JS.InvokeVoidAsync("modalLayer.setAdminModalOpen", open);
         }
         catch
         {
@@ -734,7 +741,8 @@ else
 
     public async ValueTask DisposeAsync()
     {
-        await SetInterpretationsModalLayerAsync(false);
+        await SetAdminModalLayerAsync(false);
+        Editor.ClearDb();
     }
 
     private void OnInterpPlanetOrZodiacChanged()
@@ -1188,7 +1196,15 @@ else
     private async Task OpenBackups()
     {
         _showBackups = true;
+        await SetAdminModalLayerAsync(true);
         await RefreshSnapshots();
+    }
+
+    private async Task CloseBackups()
+    {
+        _showBackups = false;
+        _showDiff = false;
+        await SetAdminModalLayerAsync(false);
     }
 
     private async Task RefreshSnapshots()
@@ -1512,6 +1528,7 @@ else
 
         // ----- Zodiac Sign -----
         builder.OpenElement(seq++, "label");
+        builder.AddAttribute(seq++, "class", "planet-field");
         builder.AddContent(seq++, "Sign:");
 
         builder.OpenElement(seq++, "select");
@@ -1542,6 +1559,7 @@ else
 
         // ----- Retrograde -----
         builder.OpenElement(seq++, "label");
+        builder.AddAttribute(seq++, "class", "planet-field");
         builder.AddContent(seq++, "Retrograde:");
         builder.AddContent(seq++, BoolIcon(p.IsRetrograde, v =>
         {
@@ -1553,6 +1571,7 @@ else
 
         // ----- Transition Toggle -----
         builder.OpenElement(seq++, "label");
+        builder.AddAttribute(seq++, "class", "planet-field");
         builder.AddContent(seq++, "Transition:");
         builder.AddContent(seq++, BoolIcon(p.IsZodiacTransitioning, v =>
         {
@@ -1566,6 +1585,7 @@ else
         if (p.IsZodiacTransitioning)
         {
             builder.OpenElement(seq++, "label");
+            builder.AddAttribute(seq++, "class", "planet-field planet-field--time");
             builder.AddContent(seq++, "Transition Time:");
 
             builder.OpenElement(seq++, "input");
@@ -1688,21 +1708,25 @@ else
         gap: 0.5rem;
     }
 
+    body.admin-modal-open,
     body.admin-interpretations-open,
-    body:has(.interp-modal-shell) {
+    body:has(.admin-modal-shell) {
         overflow: hidden;
     }
 
+    body.admin-modal-open .app-main,
     body.admin-interpretations-open .app-main,
-    body:has(.interp-modal-shell) .app-main {
+    body:has(.admin-modal-shell) .app-main {
         z-index: 120;
     }
 
+    body.admin-modal-open .app-header,
     body.admin-interpretations-open .app-header,
-    body:has(.interp-modal-shell) .app-header {
+    body:has(.admin-modal-shell) .app-header {
         z-index: 1;
     }
 
+    .admin-modal-shell,
     .interp-modal-shell {
         position: fixed;
         inset: 0;
@@ -1716,6 +1740,7 @@ else
         box-sizing: border-box;
     }
 
+    .backup-modal-panel,
     .interp-modal-panel {
         width: min(980px, 100%);
         max-height: calc(100vh - 32px);
@@ -1728,6 +1753,11 @@ else
         box-sizing: border-box;
     }
 
+    .backup-modal-panel {
+        width: min(1080px, 100%);
+    }
+
+    .admin-modal-header,
     .interp-modal-header,
     .interp-modal-footer {
         display: flex;
@@ -1735,6 +1765,29 @@ else
         align-items: center;
         gap: 12px;
         flex: 0 0 auto;
+    }
+
+    .backup-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+        flex: 0 0 auto;
+    }
+
+    .backup-modal-body {
+        min-height: 0;
+        margin-top: 10px;
+        overflow-y: auto;
+        padding-right: 4px;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .backup-table-wrap {
+        overflow-x: auto;
+        width: 100%;
     }
 
     .interp-view-controls {
@@ -1818,18 +1871,32 @@ else
     }
 
     @@media (max-width: 760px) {
+        .admin-modal-shell,
         .interp-modal-shell {
             padding: 12px 10px;
         }
 
+        .backup-modal-panel,
         .interp-modal-panel {
             max-height: calc(100dvh - 24px);
             padding: 12px;
         }
 
+        .admin-modal-header,
         .interp-modal-header,
         .interp-modal-footer {
             align-items: flex-start;
+        }
+
+        .backup-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .backup-toolbar .form-control,
+        .backup-toolbar .btn {
+            width: 100%;
+            max-width: none !important;
         }
 
         .interp-modal-footer {
@@ -1970,23 +2037,54 @@ else
     /* ----- MOONDAY ----- */
     .moonday-box {
         background: #eef7ff;
-        padding: 4px 6px;
-        border-radius: 4px;
-        margin-bottom: 6px;
+        padding: 8px;
+        border-radius: 6px;
+        margin-bottom: 8px;
+    }
+
+    .moonday-box h4 {
+        margin: 0 0 8px;
+        font-size: .95rem;
     }
 
     .moonday-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 4px;
+        grid-template-columns: repeat(5, minmax(130px, 1fr));
+        gap: 8px;
         font-size: 0.8rem;
+        align-items: start;
     }
 
-        .moonday-grid label {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+    .moonday-field {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        min-width: 0;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .moonday-field select,
+    .moonday-field input {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        height: 32px;
+        font-size: .82rem;
+    }
+
+    .moonday-field--time {
+        grid-column: span 2;
+    }
+
+    .moonday-field--toggle {
+        justify-content: space-between;
+    }
+
+    .moonday-field--toggle .bool-icon {
+        align-self: flex-start;
+    }
 
     .moonday-symbol {
         font-style: italic;
@@ -2033,45 +2131,67 @@ else
 }
 
 
-    /* ----- PLANET GRID (7 COLUMNS) ----- */
+    /* ----- PLANET GRID + ACTIVITIES (5 COLUMNS) ----- */
     .planet-grid {
         display: grid;
-        grid-template-columns: repeat(7, minmax(140px, 1fr));
-        gap: 4px;
-        margin-bottom: 6px;
+        grid-template-columns: repeat(5, minmax(150px, 1fr));
+        gap: 8px;
+        margin-bottom: 8px;
+        align-items: stretch;
     }
 
     .planet-card {
         background: #fafafa;
         border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 4px;
+        border-radius: 6px;
+        padding: 8px;
         font-size: 0.8rem;
+        min-width: 0;
     }
 
-        .planet-card label {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 4px;
-        }
+    .planet-field {
+        display: grid;
+        grid-template-columns: minmax(68px, auto) minmax(0, 1fr);
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        margin: 0 0 5px;
+    }
+
+    .planet-field select,
+    .planet-field input {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .planet-field--time {
+        grid-template-columns: 1fr;
+    }
 
     .planet-name {
         font-weight: 600;
-        margin-bottom: 2px;
+        margin-bottom: 6px;
     }
 
     /* ----- ACTIVITIES ----- */
     .activities-box {
-        margin-top: 4px;
-        padding: 4px 6px;
+        margin-top: 0;
+        padding: 8px;
         background: #f8f8f8;
-        border-radius: 4px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        min-width: 0;
+    }
+
+    .activities-box h4 {
+        margin: 0 0 6px;
+        font-size: .9rem;
     }
 
     .activities-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        display: flex;
+        flex-direction: column;
         gap: 4px;
     }
 
@@ -2084,10 +2204,43 @@ else
         align-items: center;
         justify-content: space-between;
         gap: 4px;
+        min-width: 0;
     }
 
     .activity-label {
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .activity-item select {
+        width: 86px;
+        min-width: 0;
+    }
+
+    @@media (max-width: 1180px) {
+        .planet-grid {
+            grid-template-columns: repeat(3, minmax(170px, 1fr));
+        }
+
+        .moonday-grid {
+            grid-template-columns: repeat(3, minmax(150px, 1fr));
+        }
+    }
+
+    @@media (max-width: 760px) {
+        .planet-grid,
+        .moonday-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .moonday-field--time {
+            grid-column: auto;
+        }
+
+        .activity-item select {
+            width: 112px;
+        }
     }
 
     /* ----- QUALITY BACKGROUNDS ----- */

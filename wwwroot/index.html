@@ -56,8 +56,12 @@
         };
 
         window.modalLayer = {
+            setAdminModalOpen: function (open) {
+                document.body.classList.toggle('admin-modal-open', !!open);
+            },
             setInterpretationsOpen: function (open) {
                 document.body.classList.toggle('admin-interpretations-open', !!open);
+                document.body.classList.toggle('admin-modal-open', !!open);
             }
         };
 
