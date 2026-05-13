@@ -19,6 +19,7 @@ public class AstroDbStore
     private bool _apiRefreshStarted;
     private bool _serverUnavailableNotified;
     private Task? _apiRefreshTask;
+    private AppDB? _localFallbackDb;
 
     public AstroDbStore(HttpClient localHttp, AstroApiClient api)
     {
@@ -54,7 +55,7 @@ public class AstroDbStore
                 if (result.IsServerUnavailable)
                     NotifyServerUnavailable();
 
-                if (TryApplyApiSnapshot(result.Json))
+                if (await TryApplyApiSnapshotAsync(result.Json))
                     return Db;
 
                 // No snapshot (or failed to deserialize) -> fall through to local JSON.
@@ -62,25 +63,7 @@ public class AstroDbStore
             else
             {
                 // Timed out: keep loading local JSON now, but allow API task to finish later and override.
-                _ = apiTask.ContinueWith(t =>
-                {
-                    try
-                    {
-                        if (t.Status != TaskStatus.RanToCompletion) return;
-                        var result = t.Result;
-                        if (result.IsServerUnavailable)
-                        {
-                            NotifyServerUnavailable();
-                            return;
-                        }
-
-                        TryApplyApiSnapshot(result.Json);
-                    }
-                    catch
-                    {
-                        NotifyServerUnavailable();
-                    }
-                });
+                _ = ApplyApiTaskWhenCompleteAsync(apiTask);
             }
         }
         catch
@@ -91,7 +74,7 @@ public class AstroDbStore
         // Fallback: local JSON (single canonical location)
         try
         {
-            Db = await _localHttp.GetFromJsonAsync<AppDB>("data/astrodb.json");
+            Db = await LoadLocalFallbackAsync();
         }
         catch
         {
@@ -121,7 +104,7 @@ public class AstroDbStore
                 return;
             }
 
-            TryApplyApiSnapshot(result.Json);
+            await TryApplyApiSnapshotAsync(result.Json);
         }
         catch
         {
@@ -141,7 +124,7 @@ public class AstroDbStore
             }
 
             _serverUnavailableNotified = false;
-            TryApplyApiSnapshot(result.Json);
+            await TryApplyApiSnapshotAsync(result.Json);
             return true;
         }
         catch
@@ -151,7 +134,26 @@ public class AstroDbStore
         }
     }
 
-    private bool TryApplyApiSnapshot(string? json)
+    private async Task ApplyApiTaskWhenCompleteAsync(Task<AstroApiClient.DefaultSnapshotResult> apiTask)
+    {
+        try
+        {
+            var result = await apiTask;
+            if (result.IsServerUnavailable)
+            {
+                NotifyServerUnavailable();
+                return;
+            }
+
+            await TryApplyApiSnapshotAsync(result.Json);
+        }
+        catch
+        {
+            NotifyServerUnavailable();
+        }
+    }
+
+    private async Task<bool> TryApplyApiSnapshotAsync(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
             return false;
@@ -160,10 +162,84 @@ public class AstroDbStore
         if (apiDb is null)
             return false;
 
+        await MergeMissingEnglishInterpretationsAsync(apiDb);
+
         Db = apiDb;
         _serverUnavailableNotified = false;
         Changed?.Invoke();
         return true;
+    }
+
+    private async Task<AppDB?> LoadLocalFallbackAsync()
+    {
+        if (_localFallbackDb is not null)
+            return _localFallbackDb;
+
+        try
+        {
+            _localFallbackDb = await _localHttp.GetFromJsonAsync<AppDB>("data/astrodb.json");
+        }
+        catch
+        {
+            _localFallbackDb = null;
+        }
+
+        return _localFallbackDb;
+    }
+
+    private async Task MergeMissingEnglishInterpretationsAsync(AppDB db)
+    {
+        var local = await LoadLocalFallbackAsync();
+        if (local is null || ReferenceEquals(local, db))
+            return;
+
+        if (db.PlanetInZodiacsDB is not null && local.PlanetInZodiacsDB is not null)
+        {
+            var localPlanetInfo = local.PlanetInZodiacsDB
+                .Where(x => !string.IsNullOrWhiteSpace(x.PlanetInZodiacInfoEn))
+                .ToDictionary(x => (x.Planet, x.ZodiacSign), x => x.PlanetInZodiacInfoEn);
+
+            foreach (var item in db.PlanetInZodiacsDB)
+            {
+                if (string.IsNullOrWhiteSpace(item.PlanetInZodiacInfoEn) &&
+                    localPlanetInfo.TryGetValue((item.Planet, item.ZodiacSign), out var english))
+                {
+                    item.PlanetInZodiacInfoEn = english;
+                }
+            }
+        }
+
+        if (db.PlanetInRetrogradeDetailsDB is not null && local.PlanetInRetrogradeDetailsDB is not null)
+        {
+            var localRetroInfo = local.PlanetInRetrogradeDetailsDB
+                .Where(x => !string.IsNullOrWhiteSpace(x.PlanetInRetrogradeInfoEn))
+                .ToDictionary(x => x.PlanetInRetrograde, x => x.PlanetInRetrogradeInfoEn);
+
+            foreach (var item in db.PlanetInRetrogradeDetailsDB)
+            {
+                if (string.IsNullOrWhiteSpace(item.PlanetInRetrogradeInfoEn) &&
+                    localRetroInfo.TryGetValue(item.PlanetInRetrograde, out var english))
+                {
+                    item.PlanetInRetrogradeInfoEn = english;
+                }
+            }
+        }
+
+        if (db.MoonDayDetailsDB is not null && local.MoonDayDetailsDB is not null)
+        {
+            var localMoonInfo = local.MoonDayDetailsDB
+                .Where(x => !string.IsNullOrWhiteSpace(x.MoonDayInfoEn))
+                .ToDictionary(x => x.MoonDay, x => x.MoonDayInfoEn);
+
+            foreach (var item in db.MoonDayDetailsDB)
+            {
+                if (string.IsNullOrWhiteSpace(item.MoonDayInfoEn) &&
+                    localMoonInfo.TryGetValue(item.MoonDay, out var english))
+                {
+                    item.MoonDayInfoEn = english;
+                }
+            }
+        }
     }
 
     private void NotifyServerUnavailable(bool force = false)
@@ -176,7 +252,8 @@ public class AstroDbStore
 
     public async Task<AppDB?> ReloadFromLocalAsync()
     {
-        Db = await _localHttp.GetFromJsonAsync<AppDB>("data/astrodb.json");
+        _localFallbackDb = null;
+        Db = await LoadLocalFallbackAsync();
         Changed?.Invoke();
         return Db;
     }
@@ -204,6 +281,7 @@ public class AstroDbStore
         var json = await _api.GetSnapshotJsonAsync(id);
         var db = Deserialize(json);
         if (db is null) throw new InvalidOperationException("Failed to deserialize snapshot.");
+        await MergeMissingEnglishInterpretationsAsync(db);
         Db = db;
         Changed?.Invoke();
     }
