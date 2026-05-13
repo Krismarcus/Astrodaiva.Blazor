@@ -810,6 +810,10 @@
         position: sticky;
         left: 0;
         z-index: 14;
+        align-self: stretch;
+        background:
+            linear-gradient(180deg, rgba(238,234,211,.94) 0%, rgba(199,223,203,.84) 68%, rgba(199,223,203,0) 100%);
+        backdrop-filter: blur(12px);
     }
 
     .month-bar {
@@ -869,6 +873,12 @@
         position: sticky;
         left: 0;
         z-index: 8;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        background: rgba(238,234,211,.88);
+        backdrop-filter: blur(12px);
     }
 
     .planet-bar-container {
