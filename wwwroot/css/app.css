@@ -357,6 +357,77 @@ a {
     filter: drop-shadow(0 4px 10px rgba(0,0,0,.18));
 }
 
+.daycard.is-today .daycard-day {
+    color: #fff8e8;
+    text-shadow: 0 1px 2px rgba(0,0,0,.18), 0 0 12px rgba(185,152,95,.22);
+}
+
+.daycard.is-today .daycard-icon {
+    overflow: visible;
+    isolation: isolate;
+}
+
+.daycard.is-today .daycard-icon::before,
+.daycard.is-today .daycard-icon::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+.daycard.is-today .daycard-icon::before {
+    inset: 5% 8%;
+    z-index: 0;
+    background:
+        radial-gradient(circle,
+            rgba(185,152,95,.22) 0%,
+            rgba(185,152,95,.16) 36%,
+            rgba(36,75,73,.28) 58%,
+            rgba(36,75,73,0) 78%);
+    filter: blur(9px);
+    opacity: .82;
+    transform: scale(.96);
+    animation: todayMoonHalo 4.8s ease-in-out infinite;
+}
+
+.daycard.is-today .daycard-icon::after {
+    inset: 18% 20%;
+    z-index: 1;
+    background:
+        radial-gradient(circle,
+            rgba(255,246,224,.16) 0%,
+            rgba(185,152,95,.10) 46%,
+            rgba(185,152,95,0) 74%);
+    filter: blur(4px);
+    opacity: .72;
+}
+
+.daycard.is-today .daycard-icon img {
+    position: relative;
+    z-index: 2;
+    filter:
+        drop-shadow(0 4px 10px rgba(0,0,0,.18))
+        drop-shadow(0 0 14px rgba(185,152,95,.20));
+}
+
+@keyframes todayMoonHalo {
+    0%, 100% {
+        opacity: .72;
+        transform: scale(.94);
+    }
+
+    50% {
+        opacity: .96;
+        transform: scale(1.04);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .daycard.is-today .daycard-icon::before {
+        animation: none;
+    }
+}
+
 .daycard-indicator {
     position: absolute;
     left: 50%;
