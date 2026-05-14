@@ -1478,12 +1478,26 @@ a {
     }
 
     /* Show overlay only on mobile when flagged open */
+    .app-main:has(.mobile-overlay.open) {
+        z-index: 40;
+    }
+
     .mobile-overlay.open {
         display: block;
+        z-index: 4000;
     }
 
     .mobile-overlay.open .mobile-overlay__panel {
         transform: translateY(0);
+        max-height: calc(100vh - 12px);
+        max-height: calc(100dvh - max(12px, env(safe-area-inset-top)));
+    }
+
+    .mobile-overlay__body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     /* Prevent accidental horizontal scroll */
