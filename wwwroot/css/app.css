@@ -389,26 +389,6 @@ a {
         0 20px 36px rgba(7,66,82,.30);
 }
 
-.daycard.is-today::after {
-    content: "";
-    position: absolute;
-    left: 33%;
-    top: 5%;
-    width: 38%;
-    height: 88%;
-    z-index: 0;
-    pointer-events: none;
-    background: linear-gradient(180deg,
-        rgba(255,255,246,.96) 0%,
-        rgba(255,238,177,.78) 42%,
-        rgba(114,233,236,.42) 100%);
-    clip-path: polygon(42% 0, 76% 0, 56% 36%, 78% 36%, 24% 100%, 44% 55%, 22% 55%);
-    filter: drop-shadow(0 0 6px rgba(255,255,246,.78)) drop-shadow(0 0 20px rgba(255,238,177,.68)) drop-shadow(0 0 14px rgba(72,166,177,.42));
-    mix-blend-mode: screen;
-    opacity: .98;
-    transform: rotate(-7deg);
-}
-
 .daycard.is-today .daycard-day {
     color: #fffbed;
     text-shadow: 0 1px 2px rgba(0,0,0,.22), 0 0 12px rgba(255,255,246,.65), 0 0 20px rgba(255,238,177,.36);
