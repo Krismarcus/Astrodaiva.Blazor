@@ -1,7 +1,7 @@
 @page "/"
 @inject Astrodaiva.Blazor.Services.AstroDbStore Store
 @inject IJSRuntime JS
-@implements IDisposable
+@implements IAsyncDisposable
 @using Astrodaiva.Data
 @using Astrodaiva.Data.Models
 @using System.Globalization
@@ -166,6 +166,7 @@ else
 
     // UI state: no JS — CSS shows overlay only on ≤900px
     private bool _overlayOpen;
+    private bool? _syncedOverlayOpen;
 
     // UI state: details popup
     private bool _infoModalOpen;
@@ -252,6 +253,8 @@ else
         {
             await JS.InvokeVoidAsync("activitySlider.init", ".js-activity-grid");
         }
+
+        await SyncMobileOverlayLayerAsync();
     }
 
     private void OnStoreChanged()
@@ -261,9 +264,19 @@ else
         InvokeAsync(StateHasChanged);
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         Store.Changed -= OnStoreChanged;
+        await JS.InvokeVoidAsync("modalLayer.setMobileDayOverlayOpen", false);
+    }
+
+    private async Task SyncMobileOverlayLayerAsync()
+    {
+        if (_syncedOverlayOpen == _overlayOpen)
+            return;
+
+        _syncedOverlayOpen = _overlayOpen;
+        await JS.InvokeVoidAsync("modalLayer.setMobileDayOverlayOpen", _overlayOpen);
     }
 
     private void RecomputeMonth()

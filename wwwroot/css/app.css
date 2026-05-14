@@ -1478,13 +1478,22 @@ a {
     }
 
     /* Show overlay only on mobile when flagged open */
+    body.mobile-day-overlay-open .app-header {
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    body.mobile-day-overlay-open .app-main {
+        z-index: 5000;
+    }
+
     .app-main:has(.mobile-overlay.open) {
-        z-index: 40;
+        z-index: 5000;
     }
 
     .mobile-overlay.open {
         display: block;
-        z-index: 4000;
+        z-index: 6000;
     }
 
     .mobile-overlay.open .mobile-overlay__panel {
