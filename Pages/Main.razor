@@ -47,7 +47,6 @@ else
                         {
                             var d = day.Value;
                             var active = d == _selectedDay ? "active" : "";
-                            var today = IsToday(d) ? "is-today" : "";
                             var e = _monthEvents.FirstOrDefault(x => x.Date.Day == d);
                             string? moonDay = e?.MoonDay is not null ? GetMoonDayKey((int)e.MoonDay.NewMoonDay) : null;
                             var q = GetActivityQuality(e, _selectedActivity);
@@ -56,7 +55,7 @@ else
 
                             <button @key="d"
                                     type="button"
-                                    class="daycard @active @today"
+                                    class="daycard @active"
                                     title="@($"{_current:MMMM yyyy}")"
                                     @onclick="@(() => SelectDay(d))">
                                 <span class="daycard-day">@d</span>
@@ -200,8 +199,6 @@ else
     private static string GetSignLocative(int sign) => EnumText.GetZodiacLocative((ZodiacSign)sign);
     private static string GetMoonDayName(int symbol) => EnumText.GetMoonDayName((MoonDaySymbol)symbol);
     private static string GetMoonDayKey(int symbol) => EnumText.GetMoonDayKey((MoonDaySymbol)symbol);
-    private bool IsToday(int day)
-        => _year == DateTime.Today.Year && _month == DateTime.Today.Month && day == DateTime.Today.Day;
 
     private static string BuildZodiacOrTransitionBlock(string planetName, PlanetInZodiac? p)
     {
