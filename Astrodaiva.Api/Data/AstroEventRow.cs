@@ -30,6 +30,15 @@ public class AstroEventRow
     [Column(TypeName = "longtext")]
     public string? EventText { get; set; }
 
+    [Column(TypeName = "longtext")]
+    public string? EventTextEn { get; set; }
+
+    [Column(TypeName = "longtext")]
+    public string? EventDescription { get; set; }
+
+    [Column(TypeName = "longtext")]
+    public string? EventDescriptionEn { get; set; }
+
     // MoonDay (flattened)
     public int MoonDayNew { get; set; }
     public int MoonDayMiddle { get; set; }

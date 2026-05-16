@@ -390,7 +390,7 @@ else
             @{
                 var key = ev.Date.Date;
                 bool editorOpen = _openEventTextEditors.Contains(key);
-                bool hasText = !string.IsNullOrWhiteSpace(ev.EventText);
+                bool hasText = HasEventText(ev);
                 bool noEventChecked = !editorOpen && !hasText; // if empty AND editor not open -> No Event
             }
 
@@ -408,10 +408,39 @@ else
 
                 @if (editorOpen || hasText)
                 {
-                    <textarea class="eventtext-editor"
-                              value="@ev.EventText"
-                              @onchange="(e) => SetEventText(ev, e)"
-                              placeholder="Write event text here..."></textarea>
+                    <div class="eventtext-grid">
+                        <label class="eventtext-field">
+                            <span>Title LT</span>
+                            <input class="eventtext-input"
+                                   value="@ev.EventText"
+                                   @onchange="(e) => SetEventText(ev, e)"
+                                   placeholder="Įvykio pavadinimas..." />
+                        </label>
+
+                        <label class="eventtext-field">
+                            <span>Title EN</span>
+                            <input class="eventtext-input"
+                                   value="@ev.EventTextEn"
+                                   @onchange="(e) => SetEventTextEn(ev, e)"
+                                   placeholder="Event title..." />
+                        </label>
+
+                        <label class="eventtext-field eventtext-field--wide">
+                            <span>Description LT</span>
+                            <textarea class="eventtext-editor eventtext-editor--description"
+                                      value="@ev.EventDescription"
+                                      @onchange="(e) => SetEventDescription(ev, e)"
+                                      placeholder="Išsamus įvykio aprašymas..."></textarea>
+                        </label>
+
+                        <label class="eventtext-field eventtext-field--wide">
+                            <span>Description EN</span>
+                            <textarea class="eventtext-editor eventtext-editor--description"
+                                      value="@ev.EventDescriptionEn"
+                                      @onchange="(e) => SetEventDescriptionEn(ev, e)"
+                                      placeholder="Detailed event description..."></textarea>
+                        </label>
+                    </div>
                 }
             </div>
 
@@ -1132,6 +1161,9 @@ else
         {
             Date = date,
             EventText = "",
+            EventTextEn = "",
+            EventDescription = "",
+            EventDescriptionEn = "",
             MoonPhase = 1,
 
             MoonDay = new MoonDay
@@ -1472,6 +1504,12 @@ else
     }
 
     // EventText
+    private static bool HasEventText(AstroEvent ev)
+        => !string.IsNullOrWhiteSpace(ev.EventText)
+        || !string.IsNullOrWhiteSpace(ev.EventTextEn)
+        || !string.IsNullOrWhiteSpace(ev.EventDescription)
+        || !string.IsNullOrWhiteSpace(ev.EventDescriptionEn);
+
     private void ToggleNoEvent(AstroEvent ev, ChangeEventArgs e)
     {
         bool noEvent = e.Value is bool b && b;
@@ -1482,9 +1520,12 @@ else
             // Hide editor + force empty string
             _openEventTextEditors.Remove(key);
 
-            if (!string.IsNullOrEmpty(ev.EventText))
+            if (HasEventText(ev))
             {
                 ev.EventText = "";
+                ev.EventTextEn = "";
+                ev.EventDescription = "";
+                ev.EventDescriptionEn = "";
                 MarkChanged();
             }
         }
@@ -1507,6 +1548,45 @@ else
         }
 
         // If user erased everything, keep editor open (so they can still type)
+        _openEventTextEditors.Add(ev.Date.Date);
+    }
+
+    private void SetEventTextEn(AstroEvent ev, ChangeEventArgs e)
+    {
+        var newText = e.Value?.ToString() ?? "";
+
+        if (ev.EventTextEn != newText)
+        {
+            ev.EventTextEn = newText;
+            MarkChanged();
+        }
+
+        _openEventTextEditors.Add(ev.Date.Date);
+    }
+
+    private void SetEventDescription(AstroEvent ev, ChangeEventArgs e)
+    {
+        var newText = e.Value?.ToString() ?? "";
+
+        if (ev.EventDescription != newText)
+        {
+            ev.EventDescription = newText;
+            MarkChanged();
+        }
+
+        _openEventTextEditors.Add(ev.Date.Date);
+    }
+
+    private void SetEventDescriptionEn(AstroEvent ev, ChangeEventArgs e)
+    {
+        var newText = e.Value?.ToString() ?? "";
+
+        if (ev.EventDescriptionEn != newText)
+        {
+            ev.EventDescriptionEn = newText;
+            MarkChanged();
+        }
+
         _openEventTextEditors.Add(ev.Date.Date);
     }
 
@@ -2004,6 +2084,7 @@ else
     }
 
     .eventtext-editor {
+        box-sizing: border-box;
         width: 100%;
         min-height: 70px;
         resize: vertical;
@@ -2012,6 +2093,46 @@ else
         border-radius: 4px;
         border: 1px solid #ccc;
         outline: none;
+    }
+
+    .eventtext-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .eventtext-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #5b4937;
+    }
+
+    .eventtext-field--wide {
+        grid-column: 1 / -1;
+    }
+
+    .eventtext-input {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 0.85rem;
+        padding: 6px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+
+    .eventtext-editor--description {
+        min-height: 92px;
+    }
+
+    @@media (max-width: 760px) {
+        .eventtext-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
 

@@ -74,6 +74,12 @@ namespace Astrodaiva.Data.Models
         [ObservableProperty]
         private ActivityQuality travel;
         [ObservableProperty]
-        private string eventText;
+        private string eventText = "";
+        [ObservableProperty]
+        private string eventTextEn = "";
+        [ObservableProperty]
+        private string eventDescription = "";
+        [ObservableProperty]
+        private string eventDescriptionEn = "";
     }
 }

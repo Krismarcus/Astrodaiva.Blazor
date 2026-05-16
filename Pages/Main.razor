@@ -172,6 +172,7 @@ else
     private bool _infoModalOpen;
     private string _infoModalTitle = "";
     private MarkupString _infoModalBody;
+    private readonly HashSet<DateTime> _expandedEventTextDates = new();
 
     // Left panel calendar data
     private List<List<int?>> _weeks = new();
@@ -196,6 +197,61 @@ else
 
     private IEnumerable<AstroEvent> DayEvents
         => _monthEvents.Where(e => e.Date.Day == _selectedDay).OrderBy(e => e.Date);
+
+    private bool IsEventTextExpanded()
+        => _expandedEventTextDates.Contains(_current.Date);
+
+    private void ToggleEventTextDetails()
+    {
+        var hasDescriptions = GetEventDisplayItems()
+            .Any(item => !string.IsNullOrWhiteSpace(item.Description));
+
+        if (!hasDescriptions)
+            return;
+
+        var key = _current.Date;
+        if (!_expandedEventTextDates.Remove(key))
+            _expandedEventTextDates.Add(key);
+    }
+
+    private void HandleEventTextKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key is "Enter" or " ")
+            ToggleEventTextDetails();
+    }
+
+    private List<EventDisplayItem> GetEventDisplayItems()
+        => DayEvents
+            .Select(BuildEventDisplayItem)
+            .Where(item => !string.IsNullOrWhiteSpace(item.Title))
+            .ToList();
+
+    private EventDisplayItem BuildEventDisplayItem(AstroEvent e)
+    {
+        var title = LocalizedEventText(e.EventText, e.EventTextEn);
+        var description = LocalizedEventText(e.EventDescription, e.EventDescriptionEn);
+
+        if (string.IsNullOrWhiteSpace(title) && e.PlanetEvents is { Count: > 0 })
+        {
+            title = string.Join(", ", e.PlanetEvents.Select(pe =>
+                $"{EnumText.GetPlanetName(pe.Planet1)} {pe.AspectSymbol} {EnumText.GetPlanetName(pe.Planet2)}"));
+        }
+
+        if (string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(description))
+            title = IsLt ? "Dienos įvykis" : "Day event";
+
+        return new EventDisplayItem(title.Trim(), description.Trim());
+    }
+
+    private string LocalizedEventText(string? lt, string? en)
+    {
+        if (IsLt)
+            return !string.IsNullOrWhiteSpace(lt) ? lt : en ?? "";
+
+        return !string.IsNullOrWhiteSpace(en) ? en : lt ?? "";
+    }
+
+    private sealed record EventDisplayItem(string Title, string Description);
 
     private static string GetSignName(int sign) => EnumText.GetZodiacName((ZodiacSign)sign);
     private static string GetSignLocative(int sign) => EnumText.GetZodiacLocative((ZodiacSign)sign);
@@ -591,24 +647,46 @@ else
         @* Events frame *@
         @if (DayEvents.Any())
         {
-            var items = DayEvents
-                .Select(e => !string.IsNullOrWhiteSpace(e.EventText)
-                    ? e.EventText
-                    : (e.PlanetEvents is { Count: > 0 }
-                        ? string.Join(", ", e.PlanetEvents.Select(pe => $"{pe.Planet1} {pe.AspectSymbol} {pe.Planet2}"))
-                        : ""))
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .ToList();
+            var items = GetEventDisplayItems();
 
             if (items.Count > 0)
             {
-                <div class="astro-frame astro-frame--events">
+                var hasDescriptions = items.Any(x => !string.IsNullOrWhiteSpace(x.Description));
+                var expanded = IsEventTextExpanded();
+
+                <div class="astro-frame astro-frame--events @(hasDescriptions ? "is-clickable" : "") @(expanded ? "is-expanded" : "")"
+                     role="@(hasDescriptions ? "button" : null)"
+                     tabindex="@(hasDescriptions ? "0" : null)"
+                     @onclick="ToggleEventTextDetails"
+                     @onkeydown="HandleEventTextKeyDown">
                     <ul class="events-list">
-                        @foreach (var t in items)
+                        @foreach (var item in items)
                         {
-                            <li>@t</li>
+                            <li>
+                                <span class="event-title">@item.Title</span>
+                                @if (!string.IsNullOrWhiteSpace(item.Description))
+                                {
+                                    <span class="event-expand-mark" aria-hidden="true">@(expanded ? "-" : "+")</span>
+                                }
+                            </li>
                         }
                     </ul>
+
+                    @if (expanded && hasDescriptions)
+                    {
+                        <div class="event-description-list">
+                            @foreach (var item in items.Where(x => !string.IsNullOrWhiteSpace(x.Description)))
+                            {
+                                <section class="event-description">
+                                    @if (items.Count > 1)
+                                    {
+                                        <div class="event-description__title">@item.Title</div>
+                                    }
+                                    <div class="event-description__text">@item.Description</div>
+                                </section>
+                            }
+                        </div>
+                    }
                 </div>
             }
         }
