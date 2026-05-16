@@ -2141,6 +2141,17 @@ body {
         backdrop-filter: blur(10px);
     }
 
+    .activity-grid {
+        --activity-gap: clamp(8px, 2.4vw, 12px);
+        --activity-pad: 8px;
+        gap: var(--activity-gap);
+        padding: var(--activity-pad);
+        border-radius: var(--radius-selector);
+        background: rgba(7,66,82,.06);
+        border: 1px solid rgba(7,66,82,.08);
+        box-shadow: inset 0 1px 1px rgba(255,255,255,.22);
+    }
+
     .md-timeline {
         gap: var(--space-3);
     }
