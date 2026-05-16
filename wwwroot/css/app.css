@@ -68,7 +68,7 @@
     --radius-selector: 12px;
     --radius-button: 14px;
     --radius-day-card: 18px;
-    --radius-day-card-mobile: 16px;
+    --radius-day-card-mobile: var(--radius-day-card);
     --radius-main-panel: 24px;
     --radius-sm: var(--radius-selector);
     --radius-md: var(--radius-day-card);
@@ -259,7 +259,7 @@ a {
 /* Empty padding cells match real day squares */
 .daycell-empty {
     aspect-ratio: 1 / 1;
-    border-radius: var(--radius-day-card-mobile);
+    border-radius: var(--radius-day-card);
     background: transparent;
 }
 
@@ -1417,7 +1417,7 @@ a {
     .weekday-header,
     .tabs-strip-grid {
         grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: var(--DayCellGapMobile);
+        gap: clamp(4px, 0.9vw, var(--DayCellGapMobile));
     }
 
     .weekday-header {
@@ -1430,7 +1430,7 @@ a {
     }
 
     .tabs-strip-grid {
-        gap: var(--DayCellGapMobile);
+        gap: clamp(4px, 0.9vw, var(--DayCellGapMobile));
     }
 
     .daycard {
@@ -1442,8 +1442,8 @@ a {
         --DayIconMaxW: 98%;
         --DayIconMaxH: 88%;
         --DayIndicatorSize: clamp(5px, 1.2vw, 8px);
-        border-radius: var(--radius-day-card-mobile);
-        aspect-ratio: 1 / 1.34;
+        border-radius: var(--radius-day-card);
+        aspect-ratio: 1 / 1.22;
         box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 14px rgba(7,66,82,.12);
     }
 
@@ -1464,20 +1464,20 @@ a {
     }
 
     .tabs-strip-grid {
-        gap: var(--DayCellGapMobile);
+        gap: clamp(4px, 0.9vw, var(--DayCellGapMobile));
     }
 
     .daycard {
-        --DayCardPadX: clamp(2px, 1vw, 5px);
-        --DayCardPadTop: clamp(2px, 0.9vw, 5px);
-        --DayCardPadBottom: clamp(8px, 2vw, 12px);
+        --DayCardPadX: clamp(2px, 0.8vw, 5px);
+        --DayCardPadTop: clamp(2px, 0.8vw, 5px);
+        --DayCardPadBottom: clamp(7px, 1.6vw, 10px);
         --DayCardGap: 1px;
         --DayNumSize: clamp(10px, 2.7vw, 13px);
         --DayIconMaxW: 96%;
         --DayIconMaxH: 84%;
         --DayIndicatorSize: clamp(6px, 1.5vw, 9px);
-        border-radius: var(--radius-day-card-mobile);
-        aspect-ratio: 1 / 1.28;
+        border-radius: var(--radius-day-card);
+        aspect-ratio: 1 / 1.22;
         box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 14px rgba(7,66,82,.12);
     }
 
@@ -2113,7 +2113,7 @@ body {
     }
 
     .calendar-shell {
-        padding: var(--space-3);
+        padding: var(--space-2);
         border-radius: var(--radius-main-panel);
     }
 
@@ -2186,6 +2186,19 @@ body {
     .main-nav a {
         padding: 6px 7px;
         font-size: .82rem;
+    }
+
+    .weekday-header,
+    .tabs-strip-grid {
+        gap: 3px;
+    }
+
+    .daycard {
+        --DayCardPadX: 2px;
+        --DayCardPadTop: 2px;
+        --DayCardPadBottom: 7px;
+        border-radius: var(--radius-day-card);
+        aspect-ratio: 1 / 1.22;
     }
 
     .lang-select {
