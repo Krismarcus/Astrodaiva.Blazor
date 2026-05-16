@@ -172,7 +172,6 @@ else
     private bool _infoModalOpen;
     private string _infoModalTitle = "";
     private MarkupString _infoModalBody;
-    private readonly HashSet<DateTime> _expandedEventTextDates = new();
 
     // Left panel calendar data
     private List<List<int?>> _weeks = new();
@@ -198,26 +197,33 @@ else
     private IEnumerable<AstroEvent> DayEvents
         => _monthEvents.Where(e => e.Date.Day == _selectedDay).OrderBy(e => e.Date);
 
-    private bool IsEventTextExpanded()
-        => _expandedEventTextDates.Contains(_current.Date);
-
-    private void ToggleEventTextDetails()
+    private void OpenEventTextDetails()
     {
-        var hasDescriptions = GetEventDisplayItems()
-            .Any(item => !string.IsNullOrWhiteSpace(item.Description));
+        var items = GetEventDisplayItems()
+            .Where(item => !string.IsNullOrWhiteSpace(item.Description))
+            .ToList();
 
-        if (!hasDescriptions)
+        if (items.Count == 0)
             return;
 
-        var key = _current.Date;
-        if (!_expandedEventTextDates.Remove(key))
-            _expandedEventTextDates.Add(key);
+        if (items.Count == 1)
+        {
+            var item = items[0];
+            _infoModalTitle = item.Title;
+            _infoModalBody = ToMultilineMarkup(item.Description, IsLt ? "Aprašymo dar nėra." : "No description saved yet.");
+            _infoModalOpen = true;
+            return;
+        }
+
+        _infoModalTitle = IsLt ? "Dienos įvykiai" : "Day events";
+        _infoModalBody = BuildEventTextModalBody(items);
+        _infoModalOpen = true;
     }
 
     private void HandleEventTextKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key is "Enter" or " ")
-            ToggleEventTextDetails();
+        if (e.Key is "Enter" or " " or "Spacebar")
+            OpenEventTextDetails();
     }
 
     private List<EventDisplayItem> GetEventDisplayItems()
@@ -652,41 +658,20 @@ else
             if (items.Count > 0)
             {
                 var hasDescriptions = items.Any(x => !string.IsNullOrWhiteSpace(x.Description));
-                var expanded = IsEventTextExpanded();
 
-                <div class="astro-frame astro-frame--events @(hasDescriptions ? "is-clickable" : "") @(expanded ? "is-expanded" : "")"
+                <div class="astro-frame astro-frame--events @(hasDescriptions ? "is-clickable" : "")"
                      role="@(hasDescriptions ? "button" : null)"
                      tabindex="@(hasDescriptions ? "0" : null)"
-                     @onclick="ToggleEventTextDetails"
+                     @onclick="OpenEventTextDetails"
                      @onkeydown="HandleEventTextKeyDown">
                     <ul class="events-list">
                         @foreach (var item in items)
                         {
                             <li>
                                 <span class="event-title">@item.Title</span>
-                                @if (!string.IsNullOrWhiteSpace(item.Description))
-                                {
-                                    <span class="event-expand-mark" aria-hidden="true">@(expanded ? "-" : "+")</span>
-                                }
                             </li>
                         }
                     </ul>
-
-                    @if (expanded && hasDescriptions)
-                    {
-                        <div class="event-description-list">
-                            @foreach (var item in items.Where(x => !string.IsNullOrWhiteSpace(x.Description)))
-                            {
-                                <section class="event-description">
-                                    @if (items.Count > 1)
-                                    {
-                                        <div class="event-description__title">@item.Title</div>
-                                    }
-                                    <div class="event-description__text">@item.Description</div>
-                                </section>
-                            }
-                        </div>
-                    }
                 </div>
             }
         }
@@ -753,11 +738,24 @@ else
         return !string.IsNullOrWhiteSpace(en) ? en : (lt ?? "");
     }
 
+    private static MarkupString BuildEventTextModalBody(IReadOnlyList<EventDisplayItem> items)
+    {
+        var sections = items.Select(item =>
+            "<section class=\"info-modal__event\">" +
+            $"<div class=\"info-modal__event-title\">{WebUtility.HtmlEncode(item.Title)}</div>" +
+            $"<div class=\"info-modal__text\">{EncodeMultilineText(item.Description)}</div>" +
+            "</section>");
+
+        return new MarkupString(string.Join("", sections));
+    }
+
     private static MarkupString ToMultilineMarkup(string? text, string emptyMessage)
     {
         var raw = string.IsNullOrWhiteSpace(text) ? emptyMessage : text;
-        var encoded = WebUtility.HtmlEncode(raw);
-        var html = encoded.Replace("\r\n", "<br/>").Replace("\n", "<br/>");
+        var html = EncodeMultilineText(raw);
         return new MarkupString($"<div class=\"info-modal__text\">{html}</div>");
     }
+
+    private static string EncodeMultilineText(string raw)
+        => WebUtility.HtmlEncode(raw).Replace("\r\n", "<br/>").Replace("\n", "<br/>");
 }
