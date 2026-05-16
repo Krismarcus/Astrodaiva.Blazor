@@ -809,6 +809,25 @@ a {
     min-width: 0;
 }
 
+.astro-frame--planets .planet-cell--clickable {
+    width: auto;
+    border: 0;
+    border-radius: var(--radius-button);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    padding: .12rem .18rem;
+    text-align: inherit;
+    transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.astro-frame--planets .planet-cell--clickable:hover,
+.astro-frame--planets .planet-cell--clickable:focus-visible {
+    background: rgba(248,252,209,.08);
+    box-shadow: inset 0 0 0 1px rgba(248,252,209,.12);
+}
+
 .astro-frame--planets .planet-icon{
     width: 38px;
     height: 38px;

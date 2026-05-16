@@ -620,39 +620,29 @@ else
         @* Planets-in-zodiac frame *@
         <div class="astro-frame astro-frame--planets">
             <div class="planet-grid planet-grid--top">
-                <div class="planet-cell">
-                    <button type="button" class="icon-btn" title="Sun" @onclick="(() => OpenPlanetInZodiacDetails(first?.SunInZodiac))">
-                        <img class="planet-icon" alt="Sun" src="img/zodiac/sun.png" width="40" height="40" />
-                    </button>
-                    <div class="planet-zodiac">@((MarkupString)sunBlock)</div>
-                </div>
-                <div class="planet-cell">
-                    <button type="button" class="icon-btn" title="Moon" @onclick="(() => OpenPlanetInZodiacDetails(first?.MoonInZodiac))">
-                        <img class="planet-icon" alt="Moon" src="img/zodiac/moon.png" width="40" height="40" />
-                    </button>
-                    <div class="planet-zodiac">@((MarkupString)moonBlock)</div>
-                </div>
+                <button type="button" class="planet-cell planet-cell--clickable" title="Sun" @onclick="(() => OpenPlanetInZodiacDetails(first?.SunInZodiac))">
+                    <img class="planet-icon" alt="Sun" src="img/zodiac/sun.png" width="40" height="40" />
+                    <span class="planet-zodiac">@((MarkupString)sunBlock)</span>
+                </button>
+                <button type="button" class="planet-cell planet-cell--clickable" title="Moon" @onclick="(() => OpenPlanetInZodiacDetails(first?.MoonInZodiac))">
+                    <img class="planet-icon" alt="Moon" src="img/zodiac/moon.png" width="40" height="40" />
+                    <span class="planet-zodiac">@((MarkupString)moonBlock)</span>
+                </button>
             </div>
 
             <div class="planet-grid planet-grid--bottom">
-                <div class="planet-cell">
-                    <button type="button" class="icon-btn" title="Mercury" @onclick="(() => OpenPlanetInZodiacDetails(first?.MercuryInZodiac))">
-                        <img class="planet-icon" alt="Mercury" src="img/zodiac/mercury.png" width="40" height="40" />
-                    </button>
-                    <div class="planet-zodiac">@((MarkupString)mercuryBlock)</div>
-                </div>
-                <div class="planet-cell">
-                    <button type="button" class="icon-btn" title="Venus" @onclick="(() => OpenPlanetInZodiacDetails(first?.VenusInZodiac))">
-                        <img class="planet-icon" alt="Venus" src="img/zodiac/venus.png" width="40" height="40" />
-                    </button>
-                    <div class="planet-zodiac">@((MarkupString)venusBlock)</div>
-                </div>
-                <div class="planet-cell">
-                    <button type="button" class="icon-btn" title="Mars" @onclick="(() => OpenPlanetInZodiacDetails(first?.MarsInZodiac))">
-                        <img class="planet-icon" alt="Mars" src="img/zodiac/mars.png" width="40" height="40" />
-                    </button>
-                    <div class="planet-zodiac">@((MarkupString)marsBlock)</div>
-                </div>
+                <button type="button" class="planet-cell planet-cell--clickable" title="Mercury" @onclick="(() => OpenPlanetInZodiacDetails(first?.MercuryInZodiac))">
+                    <img class="planet-icon" alt="Mercury" src="img/zodiac/mercury.png" width="40" height="40" />
+                    <span class="planet-zodiac">@((MarkupString)mercuryBlock)</span>
+                </button>
+                <button type="button" class="planet-cell planet-cell--clickable" title="Venus" @onclick="(() => OpenPlanetInZodiacDetails(first?.VenusInZodiac))">
+                    <img class="planet-icon" alt="Venus" src="img/zodiac/venus.png" width="40" height="40" />
+                    <span class="planet-zodiac">@((MarkupString)venusBlock)</span>
+                </button>
+                <button type="button" class="planet-cell planet-cell--clickable" title="Mars" @onclick="(() => OpenPlanetInZodiacDetails(first?.MarsInZodiac))">
+                    <img class="planet-icon" alt="Mars" src="img/zodiac/mars.png" width="40" height="40" />
+                    <span class="planet-zodiac">@((MarkupString)marsBlock)</span>
+                </button>
             </div>
         </div>
 
