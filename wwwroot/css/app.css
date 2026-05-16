@@ -1640,7 +1640,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 20;
-    padding: 18px 20px 10px;
+    padding: 12px 16px 7px;
     backdrop-filter: blur(18px);
 }
 
@@ -1650,8 +1650,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    padding: 16px 22px;
+    gap: 17px;
+    padding: 11px 16px;
     border-radius: var(--radius-main-panel);
     background: rgba(255,255,255,.72);
     border: 1px solid rgba(255,255,255,.7);
@@ -1661,14 +1661,14 @@ body {
 .brand-block {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 17px;
     flex-wrap: wrap;
 }
 
 .brand-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     border: none;
     background: transparent;
     padding: 0;
@@ -1677,8 +1677,8 @@ body {
 }
 
 .brand-mark {
-    width: 42px;
-    height: 42px;
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-button);
     background:
         radial-gradient(circle at 30% 30%, #f8fcd1 0, #dfe7b4 20%, rgba(248,252,209,.15) 22%),
@@ -1692,7 +1692,7 @@ body {
 .brand-mark::after {
     content: "";
     position: absolute;
-    inset: 9px;
+    inset: 7px;
     border-radius: var(--radius-tag);
     border: 1px solid rgba(248,252,209,.55);
 }
@@ -1701,11 +1701,10 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 2px;
 }
 
 .brand-title {
-    font-size: clamp(1.35rem, 1.35vw, 1.75rem);
+    font-size: clamp(1.08rem, 1.05vw, 1.35rem);
     font-weight: 750;
     line-height: 1;
     letter-spacing: .04em;
@@ -1724,20 +1723,20 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: center;
     gap: 0;
-    padding: 6px;
+    padding: 4px;
     border-radius: var(--radius-selector);
     background: rgba(7,66,82,.06);
     border: 1px solid rgba(7,66,82,.08);
-    min-width: 220px;
+    min-width: 180px;
     overflow: hidden;
 }
 
 .main-nav__slider {
     position: absolute;
-    top: 6px;
-    left: 6px;
-    width: calc(50% - 6px);
-    height: calc(100% - 12px);
+    top: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
     border-radius: var(--radius-selector);
     background: linear-gradient(135deg, #074252 0%, #13616d 100%);
     box-shadow: 0 8px 18px rgba(7,66,82,.22);
@@ -1758,7 +1757,7 @@ body {
     justify-content: center;
     text-decoration: none;
     color: rgba(7,66,82,.82);
-    padding: 10px 18px;
+    padding: 8px 14px;
     border-radius: var(--radius-button);
     font-weight: 700;
     transition: color .24s ease, opacity .24s ease;
@@ -1784,7 +1783,7 @@ body {
 .lang-switcher {
     display: flex;
     gap: 8px;
-    padding: 4px;
+    padding: 3px;
     border-radius: var(--radius-selector);
     background: rgba(7,66,82,.06);
 }
@@ -1794,7 +1793,7 @@ body {
     background: transparent;
     color: rgba(7,66,82,.8);
     border-radius: var(--radius-button);
-    padding: 8px 14px;
+    padding: 6px 11px;
     cursor: pointer;
     font-weight: 700;
     transition: all .2s ease;
@@ -2018,16 +2017,16 @@ body {
 
 @media (max-width: 900px) {
     .app-header {
-        padding: 14px 14px 8px;
+        padding: 10px 10px 6px;
     }
 
     .header-row {
-        padding: 14px;
+        padding: 10px;
         border-radius: var(--radius-main-panel);
     }
 
     .brand-block {
-        gap: 14px;
+        gap: 10px;
     }
 
     .main-nav {
