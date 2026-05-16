@@ -280,19 +280,24 @@ else
         {
             var label = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt" ? $"{planetName} {newLocative}" : $"{planetName} in {newName}";
             return $"<div class=\"astro-label\">{label}</div>" +
-                   $"<img alt=\"{planetName} sign\" src=\"img/zodiac/{newIcon}.png\" width=\"64\" height=\"64\" />";
+                   $"<div class=\"astro-zodiac-current\" title=\"{label}\">" +
+                   $"<img alt=\"{planetName} sign\" src=\"img/zodiac/{newIcon}.png\" width=\"64\" height=\"64\" />" +
+                   "</div>";
         }
 
         // transitioning: show previous sign (left) + transition time (center) + new sign (right)
         var prevName = GetSignName((int)p.PreviousZodiacSign);
         var prevIcon = EnumText.GetZodiacKey(p.PreviousZodiacSign);
         var timeText = p.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+        var transitionTitle = $"{planetName}: {prevName} - {timeText} - {newName}";
 
-        return $@"<div class=""astro-label"">{planetName}: {prevName} → {newName}</div>
-<div class=""astro-transition"" title=""Transition {timeText}"">
-  <img alt=""Previous {planetName} sign"" src=""img/zodiac/{prevIcon}.png"" />
+        return $@"<div class=""astro-label"">{transitionTitle}</div>
+<div class=""astro-transition"" title=""{transitionTitle}"">
+  <img class=""astro-transition__sign astro-transition__sign--previous"" alt=""Previous {planetName} sign"" src=""img/zodiac/{prevIcon}.png"" />
+  <span class=""astro-transition__connector"" aria-hidden=""true""></span>
   <span class=""astro-transition__time"">{timeText}</span>
-  <img alt=""New {planetName} sign"" src=""img/zodiac/{newIcon}.png"" />
+  <span class=""astro-transition__connector"" aria-hidden=""true""></span>
+  <img class=""astro-transition__sign astro-transition__sign--new"" alt=""New {planetName} sign"" src=""img/zodiac/{newIcon}.png"" />
 </div>";
     }
 

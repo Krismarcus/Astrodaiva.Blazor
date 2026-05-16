@@ -801,16 +801,17 @@ a {
 }
 
 .astro-frame--planets .planet-cell{
-    display: inline-flex;
+    display: inline-grid;
+    grid-template-columns: auto minmax(0, auto);
     align-items: center;
     justify-content: center;
-    gap: .65rem;
+    gap: .55rem;
     min-width: 0;
 }
 
 .astro-frame--planets .planet-icon{
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     object-fit: contain;
     display: block;
 }
@@ -818,7 +819,7 @@ a {
 .astro-frame--planets .planet-zodiac{
     display: flex;
     align-items: center;
-    gap: .65rem;
+    gap: .45rem;
     justify-content: center;
     min-width: 0;
 }
@@ -829,9 +830,15 @@ a {
 }
 
 /* Non-transition: make zodiac icon compact and aligned */
-.astro-frame--planets .planet-zodiac > img{
-    width: 46px;
-    height: 46px;
+.astro-zodiac-current {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.astro-frame--planets .astro-zodiac-current img{
+    width: 44px;
+    height: 44px;
     object-fit: contain;
     display: block;
 }
@@ -840,25 +847,44 @@ a {
 .astro-frame--planets .astro-transition{
     display: inline-flex;
     align-items: center;
-    gap: .55rem;
+    justify-content: center;
+    gap: .22rem;
+    min-width: 0;
 }
 
 .astro-frame--planets .astro-transition img{
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     object-fit: contain;
+    flex: 0 0 auto;
+}
+
+.astro-frame--planets .astro-transition__connector {
+    width: clamp(5px, .7vw, 12px);
+    height: 1px;
+    flex: 0 1 12px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(248,252,209,.18), rgba(240,201,134,.62));
+}
+
+.astro-frame--planets .astro-transition__time {
+    flex: 0 0 auto;
+    padding: .15rem .38rem;
+    border-radius: var(--radius-tag);
+    background: linear-gradient(180deg, rgba(248,252,209,.30), rgba(240,201,134,.20));
+    border: 1px solid rgba(248,252,209,.28);
+    color: var(--PrimaryLightText, #F8FCD1);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .01em;
+    line-height: 1.15;
 }
 
 /* inside dark frames: remove the small light boxes */
 .astro-frame .astro-col{
     background: transparent;
     padding: .25rem;
-}
-
-.astro-frame .astro-transition__time{
-    background: rgba(248,252,209,.18);
-    border: 1px solid rgba(248,252,209,.22);
-    color: var(--PrimaryLightText, #F8FCD1);
 }
 
 .astro-frame .md-line-wrap{
@@ -1557,6 +1583,49 @@ a {
         min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    .mobile-overlay__panel .astro-frame--planets {
+        gap: .8rem;
+    }
+
+    .mobile-overlay__panel .astro-frame--planets .planet-grid--bottom {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mobile-overlay__panel .astro-frame--planets .planet-grid--bottom .planet-cell:nth-child(3) {
+        grid-column: 1 / -1;
+    }
+
+    .mobile-overlay__panel .astro-frame--planets .planet-cell {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: .28rem;
+    }
+
+    .mobile-overlay__panel .astro-frame--planets .planet-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .mobile-overlay__panel .astro-frame--planets .astro-zodiac-current img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .mobile-overlay__panel .astro-frame--planets .astro-transition img {
+        width: 29px;
+        height: 29px;
+    }
+
+    .mobile-overlay__panel .astro-frame--planets .astro-transition__connector {
+        width: 7px;
+        flex-basis: 7px;
+    }
+
+    .mobile-overlay__panel .astro-frame--planets .astro-transition__time {
+        font-size: .74rem;
+        padding: .14rem .34rem;
     }
 
     /* Prevent accidental horizontal scroll */
