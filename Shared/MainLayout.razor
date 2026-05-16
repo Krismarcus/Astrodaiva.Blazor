@@ -27,9 +27,14 @@
       </div>
 
       <div class="header-actions">
-        <div class="lang-switcher">
-          <button type="button" class="lang-btn @(IsLt ? "active" : null)" @onclick="SetLt">LT</button>
-          <button type="button" class="lang-btn @(!IsLt ? "active" : null)" @onclick="SetEn">EN</button>
+        <div class="lang-switcher lang-switcher--select">
+          <select class="lang-select"
+                  aria-label="@(IsLt ? "Kalba" : "Language")"
+                  value="@SelectedCulture"
+                  @onchange="OnLanguageChanged">
+            <option value="lt-LT">LT</option>
+            <option value="en-US">EN</option>
+          </select>
         </div>
       </div>
     </div>
@@ -88,9 +93,20 @@
 
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
     private bool IsYearPage => Nav.Uri.Contains("/year", StringComparison.OrdinalIgnoreCase);
+    private string SelectedCulture => IsLt ? "lt-LT" : "en-US";
 
     private Task SetLt() => SetCulture("lt-LT");
     private Task SetEn() => SetCulture("en-US");
+
+    private async Task OnLanguageChanged(ChangeEventArgs e)
+    {
+        var culture = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(culture) ||
+            string.Equals(culture, SelectedCulture, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        await SetCulture(culture);
+    }
 
     private async Task SetCulture(string culture)
     {
