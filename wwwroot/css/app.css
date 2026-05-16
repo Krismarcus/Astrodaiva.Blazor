@@ -1436,14 +1436,14 @@ a {
     .daycard {
         --DayCardPadX: clamp(1px, 0.8vw, 4px);
         --DayCardPadTop: clamp(1px, 0.8vw, 4px);
-        --DayCardPadBottom: clamp(6px, 1.4vw, 9px);
+        --DayCardPadBottom: clamp(10px, 2vw, 14px);
         --DayCardGap: 0px;
         --DayNumSize: clamp(10px, 2.7vw, 13px);
         --DayIconMaxW: 98%;
-        --DayIconMaxH: 88%;
+        --DayIconMaxH: 78%;
         --DayIndicatorSize: clamp(5px, 1.2vw, 8px);
-        border-radius: var(--radius-day-card);
-        aspect-ratio: 1 / 1.22;
+        border-radius: 13px;
+        aspect-ratio: 1 / 1.34;
         box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 14px rgba(7,66,82,.12);
     }
 
@@ -1453,7 +1453,7 @@ a {
     }
 
     .daycard-indicator {
-        bottom: 1px;
+        bottom: 3px;
         width: 12px;
         height: 12px;
     }
@@ -1470,15 +1470,19 @@ a {
     .daycard {
         --DayCardPadX: clamp(2px, 0.8vw, 5px);
         --DayCardPadTop: clamp(2px, 0.8vw, 5px);
-        --DayCardPadBottom: clamp(7px, 1.6vw, 10px);
+        --DayCardPadBottom: clamp(10px, 2vw, 14px);
         --DayCardGap: 1px;
         --DayNumSize: clamp(10px, 2.7vw, 13px);
         --DayIconMaxW: 96%;
-        --DayIconMaxH: 84%;
+        --DayIconMaxH: 78%;
         --DayIndicatorSize: clamp(6px, 1.5vw, 9px);
-        border-radius: var(--radius-day-card);
-        aspect-ratio: 1 / 1.22;
+        border-radius: 13px;
+        aspect-ratio: 1 / 1.34;
         box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 14px rgba(7,66,82,.12);
+    }
+
+    .daycell-empty {
+        border-radius: 13px;
     }
 
     .daycard-icon img {
@@ -2112,9 +2116,26 @@ body {
         flex: 0 0 auto;
     }
 
+    .card.split-2 {
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+
     .calendar-shell {
-        padding: var(--space-2);
-        border-radius: var(--radius-main-panel);
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .activity-selector--inline {
+        margin-top: 4px;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
     }
 
     .md-timeline {
@@ -2196,9 +2217,14 @@ body {
     .daycard {
         --DayCardPadX: 2px;
         --DayCardPadTop: 2px;
-        --DayCardPadBottom: 7px;
-        border-radius: var(--radius-day-card);
-        aspect-ratio: 1 / 1.22;
+        --DayCardPadBottom: 10px;
+        --DayIconMaxH: 76%;
+        border-radius: 12px;
+        aspect-ratio: 1 / 1.34;
+    }
+
+    .daycell-empty {
+        border-radius: 12px;
     }
 
     .lang-select {
