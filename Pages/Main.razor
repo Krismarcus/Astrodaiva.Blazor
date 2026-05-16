@@ -199,9 +199,7 @@ else
 
     private void OpenEventTextDetails()
     {
-        var items = GetEventDisplayItems()
-            .Where(item => !string.IsNullOrWhiteSpace(item.Description))
-            .ToList();
+        var items = GetEventDisplayItems();
 
         if (items.Count == 0)
             return;
@@ -216,7 +214,7 @@ else
         }
 
         _infoModalTitle = IsLt ? "Dienos įvykiai" : "Day events";
-        _infoModalBody = BuildEventTextModalBody(items);
+        _infoModalBody = BuildEventTextModalBody(items, IsLt ? "Aprašymo dar nėra." : "No description saved yet.");
         _infoModalOpen = true;
     }
 
@@ -657,11 +655,9 @@ else
 
             if (items.Count > 0)
             {
-                var hasDescriptions = items.Any(x => !string.IsNullOrWhiteSpace(x.Description));
-
-                <div class="astro-frame astro-frame--events @(hasDescriptions ? "is-clickable" : "")"
-                     role="@(hasDescriptions ? "button" : null)"
-                     tabindex="@(hasDescriptions ? "0" : null)"
+                <div class="astro-frame astro-frame--events is-clickable"
+                     role="button"
+                     tabindex="0"
                      @onclick="OpenEventTextDetails"
                      @onkeydown="HandleEventTextKeyDown">
                     <ul class="events-list">
@@ -738,13 +734,17 @@ else
         return !string.IsNullOrWhiteSpace(en) ? en : (lt ?? "");
     }
 
-    private static MarkupString BuildEventTextModalBody(IReadOnlyList<EventDisplayItem> items)
+    private static MarkupString BuildEventTextModalBody(IReadOnlyList<EventDisplayItem> items, string emptyMessage)
     {
         var sections = items.Select(item =>
+        {
+            var description = string.IsNullOrWhiteSpace(item.Description) ? emptyMessage : item.Description;
+            return
             "<section class=\"info-modal__event\">" +
             $"<div class=\"info-modal__event-title\">{WebUtility.HtmlEncode(item.Title)}</div>" +
-            $"<div class=\"info-modal__text\">{EncodeMultilineText(item.Description)}</div>" +
-            "</section>");
+            $"<div class=\"info-modal__text\">{EncodeMultilineText(description)}</div>" +
+            "</section>";
+        });
 
         return new MarkupString(string.Join("", sections));
     }
