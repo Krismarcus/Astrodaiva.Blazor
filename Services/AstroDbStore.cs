@@ -38,12 +38,12 @@ public class AstroDbStore
         if (Db is not null) return Db;
 
         // DB-first startup:
-        // 1) Try API default snapshot first, but NEVER block app startup for long.
-        // 2) If there is no snapshot (or API is unreachable/slow), fall back to local JSON.
+        // 1) Try API default snapshot first, matching the themed loading bar duration.
+        // 2) If the API is unreachable/slow after that, fall back to local JSON and show retry UI.
         //
         // NOTE: App.razor waits for this method before showing Router, so keep it fast.
 
-        const int apiTimeoutMs = 1200;
+        const int apiTimeoutMs = 5000;
         var apiTask = _api.TryGetDefaultSnapshotJsonAsync();
 
         try
@@ -62,8 +62,8 @@ public class AstroDbStore
             }
             else
             {
-                // Timed out: keep loading local JSON now, but allow API task to finish later and override.
-                _ = ApplyApiTaskWhenCompleteAsync(apiTask);
+                // Timed out: show local JSON now and let the user retry the API explicitly.
+                NotifyServerUnavailable();
             }
         }
         catch
