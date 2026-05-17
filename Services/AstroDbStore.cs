@@ -32,6 +32,7 @@ public class AstroDbStore
 
     public event Action? Changed;
     public event Action? ServerUnavailable;
+    public event Action? ServerAvailable;
 
     public async Task<AppDB?> EnsureLoadedAsync()
     {
@@ -62,7 +63,9 @@ public class AstroDbStore
             }
             else
             {
-                // Timed out: show local JSON now and let the user retry the API explicitly.
+                // Timed out: show local JSON now, but keep the first API request alive.
+                // Render can cold-start slowly; when it eventually responds, update the app automatically.
+                ContinueApiTaskInBackground(apiTask);
                 NotifyServerUnavailable();
             }
         }
@@ -85,31 +88,12 @@ public class AstroDbStore
         return Db;
     }
 
-    private void StartApiRefreshInBackground()
+    private void ContinueApiTaskInBackground(Task<AstroApiClient.DefaultSnapshotResult> apiTask)
     {
         if (_apiRefreshStarted) return;
         _apiRefreshStarted = true;
 
-        _apiRefreshTask = RefreshFromApiAsync();
-    }
-
-    private async Task RefreshFromApiAsync()
-    {
-        try
-        {
-            var result = await _api.TryGetDefaultSnapshotJsonAsync();
-            if (result.IsServerUnavailable)
-            {
-                NotifyServerUnavailable();
-                return;
-            }
-
-            await TryApplyApiSnapshotAsync(result.Json);
-        }
-        catch
-        {
-            NotifyServerUnavailable();
-        }
+        _apiRefreshTask = ApplyApiTaskWhenCompleteAsync(apiTask);
     }
 
     public async Task<bool> RetryDefaultSnapshotAsync()
@@ -139,17 +123,35 @@ public class AstroDbStore
         try
         {
             var result = await apiTask;
-            if (result.IsServerUnavailable)
-            {
-                NotifyServerUnavailable();
-                return;
-            }
 
-            await TryApplyApiSnapshotAsync(result.Json);
+            if (await TryApplyApiSnapshotAsync(result.Json))
+                return;
+
+            if (result.IsServerUnavailable)
+                await RetryApiInBackgroundAsync();
         }
         catch
         {
-            NotifyServerUnavailable();
+            await RetryApiInBackgroundAsync();
+        }
+    }
+
+    private async Task RetryApiInBackgroundAsync()
+    {
+        const int backgroundAttempts = 2;
+
+        for (var attempt = 0; attempt < backgroundAttempts; attempt++)
+        {
+            if (attempt > 0)
+                await Task.Delay(TimeSpan.FromSeconds(5));
+
+            var result = await _api.TryGetDefaultSnapshotJsonAsync();
+
+            if (await TryApplyApiSnapshotAsync(result.Json))
+                return;
+
+            if (!result.IsServerUnavailable)
+                return;
         }
     }
 
@@ -167,6 +169,7 @@ public class AstroDbStore
         Db = apiDb;
         _serverUnavailableNotified = false;
         Changed?.Invoke();
+        ServerAvailable?.Invoke();
         return true;
     }
 

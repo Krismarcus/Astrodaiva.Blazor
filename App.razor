@@ -19,7 +19,7 @@
             <div class="boot-progress" aria-hidden="true">
                 <span></span>
             </div>
-            <div class="boot-footer">If the server is slow, local JSON will open with Retry.</div>
+            <div class="boot-footer">If the server is slow, local JSON opens while the database keeps connecting.</div>
         </div>
     </div>
 }
@@ -60,6 +60,7 @@ else
     {
         Store.Changed += OnStoreChanged;
         Store.ServerUnavailable += OnServerUnavailable;
+        Store.ServerAvailable += OnServerAvailable;
 
         // Kick off a single, app-wide load attempt (same Store instance for all pages).
         await Store.EnsureLoadedAsync();
@@ -72,6 +73,12 @@ else
     private void OnServerUnavailable()
     {
         _showServerSnackbar = true;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnServerAvailable()
+    {
+        _showServerSnackbar = false;
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -103,5 +110,6 @@ else
     {
         Store.Changed -= OnStoreChanged;
         Store.ServerUnavailable -= OnServerUnavailable;
+        Store.ServerAvailable -= OnServerAvailable;
     }
 }
