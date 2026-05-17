@@ -41,12 +41,15 @@ else
 @if (_showServerSnackbar)
 {
     <div class="app-snackbar" role="status" aria-live="polite">
-        <span class="app-snackbar__message">Server is unavailable</span>
+        <span class="app-snackbar__message">@_serverSnackbarMessage</span>
         <span class="app-snackbar__actions">
             <button type="button" class="app-snackbar__button" @onclick="DismissServerSnackbar">OK</button>
-            <button type="button" class="app-snackbar__button app-snackbar__button--retry" @onclick="RetryServerConnection" disabled="@_isRetryingServer">
-                Retry
-            </button>
+            @if (_showServerRetry)
+            {
+                <button type="button" class="app-snackbar__button app-snackbar__button--retry" @onclick="RetryServerConnection" disabled="@_isRetryingServer">
+                    Retry
+                </button>
+            }
         </span>
     </div>
 }
@@ -54,7 +57,10 @@ else
 @code {
     private bool _bootAttempted;
     private bool _showServerSnackbar;
+    private bool _showServerRetry;
     private bool _isRetryingServer;
+    private bool _serverUnavailableSeen;
+    private string _serverSnackbarMessage = "Server is unavailable";
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,13 +78,22 @@ else
 
     private void OnServerUnavailable()
     {
+        _serverUnavailableSeen = true;
+        _serverSnackbarMessage = "Server is unavailable. Local data is open while the app keeps connecting.";
+        _showServerRetry = true;
         _showServerSnackbar = true;
         _ = InvokeAsync(StateHasChanged);
     }
 
     private void OnServerAvailable()
     {
-        _showServerSnackbar = false;
+        if (!_serverUnavailableSeen)
+            return;
+
+        _serverSnackbarMessage = "Server connected. Database data loaded.";
+        _showServerRetry = false;
+        _showServerSnackbar = true;
+        _serverUnavailableSeen = false;
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -98,7 +113,14 @@ else
         try
         {
             var serverReached = await Store.RetryDefaultSnapshotAsync();
-            _showServerSnackbar = !serverReached;
+            _showServerSnackbar = true;
+            _showServerRetry = !serverReached;
+            _serverSnackbarMessage = serverReached
+                ? "Server connected. Database data loaded."
+                : "Server is unavailable. Local data is open while the app keeps connecting.";
+
+            if (serverReached)
+                _serverUnavailableSeen = false;
         }
         finally
         {
