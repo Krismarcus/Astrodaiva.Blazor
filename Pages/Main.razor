@@ -128,8 +128,7 @@ else
                             aria-label="@(IsLt ? "Grįžti į kalendorių" : "Back to calendar")"
                             title="@(IsLt ? "Grįžti į kalendorių" : "Back to calendar")"
                             @onclick="CloseOverlay">
-                        <span class="mobile-overlay__return-date">@OverlayDateLabel</span>
-                        <span class="mobile-overlay__return-label">@(IsLt ? "Kalendorius" : "Calendar")</span>
+                        <span class="mobile-overlay__return-label">@(IsLt ? "Mėnesio kalendorius" : "Month calendar")</span>
                     </button>
 
                     <button type="button"
@@ -203,8 +202,6 @@ else
     private string[] _weekdaysShort => GetWeekdayShortNames();
 
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
-    private string OverlayDateLabel => _current.ToString(IsLt ? "d MMMM" : "MMM d", CultureInfo.CurrentCulture);
-
     private static string[] GetWeekdayShortNames()
     {
         var culture = CultureInfo.CurrentCulture;
