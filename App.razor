@@ -1,6 +1,7 @@
 @using Astrodaiva.Blazor.Services
 @using Microsoft.AspNetCore.Components.Routing
 @using Astrodaiva.Blazor.Shared
+@using System.Globalization
 @inject AstroDbStore Store
 @implements IDisposable
 
@@ -8,18 +9,16 @@
 {
     <div class="boot-screen">
         <div class="boot-card" role="status" aria-live="polite">
-            <div class="boot-orbit" aria-hidden="true">
-                <span></span>
-            </div>
-            <div class="boot-copy">
-                <div class="boot-kicker">Astrodaiva</div>
-                <div class="boot-title">Loading calendar from database</div>
-                <div class="boot-subtitle">Waiting up to 5 seconds for the default snapshot.</div>
+            <div class="boot-brand" aria-label="Astrodaiva Kalendorius">
+                <div class="boot-wordmark" aria-hidden="true">
+                    <span>ASTR</span><span class="boot-wordmark__orbit"></span><span>DAIVA</span>
+                </div>
+                <div class="boot-subbrand" aria-hidden="true">KALENDORIUS</div>
             </div>
             <div class="boot-progress" aria-hidden="true">
                 <span></span>
             </div>
-            <div class="boot-footer">If the server is slow, local JSON opens while the database keeps connecting.</div>
+            <div class="boot-status">@BootLoadingText</div>
         </div>
     </div>
 }
@@ -61,6 +60,10 @@ else
     private bool _isRetryingServer;
     private bool _serverUnavailableSeen;
     private string _serverSnackbarMessage = "Server is unavailable";
+    private static string BootLoadingText =>
+        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("lt", StringComparison.OrdinalIgnoreCase)
+            ? "Kraunasi"
+            : "Loading";
 
     protected override async Task OnInitializedAsync()
     {

@@ -9,27 +9,35 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;600;700&family=Muli:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="css/app.css?v=20260517-api-loading-v2" rel="stylesheet" />
+    <link href="css/app.css?v=20260518-splash-v1" rel="stylesheet" />
 </head>
 <body>
     <div id="app">
         <div class="boot-screen">
             <div class="boot-card" role="status" aria-live="polite">
-                <div class="boot-orbit" aria-hidden="true">
-                    <span></span>
-                </div>
-                <div class="boot-copy">
-                    <div class="boot-kicker">Astrodaiva</div>
-                    <div class="boot-title">Loading calendar from database</div>
-                    <div class="boot-subtitle">Waiting up to 5 seconds for the default snapshot.</div>
+                <div class="boot-brand" aria-label="Astrodaiva Kalendorius">
+                    <div class="boot-wordmark" aria-hidden="true">
+                        <span>ASTR</span><span class="boot-wordmark__orbit"></span><span>DAIVA</span>
+                    </div>
+                    <div class="boot-subbrand" aria-hidden="true">KALENDORIUS</div>
                 </div>
                 <div class="boot-progress" aria-hidden="true">
                     <span></span>
                 </div>
-                <div class="boot-footer">If the server is slow, local JSON opens while the database keeps connecting.</div>
+                <div class="boot-status" data-loading-label>Kraunasi</div>
             </div>
         </div>
     </div>
+
+    <script>
+        (function () {
+            var label = document.querySelector("[data-loading-label]");
+            var culture = window.localStorage.getItem("blazorCulture") || "lt-LT";
+            if (label) {
+                label.textContent = culture.toLowerCase().startsWith("lt") ? "Kraunasi" : "Loading";
+            }
+        })();
+    </script>
 
     <script>
         window.ui = {

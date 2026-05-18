@@ -141,78 +141,128 @@ a {
     place-items: center;
     padding: 24px;
     box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
     background:
-        radial-gradient(circle at 50% 42%, rgba(248,252,209,.18), transparent 34%),
-        linear-gradient(180deg, var(--PageGradientTop) 0%, var(--PageGradientMid) 54%, var(--PageGradientBottom) 100%);
+        radial-gradient(ellipse at 16% 13%, rgba(255,255,255,.66), transparent 34%),
+        radial-gradient(ellipse at 78% 24%, rgba(240,201,134,.23), transparent 30%),
+        radial-gradient(ellipse at 50% 112%, rgba(72,166,177,.22), transparent 44%),
+        linear-gradient(135deg, #f4edd9 0%, #f4f4e2 42%, #d8e8d4 100%);
+}
+
+.boot-screen::before,
+.boot-screen::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+}
+
+.boot-screen::before {
+    inset: -20%;
+    background:
+        linear-gradient(118deg, rgba(7,66,82,.13), transparent 26%),
+        linear-gradient(302deg, rgba(255,255,255,.34), transparent 33%);
+    filter: blur(28px);
+    opacity: .58;
+}
+
+.boot-screen::after {
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 50% 42%, transparent 0%, transparent 54%, rgba(7,66,82,.09) 100%),
+        repeating-linear-gradient(90deg, rgba(7,66,82,.018) 0 1px, transparent 1px 7px);
+    mix-blend-mode: multiply;
+    opacity: .52;
 }
 
 .boot-card {
-    width: min(440px, 100%);
-    padding: 26px;
-    border-radius: var(--radius-main-panel);
-    border: 1px solid rgba(255,255,255,.45);
-    background: rgba(255,255,255,.72);
-    box-shadow: 0 24px 60px rgba(7,66,82,.18);
+    position: relative;
+    z-index: 1;
+    width: min(860px, 100%);
+    padding: clamp(24px, 7vw, 58px) 0;
     color: var(--PrimaryDarkText);
     text-align: center;
-    backdrop-filter: blur(14px);
+    text-shadow: 0 1px 22px rgba(255,255,255,.45);
 }
 
-.boot-orbit {
-    width: 58px;
-    height: 58px;
-    margin: 0 auto 16px;
-    border-radius: 18px;
+.boot-brand {
     display: grid;
-    place-items: center;
-    background: linear-gradient(180deg, rgba(7,66,82,.95), rgba(72,166,177,.88));
-    box-shadow: 0 14px 28px rgba(7,66,82,.18);
+    justify-items: center;
+    gap: clamp(12px, 2.4vw, 22px);
 }
 
-.boot-orbit span {
-    width: 32px;
-    height: 32px;
+.boot-wordmark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #074252;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(3.2rem, 12vw, 7.8rem);
+    font-weight: 400;
+    letter-spacing: clamp(.08rem, 1.1vw, .48rem);
+    line-height: .82;
+    text-transform: uppercase;
+    filter: drop-shadow(0 10px 22px rgba(7,66,82,.10));
+}
+
+.boot-wordmark__orbit {
+    position: relative;
+    display: inline-block;
+    width: .54em;
+    height: .54em;
+    margin: 0 .045em 0 .02em;
     border-radius: 50%;
-    border: 2px solid rgba(248,252,209,.72);
-    border-left-color: transparent;
-    animation: boot-spin 5s linear infinite;
+    border: .095em solid currentColor;
+    border-right-color: transparent;
+    transform: translateY(-.035em);
+    box-sizing: border-box;
 }
 
-.boot-kicker {
-    color: rgba(7,66,82,.70);
-    font-size: .78rem;
-    font-weight: 800;
+.boot-wordmark__orbit::after {
+    content: "";
+    position: absolute;
+    width: .14em;
+    height: .14em;
+    right: -.11em;
+    top: -.18em;
+    border-radius: 50%;
+    background: #f07b00;
+    box-shadow: 0 0 14px rgba(240,123,0,.24);
+}
+
+.boot-subbrand {
+    color: #074252;
+    font-family: var(--font-ui);
+    font-size: clamp(1.05rem, 4.1vw, 2.55rem);
+    font-weight: 400;
+    letter-spacing: clamp(.32rem, 2.25vw, 1.28rem);
+    line-height: 1;
+    text-transform: uppercase;
+    padding-left: clamp(.28rem, 2vw, 1.14rem);
+    opacity: .92;
+}
+
+.boot-status {
+    margin-top: 14px;
+    color: rgba(7,66,82,.78);
+    font-family: var(--font-ui);
+    font-size: clamp(.9rem, 2.6vw, 1.05rem);
+    font-weight: 600;
     letter-spacing: .12em;
     text-transform: uppercase;
 }
 
-.boot-title {
-    margin-top: 6px;
-    font-family: var(--font-heading);
-    font-size: clamp(1.35rem, 5vw, 1.9rem);
-    font-weight: 700;
-    line-height: 1.1;
-}
-
-.boot-subtitle,
-.boot-footer {
-    color: rgba(7,66,82,.72);
-    line-height: 1.45;
-}
-
-.boot-subtitle {
-    margin-top: 8px;
-    font-size: .96rem;
-}
-
 .boot-progress {
     position: relative;
-    height: 10px;
-    margin: 22px 0 12px;
+    width: min(360px, 64vw);
+    height: 7px;
+    margin: clamp(26px, 5vw, 44px) auto 0;
     overflow: hidden;
     border-radius: 999px;
-    background: rgba(7,66,82,.12);
-    box-shadow: inset 0 1px 2px rgba(7,66,82,.16);
+    background: rgba(7,66,82,.14);
+    box-shadow:
+        inset 0 1px 2px rgba(7,66,82,.18),
+        0 10px 24px rgba(7,66,82,.10);
 }
 
 .boot-progress span {
@@ -220,12 +270,9 @@ a {
     inset: 0 auto 0 0;
     width: 0%;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--Primary), var(--SecondaryBackground), var(--LightOrangeBackground));
+    background: linear-gradient(90deg, #074252, #48A6B1 58%, #f0c986);
+    box-shadow: 0 0 18px rgba(72,166,177,.34);
     animation: boot-progress 5s linear forwards;
-}
-
-.boot-footer {
-    font-size: .84rem;
 }
 
 @keyframes boot-progress {
@@ -241,9 +288,26 @@ a {
     .boot-progress span {
         animation-duration: 1ms;
     }
+}
 
-    .boot-orbit span {
-        animation: none;
+@media (max-width: 640px) {
+    .boot-screen {
+        padding: 18px;
+    }
+
+    .boot-wordmark {
+        font-size: clamp(2rem, 13vw, 3.3rem);
+        letter-spacing: clamp(.01rem, .2vw, .06rem);
+    }
+
+    .boot-subbrand {
+        font-size: clamp(.92rem, 5.6vw, 1.38rem);
+        letter-spacing: clamp(.22rem, 2vw, .48rem);
+        padding-left: clamp(.18rem, 1.8vw, .44rem);
+    }
+
+    .boot-progress {
+        width: min(320px, 72vw);
     }
 }
 
