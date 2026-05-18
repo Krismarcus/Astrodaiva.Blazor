@@ -58,9 +58,13 @@
         <button type="button" class="lang-btn" @onclick="CloseWebsitePrompt">
           @(IsLt ? "Atšaukti" : "Cancel")
         </button>
-        <button type="button" class="lang-btn active" @onclick="OpenAstrodaivaWebsite">
+        <a class="lang-btn active website-prompt__link"
+           href="https://www.astrodaiva.com"
+           target="_blank"
+           rel="noopener noreferrer"
+           @onclick="CloseWebsitePrompt">
           @(IsLt ? "Atidaryti" : "Open")
-        </button>
+        </a>
       </div>
     </div>
   </div>
@@ -95,10 +99,4 @@
     private void ShowWebsitePrompt() => _showWebsitePrompt = true;
 
     private void CloseWebsitePrompt() => _showWebsitePrompt = false;
-
-    private async Task OpenAstrodaivaWebsite()
-    {
-        _showWebsitePrompt = false;
-        await JS.InvokeVoidAsync("open", "https://www.astrodaiva.com", "_blank", "noopener,noreferrer");
-    }
 }
