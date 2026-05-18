@@ -186,60 +186,18 @@ a {
 }
 
 .boot-brand {
-    display: grid;
-    justify-items: center;
-    gap: clamp(12px, 2.4vw, 22px);
-}
-
-.boot-wordmark {
     display: flex;
-    align-items: center;
     justify-content: center;
-    color: #074252;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(3.2rem, 12vw, 7.8rem);
-    font-weight: 400;
-    letter-spacing: clamp(.08rem, 1.1vw, .48rem);
-    line-height: .82;
-    text-transform: uppercase;
-    filter: drop-shadow(0 10px 22px rgba(7,66,82,.10));
+    align-items: center;
 }
 
-.boot-wordmark__orbit {
-    position: relative;
-    display: inline-block;
-    width: .54em;
-    height: .54em;
-    margin: 0 .045em 0 .02em;
-    border-radius: 50%;
-    border: .095em solid currentColor;
-    border-right-color: transparent;
-    transform: translateY(-.035em);
-    box-sizing: border-box;
-}
-
-.boot-wordmark__orbit::after {
-    content: "";
-    position: absolute;
-    width: .14em;
-    height: .14em;
-    right: -.11em;
-    top: -.18em;
-    border-radius: 50%;
-    background: #f07b00;
-    box-shadow: 0 0 14px rgba(240,123,0,.24);
-}
-
-.boot-subbrand {
-    color: #074252;
-    font-family: var(--font-ui);
-    font-size: clamp(1.05rem, 4.1vw, 2.55rem);
-    font-weight: 400;
-    letter-spacing: clamp(.32rem, 2.25vw, 1.28rem);
-    line-height: 1;
-    text-transform: uppercase;
-    padding-left: clamp(.28rem, 2vw, 1.14rem);
-    opacity: .92;
+.boot-logo {
+    display: block;
+    width: min(780px, 88vw);
+    height: auto;
+    max-height: min(34vh, 230px);
+    object-fit: contain;
+    filter: drop-shadow(0 12px 24px rgba(7,66,82,.10));
 }
 
 .boot-status {
@@ -295,15 +253,8 @@ a {
         padding: 18px;
     }
 
-    .boot-wordmark {
-        font-size: clamp(2rem, 13vw, 3.3rem);
-        letter-spacing: clamp(.01rem, .2vw, .06rem);
-    }
-
-    .boot-subbrand {
-        font-size: clamp(.92rem, 5.6vw, 1.38rem);
-        letter-spacing: clamp(.22rem, 2vw, .48rem);
-        padding-left: clamp(.18rem, 1.8vw, .44rem);
+    .boot-logo {
+        width: min(330px, 88vw);
     }
 
     .boot-progress {
@@ -1983,12 +1934,19 @@ body {
 .brand-trigger {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
     border: none;
     background: transparent;
     padding: 0;
     cursor: default;
     color: var(--PrimaryDarkText);
+}
+
+.brand-logo {
+    display: block;
+    width: clamp(142px, 13vw, 245px);
+    height: auto;
+    max-height: 48px;
+    object-fit: contain;
 }
 
 .brand-mark {
@@ -2392,14 +2350,12 @@ body {
 
     .brand-trigger {
         flex: 0 1 auto;
-        gap: 7px;
         min-width: 0;
     }
 
-    .brand-title {
-        font-size: clamp(.92rem, 2.8vw, 1.08rem);
-        letter-spacing: .025em;
-        white-space: nowrap;
+    .brand-logo {
+        width: clamp(104px, 24vw, 150px);
+        max-height: 36px;
     }
 
     .main-nav {
@@ -2490,20 +2446,12 @@ body {
     }
 
     .brand-trigger {
-        gap: 6px;
+        flex: 0 0 auto;
     }
 
-    .brand-mark {
-        width: 30px;
-        height: 30px;
-    }
-
-    .brand-mark::after {
-        inset: 6px;
-    }
-
-    .brand-title {
-        font-size: .92rem;
+    .brand-logo {
+        width: clamp(86px, 24vw, 108px);
+        max-height: 31px;
     }
 
     .main-nav {

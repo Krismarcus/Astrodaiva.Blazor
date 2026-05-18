@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 260" role="img" aria-labelledby="logoTitle">
+  <title id="logoTitle">Astrodaiva Kalendorius</title>
+  <defs>
+    <style>
+      .word {
+        fill: #074252;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 92px;
+        font-weight: 400;
+        letter-spacing: 15px;
+      }
+
+      .sub {
+        fill: #074252;
+        font-family: "Muli", "Josefin Sans", Arial, sans-serif;
+        font-size: 38px;
+        font-weight: 400;
+        letter-spacing: 35px;
+      }
+    </style>
+  </defs>
+
+  <text class="word" x="34" y="105">ASTRODAIVA</text>
+  <circle cx="485" cy="29" r="8" fill="#f07b00"/>
+  <text class="sub" x="45" y="192">KALENDORIUS</text>
+</svg>
