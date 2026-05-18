@@ -114,7 +114,32 @@ else
         <div class="mobile-overlay__backdrop" @onclick="CloseOverlay"></div>
         <div class="mobile-overlay__panel" role="dialog" aria-modal="true">
             <div class="mobile-overlay__header">
-                <button type="button" class="overlay-close" @onclick="CloseOverlay">✕</button>
+                <div class="mobile-overlay__nav" aria-label="@(IsLt ? "Dienos navigacija" : "Day navigation")">
+                    <button type="button"
+                            class="mobile-overlay__nav-btn"
+                            aria-label="@(IsLt ? "Ankstesnė diena" : "Previous day")"
+                            title="@(IsLt ? "Ankstesnė diena" : "Previous day")"
+                            @onclick="(() => MoveSelectedDay(-1))">
+                        ‹
+                    </button>
+
+                    <button type="button"
+                            class="mobile-overlay__return"
+                            aria-label="@(IsLt ? "Grįžti į kalendorių" : "Back to calendar")"
+                            title="@(IsLt ? "Grįžti į kalendorių" : "Back to calendar")"
+                            @onclick="CloseOverlay">
+                        <span class="mobile-overlay__return-date">@OverlayDateLabel</span>
+                        <span class="mobile-overlay__return-label">@(IsLt ? "Kalendorius" : "Calendar")</span>
+                    </button>
+
+                    <button type="button"
+                            class="mobile-overlay__nav-btn"
+                            aria-label="@(IsLt ? "Kita diena" : "Next day")"
+                            title="@(IsLt ? "Kita diena" : "Next day")"
+                            @onclick="(() => MoveSelectedDay(1))">
+                        ›
+                    </button>
+                </div>
             </div>
             <div class="mobile-overlay__body">
                 @RightPanelContent()
@@ -178,6 +203,7 @@ else
     private string[] _weekdaysShort => GetWeekdayShortNames();
 
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private string OverlayDateLabel => _current.ToString(IsLt ? "d MMMM" : "MMM d", CultureInfo.CurrentCulture);
 
     private static string[] GetWeekdayShortNames()
     {
@@ -416,6 +442,18 @@ else
     }
 
     private void CloseOverlay() => _overlayOpen = false;
+
+    private async Task MoveSelectedDay(int offsetDays)
+    {
+        var next = _current.AddDays(offsetDays);
+        _year = next.Year;
+        _month = next.Month;
+        _selectedDay = next.Day;
+        RecomputeMonth();
+        _overlayOpen = true;
+
+        await InvokeAsync(StateHasChanged);
+    }
 
     private async Task SelectActivity(ActivitySymbol a)
     {
