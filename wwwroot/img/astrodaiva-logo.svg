@@ -20,7 +20,14 @@
     </style>
   </defs>
 
-  <text class="word" x="34" y="105">ASTRODAIVA</text>
-  <circle cx="485" cy="29" r="8" fill="#f07b00"/>
+  <text class="word" x="34" y="105">ASTR</text>
+
+  <g transform="translate(408 39)">
+    <path d="M55 18a35 35 0 1 0 0 48" fill="none" stroke="#074252" stroke-width="20" stroke-linecap="round"/>
+    <circle cx="45" cy="42" r="14" fill="#074252"/>
+    <circle cx="72" cy="4" r="7.5" fill="#f07b00"/>
+  </g>
+
+  <text class="word" x="488" y="105">DAIVA</text>
   <text class="sub" x="45" y="192">KALENDORIUS</text>
 </svg>
