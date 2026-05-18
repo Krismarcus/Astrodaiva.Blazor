@@ -2286,6 +2286,49 @@ body {
     gap: 10px;
 }
 
+.website-prompt {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.website-prompt__backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 50% 45%, rgba(247,244,231,.14), transparent 38%),
+        rgba(7,22,27,.42);
+    backdrop-filter: blur(7px);
+}
+
+.website-prompt__panel {
+    position: relative;
+    z-index: 1;
+    width: min(92vw, 390px);
+    padding: 24px;
+    border-radius: var(--radius-main-panel);
+    background: rgba(255,255,255,.96);
+    border: 1px solid rgba(255,255,255,.82);
+    box-shadow: 0 24px 60px rgba(10,30,35,.24);
+}
+
+.website-prompt__message {
+    color: var(--PrimaryDarkText);
+    font-size: 1rem;
+    font-weight: 650;
+    line-height: 1.45;
+}
+
+.website-prompt__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
 .app-snackbar {
     position: fixed;
     left: 50%;

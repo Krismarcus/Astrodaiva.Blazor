@@ -11,7 +11,7 @@
         <button type="button"
                 class="brand-trigger"
                 title="@(IsLt ? "Atidaryti Astrodaiva svetainę" : "Open Astrodaiva website")"
-                @onclick="OpenAstrodaivaWebsite">
+                @onclick="ShowWebsitePrompt">
           <img class="brand-logo"
                src="img/astrodaiva-logo.png"
                alt="Astrodaiva" />
@@ -45,7 +45,30 @@
   </main>
 </div>
 
+@if (_showWebsitePrompt)
+{
+  <div class="website-prompt" role="dialog" aria-modal="true" aria-label="@(IsLt ? "Atidaryti Astrodaiva svetainę" : "Open Astrodaiva website")">
+    <div class="website-prompt__backdrop" @onclick="CloseWebsitePrompt"></div>
+    <div class="website-prompt__panel">
+      <div class="website-prompt__message">
+        @(IsLt ? "Ar norite atidaryti Astrodaiva svetainę?" : "Do you want to open the Astrodaiva website?")
+      </div>
+
+      <div class="website-prompt__actions">
+        <button type="button" class="lang-btn" @onclick="CloseWebsitePrompt">
+          @(IsLt ? "Atšaukti" : "Cancel")
+        </button>
+        <button type="button" class="lang-btn active" @onclick="OpenAstrodaivaWebsite">
+          @(IsLt ? "Atidaryti" : "Open")
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
 @code {
+    private bool _showWebsitePrompt;
+
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
     private bool IsYearPage => Nav.Uri.Contains("/year", StringComparison.OrdinalIgnoreCase);
     private string SelectedCulture => IsLt ? "lt-LT" : "en-US";
@@ -69,16 +92,13 @@
         Nav.NavigateTo(Nav.Uri, forceLoad: true);
     }
 
+    private void ShowWebsitePrompt() => _showWebsitePrompt = true;
+
+    private void CloseWebsitePrompt() => _showWebsitePrompt = false;
+
     private async Task OpenAstrodaivaWebsite()
     {
-        var message = IsLt
-            ? "Ar norite atidaryti Astrodaiva svetainę?"
-            : "Do you want to open the Astrodaiva website?";
-
-        var shouldOpen = await JS.InvokeAsync<bool>("confirm", message);
-        if (!shouldOpen)
-            return;
-
+        _showWebsitePrompt = false;
         await JS.InvokeVoidAsync("open", "https://www.astrodaiva.com", "_blank", "noopener,noreferrer");
     }
 }
