@@ -2297,7 +2297,8 @@ body {
     z-index: 5000;
     display: grid;
     place-items: center;
-    padding: 24px;
+    padding: 16px;
+    box-sizing: border-box;
 }
 
 .website-prompt__backdrop {
@@ -2312,8 +2313,9 @@ body {
 .website-prompt__panel {
     position: relative;
     z-index: 1;
-    width: min(92vw, 390px);
-    padding: 24px;
+    width: min(100%, 340px);
+    box-sizing: border-box;
+    padding: 20px;
     border-radius: var(--radius-main-panel);
     background: rgba(255,255,255,.96);
     border: 1px solid rgba(255,255,255,.82);
@@ -2330,6 +2332,7 @@ body {
 .website-prompt__actions {
     display: flex;
     justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 10px;
     margin-top: 20px;
 }
