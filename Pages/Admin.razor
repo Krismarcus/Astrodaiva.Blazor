@@ -11,6 +11,7 @@
 @using System.Text.Json
 @using System.Net.Http.Json
 @using System.Globalization
+@using Microsoft.AspNetCore.Components.Web
 
 @inject AstroDbEditService Editor
 @inject AstroDbStore Store
@@ -26,7 +27,43 @@
 }
 else if (!_accessGranted)
 {
-    <div class="card">Redirecting…</div>
+    <div class="admin-login-page">
+        <div class="admin-gate__panel admin-gate__panel--page">
+            <div class="admin-gate__header">
+                <div>
+                    <div class="admin-gate__eyebrow">@(IsLt ? "Privati prieiga" : "Private access")</div>
+                    <div class="admin-gate__title">@(IsLt ? "Administratoriaus prisijungimas" : "Admin login")</div>
+                </div>
+            </div>
+
+            <div class="admin-gate__body">
+                <input type="password"
+                       class="admin-gate__input"
+                       placeholder="@(IsLt ? "Slaptažodis" : "Password")"
+                       @bind="_adminPassword"
+                       @bind:event="oninput"
+                       @onkeydown="OnAdminPasswordKeyDown" />
+
+                @if (!string.IsNullOrWhiteSpace(_adminLoginError))
+                {
+                    <div class="admin-gate__error">@_adminLoginError</div>
+                }
+
+                <div class="admin-gate__hint">
+                    @(IsLt ? "Admin puslapis pasiekiamas tik tiesiogiai per /admin." : "The admin page is available only directly at /admin.")
+                </div>
+
+                <div class="admin-gate__actions">
+                    <button type="button" class="lang-btn" @onclick="GoHome" disabled="@_adminLoginBusy">
+                        @(IsLt ? "Grįžti" : "Back")
+                    </button>
+                    <button type="button" class="lang-btn active" @onclick="UnlockAdmin" disabled="@_adminLoginBusy">
+                        @(IsLt ? "Atidaryti" : "Unlock")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 else
 {
@@ -552,6 +589,11 @@ else
 @code {
     private bool _accessChecked;
     private bool _accessGranted;
+    private bool _adminLoginBusy;
+    private string _adminPassword = "";
+    private string _adminLoginError = "";
+
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -560,12 +602,41 @@ else
         _accessGranted = await AdminAccess.IsUnlockedAsync();
         _accessChecked = true;
         StateHasChanged();
+    }
 
-        if (!_accessGranted)
+    private async Task OnAdminPasswordKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await UnlockAdmin();
+    }
+
+    private async Task UnlockAdmin()
+    {
+        if (_adminLoginBusy)
+            return;
+
+        _adminLoginBusy = true;
+        _adminLoginError = "";
+
+        try
         {
-            Nav.NavigateTo("/", forceLoad: false);
+            var ok = await AdminAccess.UnlockAsync(_adminPassword);
+            if (!ok)
+            {
+                _adminLoginError = IsLt ? "Neteisingas slaptažodis." : "Wrong password.";
+                return;
+            }
+
+            _adminPassword = "";
+            _accessGranted = true;
+        }
+        finally
+        {
+            _adminLoginBusy = false;
         }
     }
+
+    private void GoHome() => Nav.NavigateTo("/");
 
     private bool _loading = true;
     private string _error = string.Empty;

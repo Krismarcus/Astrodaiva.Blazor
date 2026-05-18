@@ -2,7 +2,6 @@
 @inherits LayoutComponentBase
 @inject Microsoft.JSInterop.IJSRuntime JS
 @inject NavigationManager Nav
-@inject Astrodaiva.Blazor.Services.AdminAccessService AdminAccess
 @using System.Globalization
 
 <div class="app-shell">
@@ -11,8 +10,8 @@
       <div class="brand-block">
         <button type="button"
                 class="brand-trigger"
-                title="Astrodaiva"
-                @onclick="HandleBrandClick">
+                title="@(IsLt ? "Atidaryti Astrodaiva svetainę" : "Open Astrodaiva website")"
+                @onclick="OpenAstrodaivaWebsite">
           <img class="brand-logo"
                src="img/astrodaiva-logo.png"
                alt="Astrodaiva" />
@@ -46,50 +45,7 @@
   </main>
 </div>
 
-@if (_showAdminPrompt)
-{
-  <div class="admin-gate" role="dialog" aria-modal="true">
-    <div class="admin-gate__backdrop" @onclick="CloseAdminPrompt"></div>
-    <div class="admin-gate__panel">
-      <div class="admin-gate__header">
-        <div>
-          <div class="admin-gate__eyebrow">@(IsLt ? "Privati prieiga" : "Private access")</div>
-          <div class="admin-gate__title">@(IsLt ? "Įveskite administratoriaus slaptažodį" : "Enter admin password")</div>
-        </div>
-        <button type="button" class="admin-gate__close" @onclick="CloseAdminPrompt">✕</button>
-      </div>
-
-      <div class="admin-gate__body">
-        <input type="password"
-               class="admin-gate__input"
-               placeholder="@(IsLt ? "Slaptažodis" : "Password")"
-               @bind="_adminPassword"
-               @bind:event="oninput"
-               @onkeydown="OnAdminPasswordKeyDown" />
-
-        @if (!string.IsNullOrWhiteSpace(_adminError))
-        {
-          <div class="admin-gate__error">@_adminError</div>
-        }
-
-        <div class="admin-gate__hint">
-          @(IsLt ? "Atidarymui: Shift + Alt + spustelėjimas ant Astrodaiva ženklo." : "To open: Shift + Alt + click the Astrodaiva mark.")
-        </div>
-
-        <div class="admin-gate__actions">
-          <button type="button" class="lang-btn" @onclick="CloseAdminPrompt">@(IsLt ? "Uždaryti" : "Close")</button>
-          <button type="button" class="lang-btn active" @onclick="UnlockAdmin">@(IsLt ? "Atidaryti" : "Unlock")</button>
-        </div>
-      </div>
-    </div>
-  </div>
-}
-
 @code {
-    private bool _showAdminPrompt;
-    private string _adminPassword = "";
-    private string _adminError = "";
-
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
     private bool IsYearPage => Nav.Uri.Contains("/year", StringComparison.OrdinalIgnoreCase);
     private string SelectedCulture => IsLt ? "lt-LT" : "en-US";
@@ -113,39 +69,16 @@
         Nav.NavigateTo(Nav.Uri, forceLoad: true);
     }
 
-    private void HandleBrandClick(MouseEventArgs e)
+    private async Task OpenAstrodaivaWebsite()
     {
-        if (e.ShiftKey && e.AltKey)
-        {
-            _adminPassword = "";
-            _adminError = "";
-            _showAdminPrompt = true;
-        }
-    }
+        var message = IsLt
+            ? "Ar norite atidaryti Astrodaiva svetainę?"
+            : "Do you want to open the Astrodaiva website?";
 
-    private void CloseAdminPrompt()
-    {
-        _showAdminPrompt = false;
-        _adminPassword = "";
-        _adminError = "";
-    }
-
-    private async Task OnAdminPasswordKeyDown(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-            await UnlockAdmin();
-    }
-
-    private async Task UnlockAdmin()
-    {
-        var ok = await AdminAccess.UnlockAsync(_adminPassword);
-        if (!ok)
-        {
-            _adminError = IsLt ? "Neteisingas slaptažodis." : "Wrong password.";
+        var shouldOpen = await JS.InvokeAsync<bool>("confirm", message);
+        if (!shouldOpen)
             return;
-        }
 
-        CloseAdminPrompt();
-        Nav.NavigateTo("admin");
+        await JS.InvokeVoidAsync("open", "https://www.astrodaiva.com", "_blank", "noopener,noreferrer");
     }
 }
