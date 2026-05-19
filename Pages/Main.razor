@@ -149,7 +149,7 @@ else
     <!-- INFO MODAL (Moon-day / Planet-in-zodiac details) -->
     @if (_infoModalOpen)
     {
-        <div class="info-modal" role="dialog" aria-modal="true">
+        <div class="info-modal @_infoModalToneClass" role="dialog" aria-modal="true">
             <div class="info-modal__backdrop" @onclick="CloseInfoModal"></div>
             <div class="info-modal__panel">
                 <div class="info-modal__header">
@@ -195,6 +195,7 @@ else
     // UI state: details popup
     private bool _infoModalOpen;
     private string _infoModalTitle = "";
+    private string _infoModalToneClass = "";
     private MarkupString _infoModalBody;
 
     // Left panel calendar data
@@ -234,12 +235,14 @@ else
             var item = items[0];
             _infoModalTitle = item.Title;
             _infoModalBody = ToMultilineMarkup(item.Description, IsLt ? "Aprašymo dar nėra." : "No description saved yet.");
+            _infoModalToneClass = "";
             _infoModalOpen = true;
             return;
         }
 
         _infoModalTitle = IsLt ? "Dienos įvykiai" : "Day events";
         _infoModalBody = BuildEventTextModalBody(items);
+        _infoModalToneClass = "";
         _infoModalOpen = true;
     }
 
@@ -750,6 +753,12 @@ else
 
         _infoModalTitle = $"{GetActivityDisplayName(activity)} · {qualityLabel}";
         _infoModalBody = ToMultilineMarkup(info, IsLt ? "Šiai veiklai aprašymo dar nėra." : "No description saved for this activity yet.");
+        _infoModalToneClass = quality switch
+        {
+            ActivityQuality.Good => "info-modal--good",
+            ActivityQuality.Bad => "info-modal--bad",
+            _ => ""
+        };
         _infoModalOpen = true;
     }
 
@@ -823,6 +832,7 @@ else
 
         _infoModalTitle = IsLt ? $"Mėnulio diena {moonDay} · {name}" : $"Moon Day {moonDay} · {name}";
         _infoModalBody = ToMultilineMarkup(info, IsLt ? "Šiam simboliui Mėnulio dienos aprašymo dar nėra." : "No Moon-day details saved yet for this symbol.");
+        _infoModalToneClass = "";
         _infoModalOpen = true;
     }
 
@@ -832,6 +842,7 @@ else
         {
             _infoModalTitle = IsLt ? "Detalės" : "Details";
             _infoModalBody = ToMultilineMarkup(null, IsLt ? "Šiai dienai planetos duomenų nėra." : "No planet data for this day.");
+            _infoModalToneClass = "";
             _infoModalOpen = true;
             return;
         }
@@ -844,6 +855,7 @@ else
 
         _infoModalTitle = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt" ? $"{planetName} {EnumText.GetZodiacLocative(p.NewZodiacSign)}" : $"{planetName} in {signName}";
         _infoModalBody = ToMultilineMarkup(info, IsLt ? "Šiai padėčiai planetos ženkle aprašymo dar nėra." : "No Planet-in-Zodiac details saved yet for this position.");
+        _infoModalToneClass = "";
         _infoModalOpen = true;
     }
 
@@ -851,6 +863,7 @@ else
     {
         _infoModalOpen = false;
         _infoModalTitle = "";
+        _infoModalToneClass = "";
         _infoModalBody = default;
     }
 

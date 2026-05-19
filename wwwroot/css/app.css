@@ -1508,9 +1508,35 @@ a {
     background: rgba(255,255,255,.55);
 }
 
+.info-modal--good .info-modal__header {
+    border-bottom-color: rgba(0, 180, 90, .55);
+    background: linear-gradient(180deg, rgba(0, 180, 90, .14), rgba(0, 180, 90, .07));
+}
+
+.info-modal--bad .info-modal__header {
+    border-bottom-color: rgba(220, 50, 50, .55);
+    background: linear-gradient(180deg, rgba(220, 50, 50, .14), rgba(220, 50, 50, .07));
+}
+
+.info-modal--good .info-modal__panel {
+    border-color: rgba(0, 180, 90, .42);
+}
+
+.info-modal--bad .info-modal__panel {
+    border-color: rgba(220, 50, 50, .42);
+}
+
 .info-modal__title{
     font-weight: 800;
     color: #063646;
+}
+
+.info-modal--good .info-modal__title {
+    color: #0f5f3c;
+}
+
+.info-modal--bad .info-modal__title {
+    color: #873327;
 }
 
 .info-modal__close{
