@@ -1,0 +1,37 @@
+{
+  "name": "Astrodaiva Calendar",
+  "short_name": "Astrodaiva",
+  "description": "Astrodaiva astrology calendar",
+  "lang": "lt",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F9DD",
+  "theme_color": "#074252",
+  "categories": [
+    "lifestyle",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "img/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/pwa/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
