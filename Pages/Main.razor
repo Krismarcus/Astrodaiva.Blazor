@@ -281,6 +281,7 @@ else
     }
 
     private sealed record EventDisplayItem(string Title, string Description);
+    private sealed record ActivityTagItem(ActivitySymbol Activity, ActivityQuality Quality, string Title);
 
     private static string GetSignName(int sign) => EnumText.GetZodiacName((ZodiacSign)sign);
     private static string GetSignLocative(int sign) => EnumText.GetZodiacLocative((ZodiacSign)sign);
@@ -529,31 +530,33 @@ else
             _ => $"{GetActivityShortLabel(_selectedActivity)}: —"
         };
     
-    private string BuildGoodBadTagsHtml(AstroEvent? e)
+    private List<ActivityTagItem> GetActivityTags(AstroEvent? e)
     {
-        if (e is null) return "";
+        if (e is null) return new List<ActivityTagItem>();
 
-        var tags = _activities
+        return _activities
             .Select(a => new { A = a, Q = GetActivityQuality(e, a) })
             .Where(x => x.Q == ActivityQuality.Good || x.Q == ActivityQuality.Bad)
-            .Select(x =>
-            {
-                var cls = x.Q == ActivityQuality.Good ? "tag-good" : "tag-bad";
-                var title = EnumText.GetActivityName(x.A);
-                var iconPath = WebUtility.HtmlEncode(GetActivityIconPath(x.A));
-                var safeTitle = WebUtility.HtmlEncode(title);
-                return $@"<div class=""gb-tag {cls}"" title=""{safeTitle}"">
-                        <span class=""gb-tag__icon"" aria-hidden=""true""><img class=""activity-icon-img"" src=""{iconPath}"" alt="""" /></span>
-                        <span class=""gb-tag__label"">{safeTitle}</span>
-                      </div>";
-            })
+            .Select(x => new ActivityTagItem(x.A, x.Q, GetActivityDisplayName(x.A)))
             .ToList();
-
-        if (tags.Count == 0)
-            return IsLt ? @"<div class=""gb-tags-empty muted"">Šiai dienai nėra palankių / nepalankių veiklų.</div>" : @"<div class=""gb-tags-empty muted"">No Good/Bad tags for this day.</div>";
-
-        return $@"<div class=""gb-tags"">{string.Join("", tags)}</div>";
     }
+
+    private string GetActivityDisplayName(ActivitySymbol activity)
+        => IsLt ? EnumText.GetActivityName(activity) : activity switch
+        {
+            ActivitySymbol.Barber => "Barber",
+            ActivitySymbol.Beauty => "Beauty",
+            ActivitySymbol.BuyStuff => "Purchases",
+            ActivitySymbol.Contracts => "Contracts",
+            ActivitySymbol.ImportantTasks => "Important tasks",
+            ActivitySymbol.Love => "Love",
+            ActivitySymbol.Meetings => "Meetings",
+            ActivitySymbol.NewIdeas => "New ideas",
+            ActivitySymbol.Gardening => "Gardening",
+            ActivitySymbol.Technologies => "Technology",
+            ActivitySymbol.Travel => "Travel",
+            _ => activity.ToString()
+        };
 
 
 
@@ -709,11 +712,107 @@ else
 
         @* Good/Bad tags (bottom) *@
         @{
-            var tagsHtml = BuildGoodBadTagsHtml(first);
+            var activityTags = GetActivityTags(first);
         }
-        <div class="gb-tags-wrap">@((MarkupString)tagsHtml)</div>
+        <div class="gb-tags-wrap">
+            @if (activityTags.Count == 0)
+            {
+                <div class="gb-tags-empty muted">@(IsLt ? "Šiai dienai nėra palankių / nepalankių veiklų." : "No Good/Bad tags for this day.")</div>
+            }
+            else
+            {
+                <div class="gb-tags">
+                    @foreach (var tag in activityTags)
+                    {
+                        var cls = tag.Quality == ActivityQuality.Good ? "tag-good" : "tag-bad";
+                        var qualityLabel = GetActivityQualityLabel(tag.Quality);
+
+                        <button type="button"
+                                class="gb-tag @cls"
+                                title="@($"{tag.Title} · {qualityLabel}")"
+                                @onclick="(() => OpenActivityTagDetails(tag.Activity, tag.Quality))">
+                            <span class="gb-tag__icon" aria-hidden="true">
+                                <img class="activity-icon-img" src="@GetActivityIconPath(tag.Activity)" alt="" />
+                            </span>
+                            <span class="gb-tag__label">@tag.Title</span>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
 
     </div>;
+
+    private void OpenActivityTagDetails(ActivitySymbol activity, ActivityQuality quality)
+    {
+        var qualityLabel = GetActivityQualityLabel(quality);
+        var info = GetActivityTagDescription(activity, quality);
+
+        _infoModalTitle = $"{GetActivityDisplayName(activity)} · {qualityLabel}";
+        _infoModalBody = ToMultilineMarkup(info, IsLt ? "Šiai veiklai aprašymo dar nėra." : "No description saved for this activity yet.");
+        _infoModalOpen = true;
+    }
+
+    private string GetActivityQualityLabel(ActivityQuality quality)
+        => quality switch
+        {
+            ActivityQuality.Good => IsLt ? "Palanku" : "Favorable",
+            ActivityQuality.Bad => IsLt ? "Nepalanku" : "Unfavorable",
+            ActivityQuality.Neutral => IsLt ? "Neutralu" : "Neutral",
+            _ => IsLt ? "Nėra" : "None"
+        };
+
+    private string GetActivityTagDescription(ActivitySymbol activity, ActivityQuality quality)
+    {
+        var (lt, en) = (activity, quality) switch
+        {
+            (ActivitySymbol.ImportantTasks, ActivityQuality.Good) => (
+                "Palanku pradėti svarbius darbus, naujus projektus. Diena geros visoms veikloms.",
+                "Favorable for starting important tasks and new projects. A good day for all activities."),
+            (ActivitySymbol.ImportantTasks, ActivityQuality.Bad) => (
+                "Nepalanku pradėti svarbius darbus, naują veiklą. Ne laikas veržtis pirmyn – pasaugokite tai, ką turite.",
+                "Unfavorable for starting important tasks or new activities. Not the time to push forward - protect what you already have."),
+            (ActivitySymbol.Contracts, ActivityQuality.Good) => (
+                "Palanku tvarkyti dokumentus, vesti derybas, sudaryti sutartis, sandėrius, kreiptis į valdiškas įstaigas.",
+                "Favorable for handling documents, negotiations, signing contracts and agreements, dealing with official institutions."),
+            (ActivitySymbol.Contracts, ActivityQuality.Bad) => (
+                "Nepalanku tvarkyti dokumentus, vesti derybas, sudaryti sutarčių, sandėrių, kreiptis į valdiškas įstaigas.",
+                "Unfavorable for handling documents, negotiations, signing contracts or agreements, dealing with official institutions."),
+            (ActivitySymbol.BuyStuff, ActivityQuality.Good) => (
+                "Palanku finansiniams sandėriams, svarbiems pirkiniams, investicijoms.",
+                "Favorable for financial deals, important purchases, and investments."),
+            (ActivitySymbol.BuyStuff, ActivityQuality.Bad) => (
+                "Nepalanku didesniems pirkiniams, investicijoms, sandėriams. Venkite finansinės rizikos, impulsyvių sprendimų.",
+                "Unfavorable for major purchases, investments, and financial deals. Avoid financial risks and impulsive decisions."),
+            (ActivitySymbol.Meetings, ActivityQuality.Good) => (
+                "Palanku įvairiems susirinkimams, susitikimams, kolektyviniam darbui, komunikacijai.",
+                "Favorable for meetings, gatherings, teamwork, and communication."),
+            (ActivitySymbol.Meetings, ActivityQuality.Bad) => (
+                "Nepalanku svarbiems susirinkimams, susitikimams, kolektyviniam darbui. Pasaugokite konfliktų, nesusipratimų.",
+                "Unfavorable for important meetings, teamwork, and group activities. Avoid conflicts and misunderstandings."),
+            (ActivitySymbol.Technologies, ActivityQuality.Good) => (
+                "Palanku įsigyti techniką (kompiuterius, telefonus, automobilius), ją remontuoti, dirbti su ja.",
+                "Favorable for buying technology (computers, phones, cars), repairing it, and working with it."),
+            (ActivitySymbol.Technologies, ActivityQuality.Bad) => (
+                "Nepalanku įsigyti techniką (kompiuterius, telefonus, automobilius), ją remontuoti. Būkite atsargūs su technika.",
+                "Unfavorable for buying or repairing technology (computers, phones, cars). Be careful with technology."),
+            (ActivitySymbol.Love, ActivityQuality.Good) => (
+                "Palanku santykiams užmegzti ir stiprinti, pasimatymams, piršlyboms, vestuvėms.",
+                "Favorable for building and strengthening relationships, dates, engagements, and weddings."),
+            (ActivitySymbol.Love, ActivityQuality.Bad) => (
+                "Nepalanku pasimatymams, meilei, piršlyboms, vestuvėms. Reikia atsargumo, kad nesugadintumėte santykių.",
+                "Unfavorable for dates, romance, engagements, and weddings. Be careful not to damage relationships."),
+            (ActivitySymbol.Beauty, ActivityQuality.Good) => (
+                "Palanku grožio procedūroms, įvaizdžiui atnaujinti, pirkti drabužius.",
+                "Favorable for beauty procedures, refreshing your image, and buying clothes."),
+            (ActivitySymbol.Beauty, ActivityQuality.Bad) => (
+                "Nepalanku grožio procedūroms, įvaizdžiui atnaujinti, pirkti drabužius.",
+                "Unfavorable for beauty procedures, changing your image, and buying clothes."),
+            _ => ("", "")
+        };
+
+        return IsLt ? lt : en;
+    }
 
     private void OpenMoonDayDetails(int moonDay)
     {
