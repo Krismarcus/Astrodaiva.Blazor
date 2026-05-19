@@ -1,9 +1,9 @@
-const CACHE_NAME = "astrodaiva-shell-v20260519-logo3";
+const CACHE_NAME = "astrodaiva-shell-v20260519-mobile-overlay-v1";
 
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./css/app.css?v=20260518-logo-v1",
+  "./css/app.css?v=20260519-mobile-overlay-v1",
   "./manifest.webmanifest",
   "./img/astrodaiva-logo.png",
   "./img/pwa/apple-touch-icon.png",
