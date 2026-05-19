@@ -1,4 +1,4 @@
-const CACHE_NAME = "astrodaiva-shell-v20260519";
+const CACHE_NAME = "astrodaiva-shell-v20260519-logo2";
 
 const APP_SHELL = [
   "./",
