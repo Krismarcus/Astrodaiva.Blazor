@@ -1161,19 +1161,49 @@
         position: absolute;
         left: 50%;
         top: 0;
-        width: 10px;
-        height: 10px;
+        width: 12px;
+        height: 12px;
         border-radius: 999px;
         transform: translate(-50%, -50%);
-        box-shadow: 0 0 0 1px rgba(50,70,65,.24), 0 2px 8px rgba(20,30,25,.14);
+        background: #243230;
+        box-shadow: 0 0 0 1px rgba(233,221,199,.28), 0 2px 8px rgba(20,30,25,.16);
     }
 
     .sun-eclipse-dot {
-        background: #242424;
+        background:
+            radial-gradient(circle at 50% 50%, #1f2927 0 46%, rgba(31,41,39,.96) 47% 100%);
+    }
+
+    .sun-eclipse-dot::before {
+        content: "";
+        position: absolute;
+        inset: -4px;
+        border-radius: 999px;
+        background:
+            repeating-conic-gradient(
+                from 0deg,
+                rgba(36,50,48,.74) 0deg 8deg,
+                transparent 8deg 45deg);
+        -webkit-mask: radial-gradient(circle, transparent 0 48%, #000 50% 68%, transparent 70%);
+        mask: radial-gradient(circle, transparent 0 48%, #000 50% 68%, transparent 70%);
+        opacity: .74;
     }
 
     .moon-eclipse-dot {
-        background: #7a7a7a;
+        background: #243230;
+        overflow: hidden;
+    }
+
+    .moon-eclipse-dot::before {
+        content: "";
+        position: absolute;
+        top: 1px;
+        right: -2px;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(205,225,211,.88);
+        box-shadow: inset 1px 0 3px rgba(36,50,48,.10);
     }
 
     .eclipse-day-marker {
