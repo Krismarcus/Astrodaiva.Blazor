@@ -1,9 +1,9 @@
-const CACHE_NAME = "astrodaiva-shell-v20260519-activity-modal-v1";
+const CACHE_NAME = "astrodaiva-shell-v20260520-ios-safe-area-v1";
 
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./css/app.css?v=20260519-activity-modal-v1",
+  "./css/app.css?v=20260520-ios-safe-area-v1",
   "./manifest.webmanifest",
   "./img/astrodaiva-logo.png",
   "./img/pwa/apple-touch-icon.png",
