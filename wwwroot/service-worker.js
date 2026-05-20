@@ -1,4 +1,4 @@
-const CACHE_NAME = "astrodaiva-shell-v20260520-ios-safe-area-v1";
+const CACHE_NAME = "astrodaiva-shell-v20260520-app-icon-v1";
 
 const APP_SHELL = [
   "./",
