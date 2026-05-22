@@ -13,6 +13,77 @@
     <meta name="format-detection" content="telephone=no">
     <title>Astrodaiva</title>
     <base href="./" />
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = window.gtag || function () {
+            window.dataLayer.push(arguments);
+        };
+
+        (function () {
+            const measurementId = "G-9EPVXNMWJX";
+            const consentKey = "astrodaivaAnalyticsConsent";
+
+            function readConsent() {
+                try {
+                    return window.localStorage.getItem(consentKey) || "unset";
+                } catch {
+                    return "unset";
+                }
+            }
+
+            function writeConsent(value) {
+                try {
+                    window.localStorage.setItem(consentKey, value);
+                } catch {
+                    // Ignore storage failures and keep analytics disabled.
+                }
+            }
+
+            function isBlockedUrl(url) {
+                const target = new URL(url || window.location.href, window.location.origin);
+                const host = target.hostname.toLowerCase();
+                const path = target.pathname.toLowerCase();
+
+                return host === "localhost"
+                    || host === "127.0.0.1"
+                    || host === "::1"
+                    || path === "/admin"
+                    || path.startsWith("/admin/");
+            }
+
+            gtag("consent", "default", {
+                analytics_storage: readConsent() === "granted" ? "granted" : "denied",
+                ad_storage: "denied",
+                ad_user_data: "denied",
+                ad_personalization: "denied"
+            });
+            gtag("js", new Date());
+            gtag("config", measurementId, { send_page_view: false });
+
+            window.astroAnalytics = {
+                getConsent: readConsent,
+                setConsent: function (granted) {
+                    const value = granted ? "granted" : "denied";
+                    writeConsent(value);
+                    gtag("consent", "update", { analytics_storage: value });
+                },
+                trackPageView: function (url, title) {
+                    if (readConsent() !== "granted" || isBlockedUrl(url)) {
+                        return false;
+                    }
+
+                    const target = new URL(url || window.location.href, window.location.origin);
+                    gtag("event", "page_view", {
+                        page_location: target.href,
+                        page_path: target.pathname + target.search + target.hash,
+                        page_title: title || document.title || "Astrodaiva"
+                    });
+                    return true;
+                }
+            };
+        })();
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9EPVXNMWJX"></script>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="img/pwa/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="img/pwa/favicon-32.png">

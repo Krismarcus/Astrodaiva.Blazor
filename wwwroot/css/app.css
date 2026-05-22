@@ -2496,6 +2496,75 @@ body::before {
     min-width: 76px;
 }
 
+.analytics-consent {
+    position: fixed;
+    left: 50%;
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 3100;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    width: min(680px, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 14px 16px 14px 18px;
+    border-radius: var(--radius-main-panel);
+    background: rgba(255,255,255,.96);
+    border: 1px solid rgba(255,255,255,.78);
+    color: var(--PrimaryDarkText);
+    box-shadow: 0 18px 42px rgba(7,31,38,.18);
+}
+
+.analytics-consent__text {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+    line-height: 1.35;
+}
+
+.analytics-consent__text strong {
+    font-size: .92rem;
+    font-weight: 800;
+}
+
+.analytics-consent__text span {
+    color: rgba(7,66,82,.72);
+    font-size: .86rem;
+    font-weight: 600;
+}
+
+.analytics-consent__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.analytics-consent__button {
+    border: 1px solid rgba(7,66,82,.12);
+    border-radius: var(--radius-button);
+    background: rgba(7,66,82,.06);
+    color: var(--PrimaryDarkText);
+    cursor: pointer;
+    font: inherit;
+    font-size: .84rem;
+    font-weight: 800;
+    padding: 9px 13px;
+}
+
+.analytics-consent__button--primary {
+    background: linear-gradient(135deg, #074252 0%, #1f6d77 100%);
+    border-color: rgba(7,66,82,.22);
+    color: var(--PrimaryLightText);
+    box-shadow: 0 8px 18px rgba(7,66,82,.16);
+}
+
+.analytics-consent__button:hover,
+.analytics-consent__button:focus-visible {
+    transform: translateY(-1px);
+}
+
 .app-snackbar {
     position: fixed;
     left: 50%;
@@ -2553,6 +2622,21 @@ body::before {
 }
 
 @media (max-width: 900px) {
+    .analytics-consent {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .analytics-consent__actions {
+        justify-content: stretch;
+    }
+
+    .analytics-consent__button {
+        flex: 1 1 0;
+    }
+
     .app-header {
         padding: calc(10px + env(safe-area-inset-top, 0px)) 10px 6px;
     }

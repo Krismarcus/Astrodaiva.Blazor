@@ -2,7 +2,10 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using Astrodaiva.Blazor.Shared
 @using System.Globalization
+@using Microsoft.JSInterop
 @inject AstroDbStore Store
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 @implements IDisposable
 
 @if (!_bootAttempted)
@@ -36,6 +39,24 @@ else
     </Router>
 }
 
+@if (_showAnalyticsConsent)
+{
+    <div class="analytics-consent" role="dialog" aria-live="polite" aria-label="@AnalyticsConsentTitle">
+        <div class="analytics-consent__text">
+            <strong>@AnalyticsConsentTitle</strong>
+            <span>@AnalyticsConsentText</span>
+        </div>
+        <div class="analytics-consent__actions">
+            <button type="button" class="analytics-consent__button" @onclick="DeclineAnalytics">
+                @(IsLt ? "Ne" : "No thanks")
+            </button>
+            <button type="button" class="analytics-consent__button analytics-consent__button--primary" @onclick="AcceptAnalytics">
+                @(IsLt ? "Sutinku" : "Accept")
+            </button>
+        </div>
+    </div>
+}
+
 @if (_showServerSnackbar)
 {
     <div class="app-snackbar" role="status" aria-live="polite">
@@ -58,6 +79,8 @@ else
     private bool _showServerRetry;
     private bool _isRetryingServer;
     private bool _serverUnavailableSeen;
+    private bool _analyticsConsentChecked;
+    private bool _showAnalyticsConsent;
     private string _serverSnackbarMessage = ServerUnavailableText;
     private static bool IsLt =>
         CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("lt", StringComparison.OrdinalIgnoreCase);
@@ -71,8 +94,17 @@ else
     private static string RetryButtonText =>
         IsLt ? "Bandyti" : "Retry";
 
+    private static string AnalyticsConsentTitle =>
+        IsLt ? "Analitika" : "Analytics";
+
+    private static string AnalyticsConsentText =>
+        IsLt
+            ? "Padėkite suprasti, kaip naudojamas Astrodaiva kalendorius."
+            : "Help us understand how the Astrodaiva calendar is used.";
+
     protected override async Task OnInitializedAsync()
     {
+        Nav.LocationChanged += OnLocationChanged;
         Store.Changed += OnStoreChanged;
         Store.ServerUnavailable += OnServerUnavailable;
         Store.ServerAvailable += OnServerAvailable;
@@ -81,6 +113,22 @@ else
         await Store.EnsureLoadedAsync();
 
         _bootAttempted = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_analyticsConsentChecked)
+        {
+            _analyticsConsentChecked = true;
+
+            var consent = await JS.InvokeAsync<string>("astroAnalytics.getConsent");
+            _showAnalyticsConsent = string.Equals(consent, "unset", StringComparison.OrdinalIgnoreCase) &&
+                                    !IsAdminRoute(Nav.Uri);
+            await TrackCurrentPageAsync();
+
+            if (_showAnalyticsConsent)
+                StateHasChanged();
+        }
     }
 
     private void OnStoreChanged() => InvokeAsync(StateHasChanged);
@@ -134,8 +182,54 @@ else
         }
     }
 
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (IsAdminRoute(e.Location) && _showAnalyticsConsent)
+        {
+            _showAnalyticsConsent = false;
+            _ = InvokeAsync(StateHasChanged);
+        }
+
+        _ = TrackCurrentPageAsync(e.Location);
+    }
+
+    private static bool IsAdminRoute(string location)
+    {
+        if (!Uri.TryCreate(location, UriKind.Absolute, out var uri))
+            return false;
+
+        return uri.AbsolutePath.Equals("/admin", StringComparison.OrdinalIgnoreCase) ||
+               uri.AbsolutePath.StartsWith("/admin/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task TrackCurrentPageAsync(string? location = null)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("astroAnalytics.trackPageView", location ?? Nav.Uri, "Astrodaiva");
+        }
+        catch
+        {
+            // Analytics must never block app navigation or rendering.
+        }
+    }
+
+    private async Task AcceptAnalytics()
+    {
+        _showAnalyticsConsent = false;
+        await JS.InvokeVoidAsync("astroAnalytics.setConsent", true);
+        await TrackCurrentPageAsync();
+    }
+
+    private async Task DeclineAnalytics()
+    {
+        _showAnalyticsConsent = false;
+        await JS.InvokeVoidAsync("astroAnalytics.setConsent", false);
+    }
+
     public void Dispose()
     {
+        Nav.LocationChanged -= OnLocationChanged;
         Store.Changed -= OnStoreChanged;
         Store.ServerUnavailable -= OnServerUnavailable;
         Store.ServerAvailable -= OnServerAvailable;
