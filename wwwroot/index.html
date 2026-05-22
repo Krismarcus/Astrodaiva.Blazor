@@ -41,6 +41,26 @@
 
     <script>
         (function () {
+            var params = new URLSearchParams(window.location.search);
+            var redirect = params.get("redirect");
+
+            if (!redirect || redirect.charAt(0) !== "/" || redirect.indexOf("//") === 0) {
+                return;
+            }
+
+            try {
+                var target = new URL(redirect, window.location.origin);
+                if (target.origin === window.location.origin) {
+                    window.history.replaceState(null, "", target.pathname + target.search + target.hash);
+                }
+            } catch {
+                // Ignore malformed fallback redirects and let Blazor load normally.
+            }
+        })();
+    </script>
+
+    <script>
+        (function () {
             var label = document.querySelector("[data-loading-label]");
             var culture = window.localStorage.getItem("blazorCulture") || "lt-LT";
             if (label) {
