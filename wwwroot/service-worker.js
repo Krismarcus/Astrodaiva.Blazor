@@ -1,9 +1,9 @@
-const CACHE_NAME = "astrodaiva-shell-v20260522-admin-route-v1";
+const CACHE_NAME = "astrodaiva-shell-v20260602-ipad-boot-v1";
 
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./css/app.css?v=20260520-ios-safe-area-v1",
+  "./css/app.css?v=20260602-ipad-boot-v1",
   "./manifest.webmanifest",
   "./img/astrodaiva-logo.png",
   "./img/pwa/apple-touch-icon.png",

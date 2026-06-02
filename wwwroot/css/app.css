@@ -185,6 +185,10 @@ a {
     text-shadow: 0 1px 22px rgba(255,255,255,.45);
 }
 
+.boot-card--error {
+    max-width: min(720px, 92vw);
+}
+
 .boot-brand {
     display: flex;
     justify-content: center;
@@ -208,6 +212,31 @@ a {
     font-weight: 600;
     letter-spacing: .12em;
     text-transform: uppercase;
+}
+
+.boot-message {
+    max-width: 34rem;
+    margin: 14px auto 0;
+    color: rgba(7,66,82,.72);
+    font-size: clamp(.95rem, 2.8vw, 1.05rem);
+    line-height: 1.5;
+}
+
+.boot-retry {
+    margin-top: 22px;
+    border: 1px solid rgba(7,66,82,.18);
+    border-radius: 14px;
+    padding: .78rem 1.2rem;
+    color: #f7f2df;
+    background: linear-gradient(180deg, #0c6070, #074252);
+    box-shadow: 0 14px 26px rgba(7,66,82,.18);
+    font: 700 .95rem/1 var(--font-ui);
+    cursor: pointer;
+}
+
+.boot-retry:disabled {
+    cursor: progress;
+    opacity: .68;
 }
 
 .boot-progress {

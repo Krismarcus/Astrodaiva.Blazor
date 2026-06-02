@@ -20,13 +20,13 @@
         };
 
         (function () {
-            const measurementId = "G-9EPVXNMWJX";
-            const consentKey = "astrodaivaAnalyticsConsent";
+            var measurementId = "G-9EPVXNMWJX";
+            var consentKey = "astrodaivaAnalyticsConsent";
 
             function readConsent() {
                 try {
                     return window.localStorage.getItem(consentKey) || "unset";
-                } catch {
+                } catch (error) {
                     return "unset";
                 }
             }
@@ -34,21 +34,21 @@
             function writeConsent(value) {
                 try {
                     window.localStorage.setItem(consentKey, value);
-                } catch {
+                } catch (error) {
                     // Ignore storage failures and keep analytics disabled.
                 }
             }
 
             function isBlockedUrl(url) {
-                const target = new URL(url || window.location.href, window.location.origin);
-                const host = target.hostname.toLowerCase();
-                const path = target.pathname.toLowerCase();
+                var target = new URL(url || window.location.href, window.location.origin);
+                var host = target.hostname.toLowerCase();
+                var path = target.pathname.toLowerCase();
 
                 return host === "localhost"
                     || host === "127.0.0.1"
                     || host === "::1"
                     || path === "/admin"
-                    || path.startsWith("/admin/");
+                    || path.indexOf("/admin/") === 0;
             }
 
             gtag("consent", "default", {
@@ -63,7 +63,7 @@
             window.astroAnalytics = {
                 getConsent: readConsent,
                 setConsent: function (granted) {
-                    const value = granted ? "granted" : "denied";
+                    var value = granted ? "granted" : "denied";
                     writeConsent(value);
                     gtag("consent", "update", { analytics_storage: value });
                 },
@@ -72,7 +72,7 @@
                         return false;
                     }
 
-                    const target = new URL(url || window.location.href, window.location.origin);
+                    var target = new URL(url || window.location.href, window.location.origin);
                     gtag("event", "page_view", {
                         page_location: target.href,
                         page_path: target.pathname + target.search + target.hash,
@@ -91,7 +91,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;600;700&family=Muli:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="css/app.css?v=20260520-ios-safe-area-v1" rel="stylesheet" />
+    <link href="css/app.css?v=20260602-ipad-boot-v1" rel="stylesheet" />
 </head>
 <body>
     <div id="app">
@@ -124,7 +124,7 @@
                 if (target.origin === window.location.origin) {
                     window.history.replaceState(null, "", target.pathname + target.search + target.hash);
                 }
-            } catch {
+            } catch (error) {
                 // Ignore malformed fallback redirects and let Blazor load normally.
             }
         })();
@@ -133,9 +133,15 @@
     <script>
         (function () {
             var label = document.querySelector("[data-loading-label]");
-            var culture = window.localStorage.getItem("blazorCulture") || "lt-LT";
+            var culture = "lt-LT";
+            try {
+                culture = window.localStorage.getItem("blazorCulture") || culture;
+            } catch (error) {
+                culture = "lt-LT";
+            }
+
             if (label) {
-                label.textContent = culture.toLowerCase().startsWith("lt") ? "Kraunasi" : "Loading";
+                label.textContent = culture.toLowerCase().indexOf("lt") === 0 ? "Kraunasi" : "Loading";
             }
         })();
     </script>
@@ -143,25 +149,34 @@
     <script>
         window.ui = {
             shouldUseOverlay: function () {
-                const small = window.innerWidth <= 900;
-                const touch = navigator.maxTouchPoints > 0 || matchMedia("(pointer: coarse)").matches;
+                var small = window.innerWidth <= 900;
+                var touch = navigator.maxTouchPoints > 0 ||
+                    (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
                 return small && touch;
             }
         };
 
         window.blazorCulture = {
             get: function () {
-                return window.localStorage.getItem('blazorCulture') || 'lt-LT';
+                try {
+                    return window.localStorage.getItem('blazorCulture') || 'lt-LT';
+                } catch (error) {
+                    return 'lt-LT';
+                }
             },
             set: function (value) {
-                window.localStorage.setItem('blazorCulture', value);
+                try {
+                    window.localStorage.setItem('blazorCulture', value);
+                } catch (error) {
+                    // Keep the current culture in memory only when storage is blocked.
+                }
             }
         };
 
         window.adminAccess = {
             getToken: function (tokenKey, expiresKey) {
-                const token = window.sessionStorage.getItem(tokenKey);
-                const expiresUtc = window.sessionStorage.getItem(expiresKey);
+                var token = window.sessionStorage.getItem(tokenKey);
+                var expiresUtc = window.sessionStorage.getItem(expiresKey);
 
                 if (!token || !expiresUtc || Date.parse(expiresUtc) <= Date.now()) {
                     window.sessionStorage.removeItem(tokenKey);
@@ -195,9 +210,9 @@
         };
 
         window.downloadTextFile = function (fileName, text) {
-            const blob = new Blob([text], { type: "application/json;charset=utf-8" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            var blob = new Blob([text], { type: "application/json;charset=utf-8" });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
             a.href = url;
             a.download = fileName || 'astrodb.json';
             document.body.appendChild(a);
@@ -212,6 +227,15 @@
     <script>
         Blazor.start({
             applicationCulture: window.blazorCulture.get()
+        }).catch(function (error) {
+            console.error("Astrodaiva Blazor startup failed.", error);
+            var label = document.querySelector("[data-loading-label]");
+            if (label) {
+                var culture = window.blazorCulture.get() || "lt-LT";
+                label.textContent = culture.toLowerCase().indexOf("lt") === 0
+                    ? "Nepavyko paleisti. Atnaujinkite puslapį."
+                    : "Could not start. Refresh the page.";
+            }
         });
 
         if ("serviceWorker" in navigator) {

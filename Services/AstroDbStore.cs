@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Net.Http.Json;
 using Astrodaiva.Data.Models;
 
 namespace Astrodaiva.Blazor.Services;
@@ -74,7 +73,8 @@ public class AstroDbStore
             NotifyServerUnavailable();
         }
 
-        // Fallback: local JSON (single canonical location)
+        // Fallback: local JSON. Keep this finite too; on some mobile browsers a
+        // stalled fetch can otherwise leave the app on the boot screen forever.
         try
         {
             Db = await LoadLocalFallbackAsync();
@@ -178,16 +178,66 @@ public class AstroDbStore
         if (_localFallbackDb is not null)
             return _localFallbackDb;
 
+        foreach (var path in LocalFallbackPaths())
+        {
+            var db = await TryLoadLocalFallbackPathAsync(path);
+            if (db is null)
+                continue;
+
+            _localFallbackDb = db;
+            return _localFallbackDb;
+        }
+
+        return null;
+    }
+
+    private static string[] LocalFallbackPaths() => new[]
+    {
+        "data/astrodb.json",
+        "astrodb.json"
+    };
+
+    private async Task<AppDB?> TryLoadLocalFallbackPathAsync(string path)
+    {
+        var loadTask = LoadLocalFallbackPathCoreAsync(path);
+        var completed = await Task.WhenAny(loadTask, Task.Delay(TimeSpan.FromSeconds(8)));
+
+        if (completed != loadTask)
+        {
+            _ = ObserveFaultAsync(loadTask);
+            return null;
+        }
+
         try
         {
-            _localFallbackDb = await _localHttp.GetFromJsonAsync<AppDB>("data/astrodb.json");
+            return await loadTask;
         }
         catch
         {
-            _localFallbackDb = null;
+            return null;
         }
+    }
 
-        return _localFallbackDb;
+    private async Task<AppDB?> LoadLocalFallbackPathCoreAsync(string path)
+    {
+        using var response = await _localHttp.GetAsync(path);
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        var json = await response.Content.ReadAsStringAsync();
+        return Deserialize(json);
+    }
+
+    private static async Task ObserveFaultAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch
+        {
+            // The visible load path already moved on to the next fallback.
+        }
     }
 
     private async Task MergeMissingEnglishInterpretationsAsync(AppDB db)

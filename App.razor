@@ -24,6 +24,26 @@
         </div>
     </div>
 }
+else if (Store.Db is null)
+{
+    <div class="boot-screen">
+        <div class="boot-card boot-card--error" role="status" aria-live="polite">
+            <div class="boot-brand" aria-label="Astrodaiva Kalendorius">
+                <img class="boot-logo"
+                     src="img/astrodaiva-logo.png"
+                     alt="Astrodaiva" />
+            </div>
+            <div class="boot-status">@BootFailedText</div>
+            <p class="boot-message">@BootFailedHelp</p>
+            <button type="button"
+                    class="boot-retry"
+                    @onclick="RetryInitialDataLoad"
+                    disabled="@_isRetryingInitialData">
+                @RetryInitialLoadText
+            </button>
+        </div>
+    </div>
+}
 else
 {
     <Router AppAssembly="@typeof(App).Assembly">
@@ -78,6 +98,7 @@ else
     private bool _showServerSnackbar;
     private bool _showServerRetry;
     private bool _isRetryingServer;
+    private bool _isRetryingInitialData;
     private bool _serverUnavailableSeen;
     private bool _analyticsConsentChecked;
     private bool _showAnalyticsConsent;
@@ -93,6 +114,17 @@ else
 
     private static string RetryButtonText =>
         IsLt ? "Bandyti" : "Retry";
+
+    private static string RetryInitialLoadText =>
+        IsLt ? "Bandyti dar kartą" : "Try again";
+
+    private static string BootFailedText =>
+        IsLt ? "Nepavyko įkelti duomenų" : "Could not load data";
+
+    private static string BootFailedHelp =>
+        IsLt
+            ? "Patikrinkite interneto ryšį ir bandykite dar kartą."
+            : "Check your connection and try again.";
 
     private static string AnalyticsConsentTitle =>
         IsLt ? "Analitika" : "Analytics";
@@ -179,6 +211,27 @@ else
         finally
         {
             _isRetryingServer = false;
+        }
+    }
+
+    private async Task RetryInitialDataLoad()
+    {
+        if (_isRetryingInitialData)
+            return;
+
+        _isRetryingInitialData = true;
+        StateHasChanged();
+
+        try
+        {
+            await Store.RetryDefaultSnapshotAsync();
+
+            if (Store.Db is null)
+                await Store.ReloadFromLocalAsync();
+        }
+        finally
+        {
+            _isRetryingInitialData = false;
         }
     }
 
