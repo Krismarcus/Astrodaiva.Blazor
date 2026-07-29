@@ -897,8 +897,8 @@ a {
     padding: 0;
     overflow: hidden;
     isolation: isolate;
-    width: clamp(3rem, 4.8vw, 4.2rem);
-    height: clamp(3rem, 4.8vw, 4.2rem);
+    width: clamp(2.4rem, 3.84vw, 3.36rem);
+    height: clamp(2.4rem, 3.84vw, 3.36rem);
     border: 1px solid rgba(190,155,98,.82);
     border-radius: 50%;
     box-sizing: border-box;
