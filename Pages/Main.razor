@@ -290,6 +290,60 @@ else
     private static string GetSignLocative(int sign) => EnumText.GetZodiacLocative((ZodiacSign)sign);
     private static string GetMoonDayName(int symbol) => EnumText.GetMoonDayName((MoonDaySymbol)symbol);
     private static string GetMoonDayKey(int symbol) => EnumText.GetMoonDayKey((MoonDaySymbol)symbol);
+
+    private static int? GetMoonPhase(AstroEvent? astroEvent)
+    {
+        var moonPhase = astroEvent?.MoonPhase;
+        return moonPhase is >= 1 and <= 4 ? moonPhase : null;
+    }
+
+    private static string GetMoonShadowOffset(int moonPhase) => moonPhase switch
+    {
+        1 => "0%",
+        2 => "-50%",
+        3 => "-100%",
+        4 => "50%",
+        _ => "0%"
+    };
+
+    private string GetMoonPhaseName(int moonPhase)
+    {
+        return IsLt
+            ? moonPhase switch
+            {
+                1 => "Jaunatis",
+                2 => "Priešpilnis",
+                3 => "Pilnatis",
+                4 => "Delčia",
+                _ => ""
+            }
+            : moonPhase switch
+            {
+                1 => "New moon",
+                2 => "First quarter",
+                3 => "Full moon",
+                4 => "Third quarter",
+                _ => ""
+            };
+    }
+
+    private string GetMoonPhaseDescription(int moonPhase)
+    {
+        var phaseName = GetMoonPhaseName(moonPhase);
+        return IsLt
+            ? $"Mėnulio fazė: {phaseName}"
+            : $"Moon phase: {phaseName}";
+    }
+
+    private void OpenMoonPhaseDetails(int moonPhase)
+    {
+        _infoModalTitle = IsLt ? "Mėnulio fazė" : "Moon phase";
+        _infoModalBody = new MarkupString(
+            $"<div class=\"moon-phase-modal__value\">{WebUtility.HtmlEncode(GetMoonPhaseName(moonPhase))}</div>");
+        _infoModalToneClass = "info-modal--moon info-modal--compact";
+        _infoModalOpen = true;
+    }
+
     private bool IsToday(int day)
         => _year == DateTime.Today.Year && _month == DateTime.Today.Month && day == DateTime.Today.Day;
 
@@ -565,12 +619,9 @@ else
 
     // Shared right panel content (Razor template — safer than manual __builder markup)
     private RenderFragment RightPanelContent() => @<div class="day-layout">
-        <div class="month-row">@_current.ToString("MMMM yyyy", CultureInfo.CurrentCulture)</div>
-        <div class="daynum-row">@_current.Day</div>
-        <div class="weekday-row">@_current.ToString("dddd", CultureInfo.CurrentCulture)</div>
-
         @{
             var mo = _monthEvents.FirstOrDefault(x => x.Date.Date == _current.Date);
+            var moonPhase = GetMoonPhase(mo);
 
             double ToDayPercent(DateTime dt)
             {
@@ -581,6 +632,25 @@ else
                 return pct;
             }
         }
+
+        <div class="month-row">@_current.ToString("MMMM yyyy", CultureInfo.CurrentCulture)</div>
+        <div class="daynum-row">
+            <span class="daynum-moon-wrap">
+                <span class="daynum-value">@_current.Day</span>
+                @if (moonPhase is int phase)
+                {
+                    <button type="button"
+                            class="day-event-moon-phase"
+                            style="@($"--moon-shadow-x:{GetMoonShadowOffset(phase)}")"
+                            title="@GetMoonPhaseDescription(phase)"
+                            aria-label="@GetMoonPhaseDescription(phase)"
+                            @onclick="(() => OpenMoonPhaseDetails(phase))">
+                        <span class="day-event-moon-phase__shadow" aria-hidden="true"></span>
+                    </button>
+                }
+            </span>
+        </div>
+        <div class="weekday-row">@_current.ToString("dddd", CultureInfo.CurrentCulture)</div>
 
         @* Moon-day timeline *@
         @if (mo?.MoonDay is not null)
