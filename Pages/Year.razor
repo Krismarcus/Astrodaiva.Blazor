@@ -840,6 +840,8 @@
         --year-table-offset: 188px;
         --year-label-column: 96px;
         --year-label-padding: 16px;
+        --year-track-width: calc(1456px - var(--year-label-column));
+        --year-track-edge: 1px;
         --year-month-header-height: 37px;
         --year-row-bg:
             linear-gradient(180deg, rgba(219,232,217,.72) 0%, rgba(174,209,201,.58) 100%),
@@ -924,7 +926,8 @@
     }
 
     .timeline-content {
-        min-width: 1440px; /* MOBILE: doubled from 720px to 1440px */
+        /* Label + the shared date track + the planet track's two border edges. */
+        min-width: calc(var(--year-label-column) + var(--year-track-width) + 2px);
         color: var(--year-ink);
         position: relative;
     }
@@ -956,8 +959,8 @@
 
     .year-timeline-overlay {
         position: absolute;
-        left: var(--year-label-column);
-        right: 0;
+        left: calc(var(--year-label-column) + var(--year-track-edge));
+        right: var(--year-track-edge);
         top: var(--year-month-header-height);
         bottom: 6px;
         z-index: 6;
@@ -1008,7 +1011,8 @@
             rgba(255,255,255,.16);
         border: 0;
         box-shadow: inset 0 0 0 1px rgba(36,50,48,.055), 0 6px 16px rgba(7,66,82,.075);
-        min-width: calc(1456px - var(--year-label-column));
+        min-width: var(--year-track-width);
+        margin-inline: var(--year-track-edge);
         backdrop-filter: blur(8px);
     }
 
@@ -1076,7 +1080,7 @@
         display: flex;
         flex-direction: column;
         position: relative;
-        min-width: calc(1456px - var(--year-label-column));
+        min-width: var(--year-track-width);
         padding: 2px 0 6px;
         border-radius: 10px;
         background: var(--year-track-bg);
