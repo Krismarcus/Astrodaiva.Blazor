@@ -1,5 +1,6 @@
 ﻿@page "/year"
 @inject Astrodaiva.Blazor.Services.AstroDbStore Store
+@inject Microsoft.JSInterop.IJSRuntime JS
 @implements IDisposable
 @using Astrodaiva.Data.Enums
 @using Astrodaiva.Data.Models
@@ -10,9 +11,73 @@
     <div class="year-topbar__inner">
         <div class="year-topbar__eyebrow">@(IsLt ? "Metų planetų judėjimas" : "Year planetary timeline")</div>
         <div class="year-switcher">
-            <button class="year-arrow" @onclick="PrevYear" aria-label="Previous year">&#8592;</button>
+            <button class="year-arrow" @onclick="PrevYear" aria-label="@(IsLt ? "Ankstesni metai" : "Previous year")">&#8592;</button>
             <span class="year-label">@_year</span>
-            <button class="year-arrow" @onclick="NextYear" aria-label="Next year">&#8594;</button>
+            <button class="year-arrow" @onclick="NextYear" aria-label="@(IsLt ? "Kiti metai" : "Next year")">&#8594;</button>
+        </div>
+
+        <div class="year-toolbar" aria-label="@(IsLt ? "Metų rodinio valdikliai" : "Year view controls")">
+            <button type="button" class="year-tool-button" @onclick="GoToToday">
+                <span class="year-tool-button__icon" aria-hidden="true">◎</span>
+                @(IsLt ? "Šiandien" : "Today")
+            </button>
+
+            <details class="year-planet-selector">
+                <summary class="year-tool-button">
+                    <span class="year-tool-button__icon" aria-hidden="true">☷</span>
+                    @(IsLt ? "Planetos" : "Planets")
+                    <span class="year-selector-count">@_visiblePlanets.Count/@PlanetsOrder.Length</span>
+                </summary>
+                <div class="year-planet-selector__panel" @onclick:stopPropagation="true">
+                    <div class="year-planet-selector__header">
+                        <strong>@(IsLt ? "Rodyti metų juostas" : "Show year bars")</strong>
+                        <button type="button" class="year-selector-reset" @onclick="ResetPlanets">
+                            @(IsLt ? "Atkurti visas" : "Reset all")
+                        </button>
+                    </div>
+                    <div class="year-planet-selector__options">
+                        @foreach (var planet in PlanetsOrder)
+                        {
+                            var isVisible = _visiblePlanets.Contains(planet);
+                            <button type="button"
+                                    class="year-planet-option @(isVisible ? "is-selected" : null)"
+                                    aria-pressed="@isVisible"
+                                    @onclick="() => TogglePlanet(planet)">
+                                <span class="year-planet-option__action" aria-hidden="true">@(isVisible ? "−" : "+")</span>
+                                <span>@GetRowLabel(planet)</span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </details>
+
+            <button type="button"
+                    class="year-tool-button @(_showRetrogrades ? "is-active" : null)"
+                    aria-pressed="@_showRetrogrades"
+                    @onclick="ToggleRetrogrades">
+                <span class="year-tool-button__icon" aria-hidden="true">↶</span>
+                @(_showRetrogrades
+                    ? (IsLt ? "Slėpti retrogradus" : "Hide retrogrades")
+                    : (IsLt ? "Rodyti retrogradus" : "Show retrogrades"))
+            </button>
+
+            <details class="year-legend">
+                <summary class="year-tool-button">
+                    <span class="year-tool-button__icon" aria-hidden="true">◌</span>
+                    @(IsLt ? "Legenda" : "Legend")
+                </summary>
+                <div class="year-legend__panel">
+                    <div class="year-legend__items">
+                        <span><i class="year-legend__swatch is-fire"></i>@(IsLt ? "Ugnis" : "Fire")</span>
+                        <span><i class="year-legend__swatch is-earth"></i>@(IsLt ? "Žemė" : "Earth")</span>
+                        <span><i class="year-legend__swatch is-air"></i>@(IsLt ? "Oras" : "Air")</span>
+                        <span><i class="year-legend__swatch is-water"></i>@(IsLt ? "Vanduo" : "Water")</span>
+                        <span><i class="year-legend__retro">↶</i>@(IsLt ? "Retrogradas" : "Retrograde")</span>
+                        <span><i class="year-legend__eclipse"></i>@(IsLt ? "Užtemimas" : "Eclipse")</span>
+                    </div>
+                    <p>@(IsLt ? "Paspauskite juostą arba užtemimo žymę, kad pamatytumėte daugiau." : "Select a bar or eclipse marker to see more.")</p>
+                </div>
+            </details>
         </div>
     </div>
 </div>
@@ -45,12 +110,21 @@
                     <div class="year-timeline-overlay" aria-hidden="true">
                         <span class="year-today-beam"
                               style="left:@Css.Pct(TodayPositionPercentage)"
-                              title="@(IsLt ? "Šiandien" : "Today")"></span>
+                              title="@(IsLt ? "Šiandien" : "Today")">
+                            <span class="year-today-beam__label">@(IsLt ? "Šiandien" : "Today")</span>
+                        </span>
                     </div>
                 }
 
                 <!-- Planet Rows -->
-                @foreach (var planetRow in _planetRows)
+                @if (_visiblePlanets.Count == 0)
+                {
+                    <div class="year-empty-state">
+                        @(IsLt ? "Pasirinkite bent vieną planetą, kad būtų rodomos metų juostos." : "Choose a planet to show its year bar.")
+                    </div>
+                }
+
+                @foreach (var planetRow in VisiblePlanetRows)
                 {
                     <div class="planet-row">
                         <div class="planet-label">@GetRowLabel(planetRow.PlanetName)</div>
@@ -84,46 +158,51 @@
                             }
                             else
                             {
-                            <!-- Main Zodiac Bar -->
-                            <div class="year-bar">
-                                @foreach (var segment in planetRow.Segments)
-                                {
-                                    <span class="zodiac-bar"
-                                          style="background:@GetYearZodiacColor(segment.ZodiacSign);width:@Css.Pct(segment.WidthPercentage)"
-                                          title="@(BuildSegmentTitle(planetRow.PlanetName, segment))"
-                                          @onclick="() => SelectSegment(planetRow.PlanetName, segment)"
-                                          @onmouseover="() => OnSegmentHover(segment)"
-                                          @onmouseout="OnSegmentHoverOut">
+                                var retrogradeSegments = GetRetrogradeSegments(planetRow.PlanetName).ToList();
 
-                                        <span class="bar-content">
-                                            @if (!(segment.ZodiacStartDate.Month == 1 && segment.ZodiacStartDate.Day == 1))
-                                            {
-                                                <span class="start-day">@segment.ZodiacStartDate.Day</span>
-                                            }
-                                            <img class="zodiac-symbol"
-                                                 src="@Zodiac.ImagePath(segment.ZodiacSign)"
-                                                 alt="@Zodiac.Name(segment.ZodiacSign)" />
+                                <!-- Main Zodiac Bar -->
+                                <div class="year-bar">
+                                    @foreach (var segment in planetRow.Segments)
+                                    {
+                                        <span class="zodiac-bar"
+                                              style="background:@GetYearZodiacColor(segment.ZodiacSign);width:@Css.Pct(segment.WidthPercentage)"
+                                              title="@(BuildSegmentTitle(planetRow.PlanetName, segment))"
+                                              @onclick="() => SelectSegment(planetRow.PlanetName, segment)"
+                                              @onmouseover="() => OnSegmentHover(segment)"
+                                              @onmouseout="OnSegmentHoverOut">
+
+                                            <span class="bar-content">
+                                                @if (!(segment.ZodiacStartDate.Month == 1 && segment.ZodiacStartDate.Day == 1))
+                                                {
+                                                    <span class="start-day">@segment.ZodiacStartDate.Day</span>
+                                                }
+                                                <img class="zodiac-symbol"
+                                                     src="@Zodiac.ImagePath(segment.ZodiacSign)"
+                                                     alt="@Zodiac.Name(segment.ZodiacSign)" />
+                                            </span>
                                         </span>
-                                    </span>
-                                }
-                            </div>
+                                    }
+                                </div>
 
-                            <!-- Retrograde Bar -->
-                            <div class="retrograde-bar-container">
-                                @foreach (var retroSegment in GetRetrogradeSegments(planetRow.PlanetName))
+                                <!-- Retrograde Bar -->
+                                @if (_showRetrogrades && retrogradeSegments.Count > 0)
                                 {
-                                    <button type="button"
-                                            class="retrograde-bar"
-                                            style="width:@Css.Pct(retroSegment.WidthPercentage); left:@Css.Pct(retroSegment.LeftPosition)"
-                                            title="@(BuildRetroTitle(planetRow.PlanetName, retroSegment))"
-                                            aria-label="@(BuildRetroTitle(planetRow.PlanetName, retroSegment))"
-                                            @onclick="() => SelectRetrograde(planetRow.PlanetName, retroSegment)"
-                                            @onclick:stopPropagation="true">
-                                        <span class="retro-day retro-start-day">@retroSegment.StartDate.Day</span>
-                                        <span class="retro-day retro-end-day">@retroSegment.EndDate.Day</span>
-                                    </button>
+                                    <div class="retrograde-bar-container">
+                                        @foreach (var retroSegment in retrogradeSegments)
+                                        {
+                                            <button type="button"
+                                                    class="retrograde-bar"
+                                                    style="width:@Css.Pct(retroSegment.WidthPercentage); left:@Css.Pct(retroSegment.LeftPosition)"
+                                                    title="@(BuildRetroTitle(planetRow.PlanetName, retroSegment))"
+                                                    aria-label="@(BuildRetroTitle(planetRow.PlanetName, retroSegment))"
+                                                    @onclick="() => SelectRetrograde(planetRow.PlanetName, retroSegment)"
+                                                    @onclick:stopPropagation="true">
+                                                <span class="retro-day retro-start-day">@retroSegment.StartDate.Day</span>
+                                                <span class="retro-day retro-end-day">@retroSegment.EndDate.Day</span>
+                                            </button>
+                                        }
+                                    </div>
                                 }
-                            </div>
                             }
                         </div>
                     </div>
@@ -168,6 +247,9 @@
     private int _year = DateTime.Now.Year;
     private List<PlanetRow> _planetRows = new();
     private List<MonthSegment> _monthSegments = new();
+    private HashSet<Planet> _visiblePlanets = new();
+    private bool _showRetrogrades = true;
+    private bool _scrollToTodayRequested;
     private bool _showEventDetails = false;
     private string _selectedPlanetInZodiacText = "";
     private string _selectedStartDateText = "";
@@ -192,6 +274,8 @@
         => $"{planetName}:{start:yyyyMMdd}";
 
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private IEnumerable<PlanetRow> VisiblePlanetRows
+        => _planetRows.Where(row => _visiblePlanets.Contains(row.PlanetName));
 
     private string GetRowLabel(Planet planet)
         => planet == Planet.Moon
@@ -301,8 +385,20 @@
     protected override async Task OnInitializedAsync()
     {
         Store.Changed += OnStoreChanged;
+        _visiblePlanets = PlanetsOrder.ToHashSet();
         _db = await Store.EnsureLoadedAsync();
         GenerateCalendar();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_scrollToTodayRequested)
+            return;
+
+        _scrollToTodayRequested = false;
+        await JS.InvokeAsync<object>(
+            "yearTimeline.scrollToToday",
+            new object?[] { ".timeline-container", TodayPositionPercentage });
     }
 
     private void OnStoreChanged()
@@ -332,6 +428,34 @@
         ClearSelection();
         GenerateCalendar();
         StateHasChanged();
+    }
+
+    private void GoToToday()
+    {
+        _year = DateTime.Today.Year;
+        ClearSelection();
+        GenerateCalendar();
+        _scrollToTodayRequested = true;
+    }
+
+    private void TogglePlanet(Planet planet)
+    {
+        if (!_visiblePlanets.Add(planet))
+            _visiblePlanets.Remove(planet);
+
+        ClearSelection();
+    }
+
+    private void ResetPlanets()
+    {
+        _visiblePlanets = PlanetsOrder.ToHashSet();
+        ClearSelection();
+    }
+
+    private void ToggleRetrogrades()
+    {
+        _showRetrogrades = !_showRetrogrades;
+        ClearSelection();
     }
 
     private void SelectSegment(Planet planetName, ZodiacSegment segment)
@@ -854,6 +978,8 @@
 
     .year-topbar {
         margin-bottom: 12px;
+        position: relative;
+        z-index: 30;
     }
 
     .year-topbar__inner {
@@ -869,6 +995,256 @@
         letter-spacing: .06em;
         text-transform: uppercase;
         color: rgba(36,50,48,.66);
+    }
+
+    .year-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 7px;
+        max-width: 100%;
+    }
+
+    .year-planet-selector,
+    .year-legend {
+        position: relative;
+    }
+
+    .year-tool-button {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        box-sizing: border-box;
+        padding: 7px 12px;
+        border: 1px solid rgba(36,50,48,.10);
+        border-radius: 999px;
+        background: rgba(255,255,255,.22);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.34), 0 4px 12px rgba(7,66,82,.055);
+        color: rgba(36,50,48,.84);
+        font: inherit;
+        font-size: .79rem;
+        font-weight: 600;
+        line-height: 1;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform .16s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    summary.year-tool-button {
+        list-style: none;
+    }
+
+    summary.year-tool-button::-webkit-details-marker {
+        display: none;
+    }
+
+    .year-tool-button:hover,
+    .year-planet-selector[open] > .year-tool-button,
+    .year-legend[open] > .year-tool-button {
+        transform: translateY(-1px);
+        background: rgba(233,221,199,.40);
+        border-color: rgba(190,155,98,.24);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.40), 0 6px 16px rgba(7,66,82,.08);
+    }
+
+    .year-tool-button.is-active {
+        background: rgba(37,72,68,.84);
+        border-color: rgba(37,72,68,.38);
+        color: rgba(255,248,225,.94);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.13), 0 5px 14px rgba(20,49,52,.15);
+    }
+
+    .year-tool-button:focus-visible,
+    .year-planet-option:focus-visible,
+    .year-selector-reset:focus-visible {
+        outline: 2px solid rgba(190,155,98,.72);
+        outline-offset: 2px;
+    }
+
+    .year-tool-button__icon {
+        font-size: 1rem;
+        line-height: .8;
+    }
+
+    .year-selector-count {
+        min-width: 29px;
+        padding: 3px 6px;
+        border-radius: 999px;
+        background: rgba(37,72,68,.10);
+        color: rgba(36,50,48,.72);
+        font-size: .69rem;
+        text-align: center;
+    }
+
+    .year-planet-selector__panel,
+    .year-legend__panel {
+        position: absolute;
+        top: calc(100% + 9px);
+        z-index: 50;
+        box-sizing: border-box;
+        border: 1px solid rgba(36,50,48,.11);
+        border-radius: 18px;
+        background:
+            radial-gradient(circle at 12% 0%, rgba(233,221,199,.42), transparent 38%),
+            linear-gradient(180deg, rgba(248,247,236,.985), rgba(226,237,227,.985));
+        box-shadow: 0 18px 42px rgba(19,46,54,.22), inset 0 1px 0 rgba(255,255,255,.74);
+        color: var(--year-ink);
+        backdrop-filter: blur(18px);
+    }
+
+    .year-planet-selector__panel {
+        left: 50%;
+        width: min(540px, calc(100vw - 24px));
+        padding: 15px;
+        transform: translateX(-50%);
+    }
+
+    .year-planet-selector__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .year-planet-selector__header strong {
+        font-size: .86rem;
+        font-weight: 650;
+    }
+
+    .year-selector-reset {
+        border: 0;
+        border-radius: 999px;
+        padding: 6px 9px;
+        background: rgba(37,72,68,.09);
+        color: rgba(36,50,48,.78);
+        font: inherit;
+        font-size: .72rem;
+        font-weight: 650;
+        cursor: pointer;
+    }
+
+    .year-selector-reset:hover {
+        background: rgba(37,72,68,.15);
+    }
+
+    .year-planet-selector__options {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .year-planet-option {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid rgba(36,50,48,.09);
+        border-radius: 11px;
+        padding: 8px 9px;
+        background: rgba(255,255,255,.32);
+        color: rgba(36,50,48,.76);
+        font: inherit;
+        font-size: .76rem;
+        text-align: left;
+        cursor: pointer;
+        transition: background .16s ease, border-color .16s ease, transform .16s ease;
+    }
+
+    .year-planet-option:hover {
+        transform: translateY(-1px);
+        border-color: rgba(190,155,98,.28);
+    }
+
+    .year-planet-option.is-selected {
+        background: rgba(37,72,68,.86);
+        border-color: rgba(37,72,68,.42);
+        color: rgba(255,248,225,.94);
+    }
+
+    .year-planet-option__action {
+        width: 20px;
+        height: 20px;
+        flex: 0 0 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: rgba(37,72,68,.10);
+        font-size: .92rem;
+        font-weight: 700;
+    }
+
+    .year-planet-option.is-selected .year-planet-option__action {
+        background: rgba(255,248,225,.15);
+    }
+
+    .year-legend__panel {
+        right: 0;
+        width: min(390px, calc(100vw - 24px));
+        padding: 15px;
+    }
+
+    .year-legend__items {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 9px 14px;
+    }
+
+    .year-legend__items > span {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .76rem;
+        font-weight: 600;
+        color: rgba(36,50,48,.80);
+    }
+
+    .year-legend__swatch,
+    .year-legend__eclipse {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 15px;
+        display: inline-block;
+        border-radius: 5px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 1px 4px rgba(20,30,25,.10);
+    }
+
+    .year-legend__swatch.is-fire { background: var(--year-fire); }
+    .year-legend__swatch.is-earth { background: var(--year-earth); }
+    .year-legend__swatch.is-air { background: var(--year-air); }
+    .year-legend__swatch.is-water { background: var(--year-water); }
+
+    .year-legend__retro {
+        width: 23px;
+        height: 15px;
+        flex: 0 0 23px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: #5b6b68;
+        color: rgba(255,248,225,.94);
+        font-size: .68rem;
+        font-style: normal;
+    }
+
+    .year-legend__eclipse {
+        border-radius: 999px;
+        background: #243230;
+        box-shadow: 0 0 0 2px rgba(190,155,98,.24), 0 1px 4px rgba(20,30,25,.12);
+    }
+
+    .year-legend__panel p {
+        margin: 13px 0 0;
+        padding-top: 11px;
+        border-top: 1px solid rgba(36,50,48,.09);
+        color: rgba(36,50,48,.64);
+        font-size: .73rem;
+        line-height: 1.42;
     }
 
     .year-surface {
@@ -985,6 +1361,25 @@
         opacity: .86;
     }
 
+    .year-today-beam__label {
+        position: absolute;
+        top: 2px;
+        left: 50%;
+        z-index: 2;
+        transform: translateX(-50%);
+        padding: 3px 7px;
+        border: 1px solid rgba(255,248,225,.50);
+        border-radius: 999px;
+        background: rgba(37,72,68,.88);
+        box-shadow: 0 3px 10px rgba(20,30,25,.20), inset 0 1px 0 rgba(255,255,255,.13);
+        color: rgba(255,248,225,.96);
+        font-size: .61rem;
+        font-weight: 700;
+        letter-spacing: .025em;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
     .year-today-beam::before {
         content: "";
         position: absolute;
@@ -1014,6 +1409,22 @@
         min-width: var(--year-track-width);
         margin-inline: var(--year-track-edge);
         backdrop-filter: blur(8px);
+    }
+
+    .year-empty-state {
+        min-height: 112px;
+        margin-left: var(--year-label-column);
+        width: var(--year-track-width);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        border: 1px dashed rgba(36,50,48,.15);
+        border-radius: 14px;
+        background: rgba(255,255,255,.12);
+        color: rgba(36,50,48,.64);
+        font-size: .83rem;
+        text-align: center;
     }
 
     .month-label {
@@ -1517,7 +1928,7 @@
     /* Narrow layouts: keep things readable via horizontal scroll */
     @@media (max-width: 820px) {
         :root {
-            --year-table-offset: 204px;
+            --year-table-offset: 236px;
             --year-label-column: 72px;
         }
 
@@ -1573,7 +1984,7 @@
 
     @@media (max-width: 640px) {
         :root {
-            --year-table-offset: 214px;
+            --year-table-offset: 250px;
         }
 
         .year-topbar {
@@ -1582,6 +1993,33 @@
 
         .year-topbar__eyebrow {
             font-size: .7rem;
+        }
+
+        .year-toolbar {
+            width: 100%;
+            gap: 6px;
+        }
+
+        .year-tool-button {
+            min-height: 34px;
+            padding: 7px 10px;
+            font-size: .73rem;
+        }
+
+        .year-planet-selector__panel,
+        .year-legend__panel {
+            position: fixed;
+            top: calc(env(safe-area-inset-top) + 148px);
+            right: 12px;
+            left: 12px;
+            width: auto;
+            max-height: calc(100vh - 170px);
+            overflow-y: auto;
+            transform: none;
+        }
+
+        .year-planet-selector__options {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .year-surface {
@@ -1597,7 +2035,7 @@
 
     @@media (max-width: 520px) {
         :root {
-            --year-table-offset: 222px;
+            --year-table-offset: 258px;
         }
 
         .year-surface {
