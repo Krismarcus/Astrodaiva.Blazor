@@ -31,9 +31,16 @@
                 <div class="year-planet-selector__panel" @onclick:stopPropagation="true">
                     <div class="year-planet-selector__header">
                         <strong>@(IsLt ? "Rodyti metų juostas" : "Show year bars")</strong>
-                        <button type="button" class="year-selector-reset" @onclick="ResetPlanets">
-                            @(IsLt ? "Atkurti visas" : "Reset all")
-                        </button>
+                        <span class="year-selector-actions">
+                            <button type="button" class="year-selector-reset" @onclick="ResetPlanets">
+                                @(IsLt ? "Atkurti visas" : "Reset all")
+                            </button>
+                            <button type="button"
+                                    class="year-selector-close"
+                                    aria-label="@(IsLt ? "Uždaryti planetų pasirinkimą" : "Close planet selector")"
+                                    title="@(IsLt ? "Uždaryti" : "Close")"
+                                    @onclick="CloseYearMenusAsync">×</button>
+                        </span>
                     </div>
                     <div class="year-planet-selector__options">
                         @foreach (var planet in PlanetsOrder)
@@ -67,6 +74,14 @@
                     @(IsLt ? "Legenda" : "Legend")
                 </summary>
                 <div class="year-legend__panel">
+                    <div class="year-legend__header">
+                        <strong>@(IsLt ? "Žymėjimai" : "Symbols")</strong>
+                        <button type="button"
+                                class="year-selector-close"
+                                aria-label="@(IsLt ? "Uždaryti legendą" : "Close legend")"
+                                title="@(IsLt ? "Uždaryti" : "Close")"
+                                @onclick="CloseYearMenusAsync">×</button>
+                    </div>
                     <div class="year-legend__items">
                         <span><i class="year-legend__swatch is-fire"></i>@(IsLt ? "Ugnis" : "Fire")</span>
                         <span><i class="year-legend__swatch is-earth"></i>@(IsLt ? "Žemė" : "Earth")</span>
@@ -456,6 +471,13 @@
     {
         _showRetrogrades = !_showRetrogrades;
         ClearSelection();
+    }
+
+    private async Task CloseYearMenusAsync()
+    {
+        await JS.InvokeAsync<object>(
+            "yearTimeline.closeOpenMenus",
+            new object?[] { ".year-topbar" });
     }
 
     private void SelectSegment(Planet planetName, ZodiacSegment segment)
@@ -1110,9 +1132,22 @@
         margin-bottom: 12px;
     }
 
-    .year-planet-selector__header strong {
+    .year-planet-selector__header strong,
+    .year-legend__header strong {
         font-size: .86rem;
         font-weight: 650;
+    }
+
+    .year-selector-actions,
+    .year-legend__header {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .year-legend__header {
+        justify-content: space-between;
+        margin-bottom: 12px;
     }
 
     .year-selector-reset {
@@ -1129,6 +1164,30 @@
 
     .year-selector-reset:hover {
         background: rgba(37,72,68,.15);
+    }
+
+    .year-selector-close {
+        width: 32px;
+        height: 32px;
+        flex: 0 0 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(37,72,68,.10);
+        color: rgba(36,50,48,.82);
+        font: inherit;
+        font-size: 1.15rem;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .year-selector-close:hover,
+    .year-selector-close:focus-visible {
+        background: rgba(37,72,68,.17);
+        outline: 2px solid rgba(190,155,98,.55);
+        outline-offset: 2px;
     }
 
     .year-planet-selector__options {
@@ -1617,10 +1676,10 @@
     .eclipse-marker {
         position: absolute;
         top: 40%;
-        transform: translateX(-50%);
+        transform: translate(-50%, -50%);
         display: block;
-        width: 30px;
-        height: 0;
+        width: 40px;
+        height: 40px;
         background: transparent;
         border: none;
         padding: 0;
@@ -1631,7 +1690,7 @@
     .eclipse-marker-dot {
         position: absolute;
         left: 50%;
-        top: 0;
+        top: 50%;
         width: 12px;
         height: 12px;
         border-radius: 999px;
@@ -1680,7 +1739,7 @@
     .eclipse-day-marker {
         position: absolute;
         left: 50%;
-        top: 11px;
+        top: calc(50% + 11px);
         transform: translateX(-50%);
         display: block;
         background: transparent;
@@ -1698,7 +1757,7 @@
 
         .eclipse-marker:hover,
         .eclipse-marker.is-active {
-            transform: translateX(-50%) scale(1.08);
+            transform: translate(-50%, -50%) scale(1.08);
         }
 
             .eclipse-marker:hover .eclipse-marker-dot,
@@ -1709,7 +1768,7 @@
 
     @@media (hover: none) {
         .eclipse-marker.is-active {
-            transform: translateX(-50%) scale(1.08);
+            transform: translate(-50%, -50%) scale(1.08);
         }
     }
 
@@ -1798,6 +1857,7 @@
         padding: 20px;
         width: 100%;
         max-width: 600px;
+        box-sizing: border-box;
         max-height: 70vh;
         overflow-y: auto;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
@@ -1979,6 +2039,34 @@
 
         .month-label {
             font-size: .72rem;
+        }
+    }
+
+    /* Short landscape phones need the menus to scroll inside the viewport. */
+    @@media (orientation: landscape) and (max-height: 600px) {
+        .year-planet-selector__panel,
+        .year-legend__panel {
+            position: fixed;
+            top: 148px;
+            right: 12px;
+            left: 12px;
+            width: auto;
+            max-height: calc(100dvh - 160px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            transform: none;
+            padding-top: 0;
+        }
+
+        .year-planet-selector__header,
+        .year-legend__header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 15px 0 10px;
+            background: #f8f7ec;
+            box-shadow: 0 1px 0 rgba(36,50,48,.08);
         }
     }
 
