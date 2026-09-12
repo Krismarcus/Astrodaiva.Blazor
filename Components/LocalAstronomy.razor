@@ -48,13 +48,27 @@
         {
             "aspect" => $"{Body(e.BodyId)} · {Aspect(e.AspectId)} · {Body(e.TargetBodyId)}",
             "ingress" => $"{Body(e.BodyId)} · {(IsLt ? "Zodiako ženklo kaita" : "Zodiac sign change")}",
-            "station" => $"{Body(e.BodyId)} · {(IsLt ? "Judėjimo krypties kaita" : "Motion changes")} ({e.Direction})",
+            "station" => $"{Body(e.BodyId)} · {Motion(e)}",
             "moon-phase" => Phase(e.PhaseId),
             "lunar-day-start" => IsLt ? $"Prasideda {e.LunarDayNumber} Mėnulio diena" : $"Lunar day {e.LunarDayNumber} begins",
             "solar-eclipse" => IsLt ? "Saulės užtemimas" : "Solar eclipse",
             "lunar-eclipse" => IsLt ? "Mėnulio užtemimas" : "Lunar eclipse",
             "utc-offset-change" => IsLt ? "Vilniaus laiko poslinkio kaita" : "Vilnius UTC offset changes",
             _ => e.Type
+        };
+    }
+    private string Motion(ExactEvent e)
+    {
+        var motion = e.Direction;
+        if (e.Extra?.TryGetValue("motion", out var value) == true && value.ValueKind == System.Text.Json.JsonValueKind.String)
+            motion = value.GetString();
+        return (motion, IsLt) switch
+        {
+            ("retrograde", true) => "Prasideda retrogradinis judėjimas",
+            ("retrograde", false) => "Retrograde begins",
+            ("direct", true) => "Prasideda tiesioginis judėjimas",
+            ("direct", false) => "Direct motion begins",
+            _ => IsLt ? "Judėjimo krypties kaita" : "Motion changes"
         };
     }
     private string Aspect(string? id) => (id, IsLt) switch
