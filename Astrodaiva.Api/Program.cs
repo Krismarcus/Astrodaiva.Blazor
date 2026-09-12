@@ -20,6 +20,11 @@ builder.Services.PostConfigure<AdminAuthOptions>(options =>
     options.TokenSigningKey ??= builder.Configuration["ADMIN_TOKEN_SIGNING_KEY"];
 });
 builder.Services.AddSingleton<AdminTokenService>();
+builder.Services.AddHttpClient("CelestialMe", client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(3);
+    client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 
 // ✅ CORS
 builder.Services.AddCors(options =>
@@ -39,6 +44,7 @@ builder.Services.AddCors(options =>
             : new[]
             {
                 "https://krismarcus.github.io",
+                "https://app.astrodaiva.com",
                 "https://astrodaiva-blazor.onrender.com",
                 "https://localhost:49283",
                 "http://localhost:49284"
@@ -46,7 +52,8 @@ builder.Services.AddCors(options =>
 
         policy.WithOrigins(origins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .WithExposedHeaders("ETag", "Retry-After", "X-Upstream-Request-Id");
 
         // If later you use cookies/auth, you’ll need:
         // .AllowCredentials();
@@ -69,35 +76,7 @@ app.UseSwaggerUI();
 // ✅ Put CORS before MapControllers (you already do) and before auth if you add it later
 app.UseCors("Frontend");
 
-app.Use(async (context, next) =>
-{
-    if (AllowsAnonymousAccess(context.Request))
-    {
-        await next();
-        return;
-    }
-
-    var authHeader = context.Request.Headers.Authorization.ToString();
-    const string bearerPrefix = "Bearer ";
-
-    if (!authHeader.StartsWith(bearerPrefix, StringComparison.OrdinalIgnoreCase))
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        await context.Response.WriteAsJsonAsync(new { message = "Admin authentication is required." });
-        return;
-    }
-
-    var token = authHeader[bearerPrefix.Length..].Trim();
-    var tokenService = context.RequestServices.GetRequiredService<AdminTokenService>();
-    if (!tokenService.ValidateToken(token))
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        await context.Response.WriteAsJsonAsync(new { message = "Admin session is invalid or expired." });
-        return;
-    }
-
-    await next();
-});
+app.UseMiddleware<AdminRequestMiddleware>();
 
 app.MapControllers();
 
@@ -109,15 +88,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-
-static bool AllowsAnonymousAccess(HttpRequest request)
-{
-    if (HttpMethods.IsGet(request.Method) ||
-        HttpMethods.IsHead(request.Method) ||
-        HttpMethods.IsOptions(request.Method))
-    {
-        return true;
-    }
-
-    return request.Path.Equals("/api/auth/admin/login", StringComparison.OrdinalIgnoreCase);
-}

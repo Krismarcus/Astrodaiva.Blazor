@@ -1,6 +1,7 @@
 @page "/"
 @inject Astrodaiva.Blazor.Services.AstroDbStore Store
 @inject IJSRuntime JS
+@inject Astrodaiva.Blazor.Services.VisitorTimeZone VisitorZone
 @implements IAsyncDisposable
 @using Astrodaiva.Data
 @using Astrodaiva.Data.Models
@@ -17,6 +18,7 @@
 }
 else
 {
+    <TimeZoneSelector />
     <div class="card split-2">
         <!-- LEFT: calendar -->
         <div class="tabs-panel">
@@ -49,7 +51,8 @@ else
                             var active = d == _selectedDay ? "active" : "";
                             var today = IsToday(d) ? "is-today" : "";
                             var e = _monthEvents.FirstOrDefault(x => x.Date.Day == d);
-                            string? moonDay = e?.MoonDay is not null ? GetMoonDayKey((int)e.MoonDay.NewMoonDay) : null;
+                            var localLunarDay = CalendarDisplay.SegmentsFor(_db, new DateTime(_year, _month, d), VisitorZone.Zone).LastOrDefault()?.LunarDayNumber;
+                            string? moonDay = localLunarDay is int lunarNumber ? GetMoonDayKey(lunarNumber) : e?.MoonDay is not null ? GetMoonDayKey(e.MoonDay.NewMoonDay) : null;
                             var q = GetActivityQuality(e, _selectedActivity);
                             var qClass = GetQualityClass(q);
                             var showIndicator = q == ActivityQuality.Good || q == ActivityQuality.Bad;
@@ -347,7 +350,7 @@ else
     private bool IsToday(int day)
         => _year == DateTime.Today.Year && _month == DateTime.Today.Month && day == DateTime.Today.Day;
 
-    private static string BuildZodiacOrTransitionBlock(string planetName, PlanetInZodiac? p)
+    private string BuildZodiacOrTransitionBlock(string planetName, PlanetInZodiac? p)
     {
         if (p is null)
             return "<div class=\"muted\">—</div>";
@@ -369,7 +372,16 @@ else
         // transitioning: show previous sign (left) + transition time (center) + new sign (right)
         var prevName = GetSignName((int)p.PreviousZodiacSign);
         var prevIcon = EnumText.GetZodiacKey(p.PreviousZodiacSign);
-        var timeText = p.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+        var timeText = p.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture) + " Vilnius";
+        if (DayEvents.FirstOrDefault()?.Astronomy is not null && p.TransitionTime != default)
+        {
+            var local = DateTime.SpecifyKind(p.TransitionTime, DateTimeKind.Unspecified);
+            if (!CalendarImporter.Vilnius.IsAmbiguousTime(local) && !CalendarImporter.Vilnius.IsInvalidTime(local))
+            {
+                var converted = VisitorZone.Convert(new DateTimeOffset(local, CalendarImporter.Vilnius.GetUtcOffset(local)));
+                timeText = converted.ToString(converted.Date == _current.Date ? "HH:mm:ss" : "MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+            }
+        }
         var transitionTitle = $"{planetName}: {prevName} - {timeText} - {newName}";
 
         return $@"<div class=""astro-label"">{transitionTitle}</div>
@@ -385,6 +397,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        VisitorZone.Changed += OnTimeZoneChanged;
+        await VisitorZone.InitializeAsync();
         Store.Changed += OnStoreChanged;
         _db = await Store.EnsureLoadedAsync();
         _year = _current.Year;
@@ -413,8 +427,11 @@ else
         InvokeAsync(StateHasChanged);
     }
 
+    private void OnTimeZoneChanged() => _ = InvokeAsync(StateHasChanged);
+
     public async ValueTask DisposeAsync()
     {
+        VisitorZone.Changed -= OnTimeZoneChanged;
         Store.Changed -= OnStoreChanged;
         await JS.InvokeVoidAsync("modalLayer.setMobileDayOverlayOpen", false);
     }
@@ -653,7 +670,21 @@ else
         <div class="weekday-row">@_current.ToString("dddd", CultureInfo.CurrentCulture)</div>
 
         @* Moon-day timeline *@
-        @if (mo?.MoonDay is not null)
+        @if (_db is not null && CalendarDisplay.SegmentsFor(_db, _current, VisitorZone.Zone) is { Count: > 0 } localSegments)
+        {
+            <div class="local-lunar-segments">
+                <span class="muted">@(IsLt ? "Vilniaus Mėnulio dienos" : "Vilnius lunar days") · @VisitorZone.Zone.Id</span>
+                @foreach (var segment in localSegments)
+                {
+                    <button type="button" class="local-lunar-segment" @onclick="() => OpenMoonDayDetails(segment.LunarDayNumber)">
+                        <img src="@($"img/zodiac/{GetMoonDayKey(segment.LunarDayNumber)}.png")" alt="@GetMoonDayName(segment.LunarDayNumber)" />
+                        <strong>@segment.LunarDayNumber</strong>
+                        <span>@VisitorZone.Convert(segment.StartsAtUtc).ToString("HH:mm:ss") – @VisitorZone.Convert(segment.EndsAtUtc).ToString("HH:mm:ss")</span>
+                    </button>
+                }
+            </div>
+        }
+        else if (mo?.MoonDay is not null)
         {
             var md = mo.MoonDay!;
 
@@ -718,6 +749,8 @@ else
             <div class="moonday-row"><span class="muted">@(IsLt ? "Nėra Mėnulio dienos simbolio" : "No Moon-day symbol")</span></div>
         }
 
+        <LocalAstronomy Db="_db!" Date="_current.Date" />
+        <small class="muted">@(IsLt ? "Planetų ženklai ir fazė: Vilniaus kalendorius" : "Planet signs and phase: Vilnius calendar")</small>
         @{
             var first = DayEvents.FirstOrDefault();
 

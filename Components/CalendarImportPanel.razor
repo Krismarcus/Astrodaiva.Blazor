@@ -1,0 +1,99 @@
+@using Astrodaiva.Blazor.Integration
+@using Astrodaiva.Blazor.Services
+@using Astrodaiva.Data.Models
+@using System.Globalization
+@using System.Text.Json
+@inject AstroApiClient Api
+@inject AstroDbStore Store
+@implements IDisposable
+
+<section class="calendar-import" aria-label="@(IsLt ? "Astronomijos importas" : "Astronomy import")">
+    <div class="calendar-import__toolbar">
+        <div><strong>@(IsLt ? "Importuoti pasirinktą mėnesį" : "Import selected month")</strong><span>@SelectedDate.ToString("MMMM yyyy", CultureInfo.CurrentCulture) · Vilnius</span></div>
+        <button type="button" class="btn btn-outline-primary" disabled="@_busy" @onclick="Generate">@(IsLt ? "Importuoti astronomiją" : "Import astronomy")</button>
+        @if (_busy) { <button type="button" class="btn" @onclick="Cancel">@(IsLt ? "Atšaukti" : "Cancel")</button> }
+    </div>
+    <label class="import-reset"><input type="checkbox" @bind="_resetOverrides" disabled="@(_busy || _preview is not null)" />@(IsLt ? "Atkurti šio mėnesio rankinius astronomijos pakeitimus pagal API" : "Reset this month’s manual astronomy overrides to API values")</label>
+    <p class="muted">@(IsLt ? "Tekstai ir veiklų vertinimai išsaugomi. Pritaikę importą galite redaguoti ir paskelbti." : "Text and activity ratings are preserved. After applying the import, you can edit and publish.")</p>
+    @if (!string.IsNullOrEmpty(_status)) { <p role="status">@_status</p> }
+    @if (_preview is not null)
+    {
+        <div class="import-preview">
+            <strong>@(IsLt ? "Peržiūra" : "Preview"): @_preview.Changes.Count(c => c.Added) @(IsLt ? "naujų dienų" : "new days"), @_preview.Changes.Count(c => c.ChangedFields.Count > 0) @(IsLt ? "keičiamų dienų" : "changed days"), @_preview.Changes.Sum(c => c.PreservedFields.Count) @(IsLt ? "išsaugotų pakeitimų" : "preserved overrides")</strong>
+            <div class="import-preview__table"><table><thead><tr><th>@(IsLt ? "Data" : "Date")</th><th>@(IsLt ? "Pakeitimai" : "Changes")</th><th>@(IsLt ? "Išsaugomi" : "Preserved")</th></tr></thead><tbody>
+                @foreach (var day in _preview.Changes)
+                {
+                    <tr><td>@day.Date.ToString("yyyy-MM-dd")</td><td>@(day.Added ? (IsLt ? "Nauja diena" : "New day") : string.Join(", ", day.ChangedFields.Select(FieldLabel)))</td><td>@string.Join(", ", day.PreservedFields.Select(FieldLabel))</td></tr>
+                }
+            </tbody></table></div>
+            @if (_response is not null)
+            {
+                <p class="muted">@_response.Location.Label · @_response.Location.LatitudeDeg.ToString(CultureInfo.InvariantCulture), @_response.Location.LongitudeDeg.ToString(CultureInfo.InvariantCulture) · @_response.Location.TimeZoneId</p>
+                @foreach (var notice in _preview.Notices.Where(n => n.Code.Contains("pending") || n.Severity != "info")) { <p class="import-notice">@notice.Message</p> }
+            }
+            <div class="import-preview__actions"><button type="button" class="btn btn-primary" @onclick="Apply">@(IsLt ? "Pritaikyti ir redaguoti" : "Apply and edit")</button><button type="button" class="btn" @onclick="Discard">@(IsLt ? "Atmesti" : "Discard preview")</button></div>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter] public DateTime SelectedDate { get; set; }
+    [Parameter] public EventCallback<AppDB> Applied { get; set; }
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private bool _busy, _resetOverrides;
+    private string _status = "", _baseJson = "";
+    private ImportPreview? _preview;
+    private CelestialCalendar? _response;
+    private DateTime _requestedMonth;
+    private CancellationTokenSource? _cancellation;
+
+    protected override void OnParametersSet()
+    {
+        if (_requestedMonth != default && (SelectedDate.Year != _requestedMonth.Year || SelectedDate.Month != _requestedMonth.Month))
+        { Cancel(); Discard(); }
+    }
+    private async Task Generate()
+    {
+        if (Store.Db is null) return;
+        _busy = true; _preview = null; _status = IsLt ? "Skaičiuojama…" : "Calculating…";
+        _requestedMonth = new(SelectedDate.Year, SelectedDate.Month, 1);
+        _cancellation?.Dispose(); _cancellation = new();
+        try
+        {
+            _response = await Api.ImportMonthAsync(_requestedMonth.Year, _requestedMonth.Month, _cancellation.Token);
+            _cancellation.Token.ThrowIfCancellationRequested();
+            BuildPreview();
+            _status = IsLt ? "Peržiūrėkite pakeitimus. Duomenys dar nepritaikyti." : "Review the changes. Nothing has been applied yet.";
+        }
+        catch (OperationCanceledException) { _status = IsLt ? "Importas atšauktas." : "Import cancelled."; }
+        catch (Exception ex) { _status = ex.Message; }
+        finally { _busy = false; }
+    }
+    private void BuildPreview()
+    {
+        _baseJson = JsonSerializer.Serialize(Store.Db);
+        _preview = CalendarImporter.Preview(Store.Db!, _response!, _requestedMonth.Year, _requestedMonth.Month, _resetOverrides);
+    }
+    private async Task Apply()
+    {
+        if (_preview is null || Store.Db is null) return;
+        if (_baseJson != JsonSerializer.Serialize(Store.Db))
+        {
+            BuildPreview();
+            _status = IsLt ? "Juodraštis pasikeitė. Peržiūrėkite atnaujintus pakeitimus." : "Your draft changed. Review the updated preview before applying.";
+            return;
+        }
+        await Applied.InvokeAsync(_preview.Draft);
+        _preview = null; _response = null;
+        _status = IsLt ? "Importas pritaikytas juodraščiui. Galite redaguoti ir paskelbti." : "Import applied to your draft. You can now edit and publish.";
+    }
+    private void Cancel() => _cancellation?.Cancel();
+    private void Discard() { _preview = null; _response = null; _status = ""; }
+    public void Dispose() { Cancel(); _cancellation?.Dispose(); }
+    private string FieldLabel(string field) => field switch
+    {
+        "MoonDay" => IsLt ? "Mėnulio dienos" : "Lunar days", "MoonPhase" => IsLt ? "Fazė" : "Phase",
+        "PlanetEvents" => IsLt ? "Tikslūs įvykiai" : "Exact events", "SunEclipse" => IsLt ? "Saulės užtemimas" : "Solar eclipse",
+        "MoonEclipse" => IsLt ? "Mėnulio užtemimas" : "Lunar eclipse", _ => field.Replace("InZodiac", "")
+    };
+}

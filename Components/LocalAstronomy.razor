@@ -1,0 +1,70 @@
+@using Astrodaiva.Blazor.Integration
+@using Astrodaiva.Blazor.Services
+@using Astrodaiva.Data.Models
+@using Astrodaiva.Data.Enums
+@using Astrodaiva.Blazor.Utils
+@using System.Globalization
+@inject VisitorTimeZone VisitorZone
+@implements IDisposable
+
+<section class="local-astronomy" aria-label="@(IsLt ? "Tikslūs įvykiai" : "Exact events")">
+    <div class="local-astronomy__heading">
+        <strong>@(IsLt ? "Tikslūs įvykiai" : "Exact events")</strong>
+        <span>@VisitorZone.Zone.Id · @Date.ToString("yyyy-MM-dd")</span>
+    </div>
+    @if (Events.Count == 0)
+    {
+        <p class="muted">@(IsLt ? "Šiai datai tikslių įvykių nėra arba jie dar neimportuoti." : "No exact events for this date, or astronomy has not been imported yet.")</p>
+    }
+    else
+    {
+        <ul class="exact-event-list">
+            @foreach (var e in Events)
+            {
+                <li><time datetime="@e.AtUtc.ToUniversalTime().ToString("O")" title="@VisitorZone.Convert(e.AtUtc).ToString("yyyy-MM-dd HH:mm:ss zzz")">@VisitorZone.Convert(e.AtUtc).ToString("HH:mm:ss")</time><span>@Label(e)</span></li>
+            }
+        </ul>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public AppDB Db { get; set; } = default!;
+    [Parameter] public DateTime Date { get; set; }
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private List<ExactEvent> Events => CalendarDisplay.EventsFor(Db, Date, VisitorZone.Zone);
+    protected override void OnInitialized() => VisitorZone.Changed += OnChanged;
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => VisitorZone.Changed -= OnChanged;
+
+    private string Body(string? id)
+    {
+        var index = Array.IndexOf(CalendarImporter.BodyIds, id);
+        return index < 0 ? id ?? "" : EnumText.GetPlanetName((Planet)index);
+    }
+    private string Label(ExactEvent e)
+    {
+        if (!string.IsNullOrWhiteSpace(e.Title)) return e.Title;
+        return e.Type switch
+        {
+            "aspect" => $"{Body(e.BodyId)} · {Aspect(e.AspectId)} · {Body(e.TargetBodyId)}",
+            "ingress" => $"{Body(e.BodyId)} · {(IsLt ? "Zodiako ženklo kaita" : "Zodiac sign change")}",
+            "station" => $"{Body(e.BodyId)} · {(IsLt ? "Judėjimo krypties kaita" : "Motion changes")} ({e.Direction})",
+            "moon-phase" => Phase(e.PhaseId),
+            "lunar-day-start" => IsLt ? $"Prasideda {e.LunarDayNumber} Mėnulio diena" : $"Lunar day {e.LunarDayNumber} begins",
+            "solar-eclipse" => IsLt ? "Saulės užtemimas" : "Solar eclipse",
+            "lunar-eclipse" => IsLt ? "Mėnulio užtemimas" : "Lunar eclipse",
+            "utc-offset-change" => IsLt ? "Vilniaus laiko poslinkio kaita" : "Vilnius UTC offset changes",
+            _ => e.Type
+        };
+    }
+    private string Aspect(string? id) => (id, IsLt) switch
+    {
+        ("conjunction", true) => "Jungtis", ("opposition", true) => "Opozicija", ("trine", true) => "Trigonas",
+        ("square", true) => "Kvadratūra", ("sextile", true) => "Sekstilis", _ => id ?? ""
+    };
+    private string Phase(string? id) => (id, IsLt) switch
+    {
+        ("new-moon", true) => "Jaunatis", ("full-moon", true) => "Pilnatis", ("first-quarter", true) => "Priešpilnis", ("last-quarter", true) => "Delčia",
+        _ => (id ?? "Moon phase").Replace('-', ' ')
+    };
+}

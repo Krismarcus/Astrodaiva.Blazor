@@ -1,0 +1,20 @@
+@using Astrodaiva.Blazor.Services
+@using System.Globalization
+@inject VisitorTimeZone VisitorZone
+
+<div class="timezone-settings">
+    <label>
+        <span>@(IsLt ? "Įvykių laiko juosta" : "Event time zone")</span>
+        <select value="@VisitorZone.Selection" @onchange="ChangeZone">
+            <option value="auto">@(IsLt ? "Automatiškai" : "Automatic") (@VisitorZone.DetectedZone)</option>
+            @foreach (var zone in VisitorZone.AvailableZones) { <option value="@zone">@zone</option> }
+        </select>
+    </label>
+    <small>@(IsLt ? "Skaičiavimo vieta: Vilnius. Veiklų vertinimai ir tekstai priskirti Vilniaus kalendoriaus datai." : "Calculation location: Vilnius. Activity ratings and text follow the Vilnius calendar date.")</small>
+</div>
+
+@code {
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    protected override async Task OnInitializedAsync() => await VisitorZone.InitializeAsync();
+    private async Task ChangeZone(ChangeEventArgs e) => await VisitorZone.SelectAsync(e.Value?.ToString() ?? "auto");
+}

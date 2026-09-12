@@ -1,0 +1,110 @@
+@using Astrodaiva.Blazor.Integration
+@using Astrodaiva.Data.Models
+@using System.Globalization
+
+@if (Day.Astronomy is { } astronomy)
+{
+    <div class="imported-day-editor">
+        <p class="muted">@(IsLt ? "Importuota astronomija. Redagavimo laiko juosta: Europe/Vilnius." : "Imported astronomy. Editing time zone: Europe/Vilnius.")</p>
+        @if (astronomy.Overrides.Count > 0) { <p class="override-badge">@(IsLt ? "Rankiniai pakeitimai" : "Manual overrides"): @string.Join(", ", astronomy.Overrides.Select(x => x.Replace("InZodiac", "")))</p> }
+        @if (!string.IsNullOrEmpty(_error)) { <p class="admin-error" role="alert">@_error</p> }
+        <div class="segment-editor">
+            <strong>@(IsLt ? "Mėnulio dienos" : "Lunar days")</strong>
+            @for (var i = 0; i < astronomy.Segments.Count; i++)
+            {
+                var index = i;
+                var segment = astronomy.Segments[i];
+                <div class="segment-editor__row">
+                    <label>@(IsLt ? "Numeris" : "Number")<input type="number" min="1" max="30" value="@segment.LunarDayNumber" @onchange="e => ChangeNumber(index, e)" /></label>
+                    <label>@(IsLt ? "Pradžia" : "Starts")<input type="datetime-local" step="1" value="@Local(segment.StartsAtUtc)" disabled="@(index == 0)" @onchange="e => ChangeBoundary(index, e)" /></label>
+                    <span>→ @TimeZoneInfo.ConvertTime(segment.EndsAtUtc, CalendarImporter.Vilnius).ToString("MM-dd HH:mm:ss zzz")</span>
+                    <button type="button" class="btn" disabled="@(astronomy.Segments.Count == 1)" @onclick="() => RemoveSegment(index)">@(IsLt ? "Pašalinti" : "Remove")</button>
+                </div>
+            }
+            <button type="button" class="btn" @onclick="AddSegment">@(IsLt ? "Pridėti Mėnulio dienos atkarpą" : "Add lunar-day segment")</button>
+        </div>
+        <details class="exact-event-editor"><summary>@(IsLt ? "Redaguoti tikslius įvykius" : "Edit exact events") (@astronomy.Events.Count)</summary>
+            <p class="muted">@(IsLt ? "Mėnulio dienų pradžią keiskite aukščiau. Ženklo kaitą keiskite planetos kortelėje." : "Edit lunar-day boundaries above and zodiac transitions in the planet cards.")</p>
+            @foreach (var e in astronomy.Events.Where(e => e.Type is not "lunar-day-start" and not "ingress").ToList())
+            {
+                <div class="exact-event-editor__row">
+                    <span>@e.Type · @e.BodyId @e.TargetBodyId</span>
+                    <label>@(IsLt ? "Laikas" : "Time")<input type="datetime-local" step="1" value="@Local(e.AtUtc)" @onchange="args => ChangeEventTime(e, args)" /></label>
+                    <label>@(IsLt ? "Pavadinimas (nebūtinas)" : "Title (optional)")<input value="@e.Title" @onchange="args => ChangeTitle(e, args)" /></label>
+                    <button type="button" class="btn" @onclick="() => RemoveEvent(e)">@(IsLt ? "Pašalinti" : "Remove")</button>
+                </div>
+            }
+        </details>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public AstroEvent Day { get; set; } = default!;
+    [Parameter] public EventCallback Changed { get; set; }
+    private string _error = "";
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private static string Local(DateTimeOffset value) => TimeZoneInfo.ConvertTime(value, CalendarImporter.Vilnius).ToString("yyyy-MM-ddTHH:mm:ss");
+    private bool ParseTime(object? input, out DateTimeOffset result)
+    {
+        result = default;
+        if (!DateTime.TryParse(input?.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var value)) { _error = "Enter a valid date and time."; return false; }
+        value = DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
+        if (CalendarImporter.Vilnius.IsInvalidTime(value) || CalendarImporter.Vilnius.IsAmbiguousTime(value))
+        { _error = "This Vilnius time is skipped or repeated by daylight saving. Choose an unambiguous time."; return false; }
+        result = new DateTimeOffset(value, CalendarImporter.Vilnius.GetUtcOffset(value)).ToUniversalTime();
+        return true;
+    }
+    private async Task ChangeNumber(int index, ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var n) || n is < 1 or > 30) { _error = "Lunar day must be 1–30."; return; }
+        Day.Astronomy!.Segments[index].LunarDayNumber = n;
+        await LunarChanged();
+    }
+    private async Task ChangeBoundary(int index, ChangeEventArgs args)
+    {
+        if (index == 0 || !ParseTime(args.Value, out var at)) return;
+        var segments = Day.Astronomy!.Segments;
+        if (at <= segments[index - 1].StartsAtUtc || at >= segments[index].EndsAtUtc) { _error = "The boundary must be between its neighbouring boundaries."; return; }
+        segments[index - 1].EndsAtUtc = at; segments[index].StartsAtUtc = at;
+        await LunarChanged();
+    }
+    private async Task AddSegment()
+    {
+        var segments = Day.Astronomy!.Segments; var last = segments[^1];
+        var midpoint = CalendarImporter.Round(last.StartsAtUtc.AddTicks((last.EndsAtUtc - last.StartsAtUtc).Ticks / 2));
+        if (midpoint <= last.StartsAtUtc || midpoint >= last.EndsAtUtc) return;
+        segments.Add(new() { LunarDayNumber = last.LunarDayNumber == 30 ? 1 : last.LunarDayNumber + 1, StartsAtUtc = midpoint, EndsAtUtc = last.EndsAtUtc });
+        last.EndsAtUtc = midpoint; await LunarChanged();
+    }
+    private async Task RemoveSegment(int index)
+    {
+        var segments = Day.Astronomy!.Segments;
+        if (segments.Count == 1) return;
+        if (index == 0) segments[1].StartsAtUtc = segments[0].StartsAtUtc;
+        else segments[index - 1].EndsAtUtc = segments[index].EndsAtUtc;
+        segments.RemoveAt(index); await LunarChanged();
+    }
+    private async Task LunarChanged()
+    {
+        _error = ""; CalendarImporter.SyncLunarProjection(Day); await Changed.InvokeAsync();
+    }
+    private async Task ChangeEventTime(ExactEvent e, ChangeEventArgs args)
+    {
+        if (!ParseTime(args.Value, out var at)) return;
+        if (at < Day.Astronomy!.Source.StartsAtUtc || at >= Day.Astronomy.Source.EndsAtUtc) { _error = "Keep this event within its Vilnius calendar date."; return; }
+        e.AtUtc = at; _error = ""; await Changed.InvokeAsync();
+    }
+    private async Task ChangeTitle(ExactEvent e, ChangeEventArgs args) { e.Title = args.Value?.ToString(); await Changed.InvokeAsync(); }
+    private async Task RemoveEvent(ExactEvent e)
+    {
+        Day.Astronomy!.Events.Remove(e);
+        // Legacy aspect summaries must follow the edited exact-event list.
+        if (e.Type == "aspect")
+        {
+            var a = CalendarImporter.BodyIds; var p1 = Array.IndexOf(a, e.BodyId); var p2 = Array.IndexOf(a, e.TargetBodyId);
+            var match = Day.PlanetEvents.FirstOrDefault(p => (int)p.Planet1 == p1 && (int)p.Planet2 == p2 && p.AspectSymbol.ToString().Equals(e.AspectId, StringComparison.OrdinalIgnoreCase));
+            if (match is not null) Day.PlanetEvents.Remove(match);
+        }
+        await Changed.InvokeAsync();
+    }
+}

@@ -26,6 +26,8 @@ public class AstroDbStore
         _api = api;
     }
 
+    private bool _editing;
+    public void BeginEditing() => _editing = true;
     public AppDB? Db { get; private set; }
     public bool IsLoaded => Db is not null;
 
@@ -55,7 +57,7 @@ public class AstroDbStore
                 if (result.IsServerUnavailable)
                     NotifyServerUnavailable();
 
-                if (await TryApplyApiSnapshotAsync(result.Json))
+                if (await TryApplyApiSnapshotAsync(result.Json, result.Revision))
                     return Db;
 
                 // No snapshot (or failed to deserialize) -> fall through to local JSON.
@@ -108,7 +110,7 @@ public class AstroDbStore
             }
 
             _serverUnavailableNotified = false;
-            await TryApplyApiSnapshotAsync(result.Json);
+            await TryApplyApiSnapshotAsync(result.Json, result.Revision);
             return true;
         }
         catch
@@ -124,7 +126,7 @@ public class AstroDbStore
         {
             var result = await apiTask;
 
-            if (await TryApplyApiSnapshotAsync(result.Json))
+            if (await TryApplyApiSnapshotAsync(result.Json, result.Revision))
                 return;
 
             if (result.IsServerUnavailable)
@@ -147,7 +149,7 @@ public class AstroDbStore
 
             var result = await _api.TryGetDefaultSnapshotJsonAsync();
 
-            if (await TryApplyApiSnapshotAsync(result.Json))
+            if (await TryApplyApiSnapshotAsync(result.Json, result.Revision))
                 return;
 
             if (!result.IsServerUnavailable)
@@ -155,10 +157,14 @@ public class AstroDbStore
         }
     }
 
-    private async Task<bool> TryApplyApiSnapshotAsync(string? json)
+    private async Task<bool> TryApplyApiSnapshotAsync(string? json, string? revision)
     {
+        if (_editing && Db is not null) return true;
         if (string.IsNullOrWhiteSpace(json))
+        {
+            if (revision == "none") _api.AcceptPublishedRevision(revision);
             return false;
+        }
 
         var apiDb = Deserialize(json);
         if (apiDb is null)
@@ -166,7 +172,9 @@ public class AstroDbStore
 
         await MergeMissingEnglishInterpretationsAsync(apiDb);
 
+        if (_editing && Db is not null) return true;
         Db = apiDb;
+        _api.AcceptPublishedRevision(revision);
         _serverUnavailableNotified = false;
         Changed?.Invoke();
         ServerAvailable?.Invoke();

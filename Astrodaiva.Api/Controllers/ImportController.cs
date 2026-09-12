@@ -1,3 +1,7 @@
+using System.Data;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using Astrodaiva.Api.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -6,276 +10,120 @@ namespace Astrodaiva.Api.Controllers;
 
 [ApiController]
 [Route("api/import")]
-public class ImportController : ControllerBase
+public class ImportController(AstroDbContext db) : ControllerBase
 {
-    private readonly AstroDbContext _db;
+    private static string Revision(AppDbSnapshot? snapshot) => snapshot is null
+        ? "none" : Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(snapshot.AppDbJson)));
 
-    public ImportController(AstroDbContext db) => _db = db;
+    private Task<AppDbSnapshot?> Current() => db.AppDbSnapshots.Where(x => x.IsDefault)
+        .OrderByDescending(x => x.Id).FirstOrDefaultAsync();
 
-    // POST /api/import/full-sync
-    // Saves the entire AppDB payload as a snapshot only.
-    // Rule:
-    // - if first snapshot -> always default
-    // - if req.SetDefault -> set as default (and unset others)
-    // - otherwise keep existing default (if any)
-    [HttpPost("full-sync")]
-    public async Task<IActionResult> SaveSnapshot([FromBody] SaveSnapshotRequest req)
-    {
-        var total = await _db.AppDbSnapshots.CountAsync();
-
-        var makeDefault = total == 0 || req.SetDefault;
-
-        if (makeDefault)
-        {
-            // unset all defaults
-            await _db.AppDbSnapshots.ExecuteUpdateAsync(s =>
-                s.SetProperty(x => x.IsDefault, false));
-        }
-
-        var snap = new AppDbSnapshot
-        {
-            Label = string.IsNullOrWhiteSpace(req.Label) ? "ManualSave" : req.Label.Trim(),
-            AppDbJson = req.Json,              // <-- keep your property name
-            CreatedUtc = DateTime.UtcNow,      // <-- keep your property name
-            IsDefault = makeDefault
-        };
-
-        _db.AppDbSnapshots.Add(snap);
-        await _db.SaveChangesAsync();
-
-        // If this is now the only snapshot, force default (safety)
-        // (not really needed here, but keeps rule consistent)
-        var countAfter = await _db.AppDbSnapshots.CountAsync();
-        if (countAfter == 1 && !snap.IsDefault)
-        {
-            snap.IsDefault = true;
-            await _db.SaveChangesAsync();
-        }
-
-        return Ok(new { snap.Id, snap.Label, snap.IsDefault });
-    }
-
-    // GET /api/import/default
-    // Returns the JSON of the default snapshot (if any).
-    // Rule:
-    // - if only one snapshot exists, treat it as default even if DB flag is wrong
     [HttpGet("default")]
     public async Task<IActionResult> GetDefaultSnapshot()
     {
-        var total = await _db.AppDbSnapshots.CountAsync();
-
-        if (total == 0)
-            return NotFound();
-
-        AppDbSnapshot? snap;
-
-        if (total == 1)
-        {
-            // Only one snapshot -> always default
-            snap = await _db.AppDbSnapshots
-                .OrderByDescending(x => x.Id)
-                .FirstOrDefaultAsync();
-        }
-        else
-        {
-            // Many snapshots -> use explicit default
-            snap = await _db.AppDbSnapshots
-                .Where(x => x.IsDefault)
-                .OrderByDescending(x => x.Id)
-                .FirstOrDefaultAsync();
-
-            // Safety: if none marked default, pick newest and make it default
-            if (snap is null)
-            {
-                snap = await _db.AppDbSnapshots
-                    .OrderByDescending(x => x.Id)
-                    .FirstOrDefaultAsync();
-
-                if (snap is not null)
-                {
-                    await _db.AppDbSnapshots.ExecuteUpdateAsync(s =>
-                        s.SetProperty(x => x.IsDefault, false));
-
-                    snap.IsDefault = true;
-                    await _db.SaveChangesAsync();
-                }
-            }
-        }
-
-        if (snap is null) return NotFound();
-        return Content(snap.AppDbJson, "application/json");
+        var snapshot = await Current();
+        Response.Headers.ETag = $"\"{Revision(snapshot)}\"";
+        Response.Headers.CacheControl = "no-cache";
+        return snapshot is null ? NotFound() : Content(snapshot.AppDbJson, "application/json");
     }
 
-    // GET /api/import/snapshots?take=50
-    // Rule:
-    // - if only one snapshot, return IsDefault=true in response
-    // - if multiple, ensure only one is default (self-heal if needed)
+    [HttpPost("full-sync")]
+    [RequestSizeLimit(30_000_000)]
+    public async Task<IActionResult> SaveSnapshot(SaveSnapshotRequest request)
+    {
+        try
+        {
+            using var payload = JsonDocument.Parse(request.Json);
+            var events = payload.RootElement.GetProperty("AstroEventsDB");
+            if (events.ValueKind != JsonValueKind.Array || events.GetArrayLength() == 0)
+                return BadRequest(new { message = "The calendar must contain dates." });
+            var dates = events.EnumerateArray().Select(e => DateTime.Parse(e.GetProperty("Date").GetString()!).Date).ToList();
+            if (dates.Distinct().Count() != dates.Count)
+                return BadRequest(new { message = "The calendar contains duplicate dates." });
+        }
+        catch (Exception ex) when (ex is JsonException or KeyNotFoundException or FormatException or ArgumentException or InvalidOperationException)
+        {
+            return BadRequest(new { message = "The calendar payload is invalid." });
+        }
+
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        var current = await Current();
+        if (request.SetDefault && request.BaseRevision != Revision(current))
+            return Conflict(new { message = "The published calendar has changed. Download your draft, then reload the published calendar before publishing." });
+
+        // Older browser versions must not silently remove imported astronomy metadata.
+        if (request.SetDefault && current is not null)
+        {
+            using var oldDocument = JsonDocument.Parse(current.AppDbJson);
+            using var newDocument = JsonDocument.Parse(request.Json);
+            var incoming = newDocument.RootElement.GetProperty("AstroEventsDB").EnumerateArray()
+                .ToDictionary(e => e.GetProperty("Date").GetString()!, e => e);
+            foreach (var day in oldDocument.RootElement.GetProperty("AstroEventsDB").EnumerateArray())
+            {
+                if (day.TryGetProperty("Astronomy", out var metadata) && metadata.ValueKind == JsonValueKind.Object &&
+                    (!incoming.TryGetValue(day.GetProperty("Date").GetString()!, out var next) ||
+                     !next.TryGetProperty("Astronomy", out var nextMetadata) || nextMetadata.ValueKind != JsonValueKind.Object))
+                    return Conflict(new { message = "This draft would remove imported astronomy. Reload using the updated app before publishing." });
+            }
+        }
+        if (request.SetDefault)
+            await db.AppDbSnapshots.Where(x => x.IsDefault).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsDefault, false));
+        var snapshot = new AppDbSnapshot
+        {
+            Label = string.IsNullOrWhiteSpace(request.Label) ? "Manual save" : request.Label.Trim()[..Math.Min(request.Label.Trim().Length, 200)],
+            AppDbJson = request.Json,
+            CreatedUtc = DateTime.UtcNow,
+            IsDefault = request.SetDefault
+        };
+        db.AppDbSnapshots.Add(snapshot);
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return Ok(new { snapshot.Id, snapshot.Label, snapshot.IsDefault, Revision = request.SetDefault ? Revision(snapshot) : Revision(current) });
+    }
+
     [HttpGet("snapshots")]
-    public async Task<IActionResult> ListSnapshots([FromQuery] int take = 50)
-    {
-        take = Math.Clamp(take, 1, 200);
+    public async Task<IActionResult> ListSnapshots(int take = 50) => Ok(await db.AppDbSnapshots
+        .OrderByDescending(x => x.Id).Take(Math.Clamp(take, 1, 200))
+        .Select(x => new { x.Id, x.CreatedUtc, x.Label, x.IsDefault, SizeBytes = x.AppDbJson.Length }).ToListAsync());
 
-        var total = await _db.AppDbSnapshots.CountAsync();
-
-        // Self-heal default state if needed when multiple exist
-        if (total > 1)
-        {
-            var defaultCount = await _db.AppDbSnapshots.CountAsync(x => x.IsDefault);
-            if (defaultCount == 0)
-            {
-                var newest = await _db.AppDbSnapshots
-                    .OrderByDescending(x => x.Id)
-                    .FirstOrDefaultAsync();
-
-                if (newest is not null)
-                {
-                    newest.IsDefault = true;
-                    await _db.SaveChangesAsync();
-                }
-            }
-            else if (defaultCount > 1)
-            {
-                // keep newest default, unset others
-                var newestDefaultId = await _db.AppDbSnapshots
-                    .Where(x => x.IsDefault)
-                    .OrderByDescending(x => x.Id)
-                    .Select(x => x.Id)
-                    .FirstAsync();
-
-                await _db.AppDbSnapshots
-                    .Where(x => x.IsDefault && x.Id != newestDefaultId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(x => x.IsDefault, false));
-            }
-        }
-        else if (total == 1)
-        {
-            // Ensure DB flag is true for the only snapshot (optional, but consistent)
-            var only = await _db.AppDbSnapshots.FirstOrDefaultAsync();
-            if (only is not null && !only.IsDefault)
-            {
-                only.IsDefault = true;
-                await _db.SaveChangesAsync();
-            }
-        }
-
-        var items = await _db.AppDbSnapshots
-            .OrderByDescending(x => x.Id)
-            .Take(take)
-            .Select(x => new
-            {
-                x.Id,
-                x.CreatedUtc,
-                x.Label,
-                x.IsDefault,
-                SizeBytes = x.AppDbJson.Length
-            })
-            .ToListAsync();
-
-        // If only one snapshot, always show as default in response
-        if (items.Count == 1)
-        {
-            items[0] = new
-            {
-                items[0].Id,
-                items[0].CreatedUtc,
-                items[0].Label,
-                IsDefault = true,
-                items[0].SizeBytes
-            };
-        }
-
-        return Ok(items);
-    }
-
-    // POST /api/import/snapshots/{id}/set-default
-    // Rule:
-    // - if only one snapshot exists, just force it default
-    // - if multiple, unset all and set this one
-    [HttpPost("snapshots/{id:long}/set-default")]
-    public async Task<IActionResult> SetDefault([FromRoute] long id)
-    {
-        var total = await _db.AppDbSnapshots.CountAsync();
-        if (total == 0) return NotFound();
-
-        var snap = await _db.AppDbSnapshots.SingleOrDefaultAsync(x => x.Id == id);
-        if (snap is null) return NotFound();
-
-        if (total == 1)
-        {
-            if (!snap.IsDefault)
-            {
-                snap.IsDefault = true;
-                await _db.SaveChangesAsync();
-            }
-            return Ok(new { id, isDefault = true });
-        }
-
-        await _db.AppDbSnapshots.ExecuteUpdateAsync(s =>
-            s.SetProperty(x => x.IsDefault, false));
-
-        snap.IsDefault = true;
-        await _db.SaveChangesAsync();
-
-        return Ok(new { id, isDefault = true });
-    }
-
-    // GET /api/import/snapshots/{id}
     [HttpGet("snapshots/{id:long}")]
-    public async Task<IActionResult> GetSnapshot([FromRoute] long id)
+    public async Task<IActionResult> GetSnapshot(long id)
     {
-        var snap = await _db.AppDbSnapshots.SingleOrDefaultAsync(x => x.Id == id);
-        if (snap is null) return NotFound();
-        return Content(snap.AppDbJson, "application/json");
+        var snapshot = await db.AppDbSnapshots.FindAsync(id);
+        return snapshot is null ? NotFound() : Content(snapshot.AppDbJson, "application/json");
     }
 
-    // DELETE /api/import/snapshots/{id}
-    // Rule:
-    // - If deleted snapshot was default and others remain -> promote newest to default
-    [HttpDelete("snapshots/{id:long}")]
-    public async Task<IActionResult> DeleteSnapshot([FromRoute] long id)
+    [HttpPost("snapshots/{id:long}/set-default")]
+    public async Task<IActionResult> SetDefault(long id, RestoreRequest request)
     {
-        var deleted = await _db.AppDbSnapshots.SingleOrDefaultAsync(x => x.Id == id);
-        if (deleted is null) return NotFound();
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        var current = await Current();
+        if (request.BaseRevision != Revision(current))
+            return Conflict(new { message = "The published calendar changed. Reload before restoring a backup." });
+        var snapshot = await db.AppDbSnapshots.SingleOrDefaultAsync(x => x.Id == id);
+        if (snapshot is null) return NotFound();
+        await db.AppDbSnapshots.Where(x => x.IsDefault).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsDefault, false));
+        // ExecuteUpdate bypasses EF tracking; explicitly mark this property as modified.
+        snapshot.IsDefault = true;
+        db.Entry(snapshot).Property(x => x.IsDefault).IsModified = true;
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return Ok(new { id, isDefault = true, Revision = Revision(snapshot) });
+    }
 
-        var deletedWasDefault = deleted.IsDefault;
-
-        _db.AppDbSnapshots.Remove(deleted);
-        await _db.SaveChangesAsync();
-
-        // After delete: enforce rules
-        var total = await _db.AppDbSnapshots.CountAsync();
-
-        if (total == 1)
-        {
-            var only = await _db.AppDbSnapshots.FirstOrDefaultAsync();
-            if (only is not null && !only.IsDefault)
-            {
-                only.IsDefault = true;
-                await _db.SaveChangesAsync();
-            }
-        }
-        else if (total > 1 && deletedWasDefault)
-        {
-            var newest = await _db.AppDbSnapshots
-                .OrderByDescending(x => x.Id)
-                .FirstOrDefaultAsync();
-
-            if (newest is not null)
-            {
-                await _db.AppDbSnapshots.ExecuteUpdateAsync(s =>
-                    s.SetProperty(x => x.IsDefault, false));
-
-                newest.IsDefault = true;
-                await _db.SaveChangesAsync();
-            }
-        }
-
+    [HttpDelete("snapshots/{id:long}")]
+    public async Task<IActionResult> DeleteSnapshot(long id)
+    {
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        var snapshot = await db.AppDbSnapshots.SingleOrDefaultAsync(x => x.Id == id);
+        if (snapshot is null) return NotFound();
+        if (snapshot.IsDefault) return Conflict(new { message = "Restore another backup before deleting the published calendar." });
+        db.AppDbSnapshots.Remove(snapshot);
+        await db.SaveChangesAsync();
+        await transaction.CommitAsync();
         return Ok(new { deleted = true, id });
     }
 
-    public record SaveSnapshotRequest(
-    string? Label,
-    bool SetDefault,
-    string Json
-    );
+    public record SaveSnapshotRequest(string? Label, bool SetDefault, string Json, string? BaseRevision);
+    public record RestoreRequest(string? BaseRevision);
 }

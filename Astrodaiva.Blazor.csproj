@@ -31,6 +31,10 @@
   -->
   <ItemGroup>
     <Compile Remove="Astrodaiva.Api/**" />
+    <Compile Remove="Verification/**" />
+    <Content Remove="Verification/**" />
+    <None Remove="Verification/**" />
+    <EmbeddedResource Remove="Verification/**" />
     <Content Remove="Astrodaiva.Api/**" />
     <None Remove="Astrodaiva.Api/**" />
     <EmbeddedResource Remove="Astrodaiva.Api/**" />

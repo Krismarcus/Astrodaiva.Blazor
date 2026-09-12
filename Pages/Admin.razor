@@ -99,7 +99,7 @@ else
         </span>
     </div>
 
-    <div class="month-moon-editor">
+    <details class="month-moon-editor"><summary>Legacy lunar-day tools</summary>
         <div class="mme-row">
             <label>MoonDay on 1st</label>
             <select @bind="_moonDayOnFirst">
@@ -129,11 +129,16 @@ else
                 🌙 Apply month
             </button>
         </div>
-    </div>
+    </details>
 
 </div>
 
-
+<CalendarImportPanel SelectedDate="@_selectedDate" Applied="ApplyImportedMonth" />
+<div class="admin-publish-bar">
+    <span>@(IsLt ? "Juodraštis. Redagavimo laiko juosta: Europe/Vilnius." : "Draft. Editing time zone: Europe/Vilnius.")</span>
+    <button type="button" class="btn btn-primary" disabled="@(_publishing || !_hasChanges)" @onclick="PublishCalendar">@(IsLt ? "Paskelbti pakeitimus" : "Publish changes")</button>
+    @if (!string.IsNullOrEmpty(_publishStatus)) { <span role="status">@_publishStatus</span> }
+</div>
 
 @if (_showBackups)
 {
@@ -181,7 +186,7 @@ else
                             <td>@s.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
                             <td>
                                 @s.Label
-                                @if (s.IsDefault || _snapshots.Count == 1)
+                                @if (s.IsDefault)
                                 {
                                     <span class="badge bg-success ms-2">DEFAULT</span>
                                 }
@@ -191,7 +196,7 @@ else
                                 <button class="btn btn-sm btn-success" disabled="@_busySnapshots" @onclick="(()=>LoadSnapshot(s.Id))">Load</button>
                                 <button class="btn btn-sm btn-outline-primary ms-2" disabled="@_busySnapshots" @onclick="(()=>DiffSnapshot(s.Id))">Diff</button>
                                 <button class="btn btn-sm btn-outline-success ms-2"
-                                        disabled="@(_busySnapshots || s.IsDefault || _snapshots.Count == 1)"
+                                        disabled="@(_busySnapshots || s.IsDefault)"
                                         @onclick="(() => SetDefaultSnapshot(s.Id))">
                                     Set default
                                 </button>
@@ -483,6 +488,15 @@ else
 
             <div class="moonday-box">
                 <h4>Moon Day</h4>
+                @if (ev.Astronomy is not null)
+                {
+                    <ImportedDayEditor Day="ev" Changed="MarkChanged" />
+                    <label>Phase <select value="@ev.MoonPhase" @onchange="e => SetMoonPhase(ev, e)"><option value="1">New Moon</option><option value="2">First Quarter</option><option value="3">Full Moon</option><option value="4">Third Quarter</option></select></label>
+                    <label>Solar eclipse @BoolIcon(ev.SunEclipse, v => { ev.SunEclipse = v; MarkChanged(); })</label>
+                    <label>Lunar eclipse @BoolIcon(ev.MoonEclipse, v => { ev.MoonEclipse = v; MarkChanged(); })</label>
+                }
+                else
+                {
                 <div class="moonday-grid">
                     <label class="moonday-field">
                         New:
@@ -516,7 +530,7 @@ else
 
                     <label class="moonday-field moonday-field--toggle">
                         Triple:
-                        @BoolIcon(ev.MoonDay.IsTripleMoonDay, v => { ev.MoonDay.IsTripleMoonDay = v; MarkChanged(); })
+                        @BoolIcon(ev.MoonDay.IsTripleMoonDay, v => { ev.MoonDay.IsTripleMoonDay = v; ev.MoonDay.UpdateLegacySequence(); MarkChanged(); })
                     </label>
 
                     <label class="moonday-field">
@@ -544,6 +558,7 @@ else
                                @onchange="@((ChangeEventArgs e) => { SetMoonTransition(ev, e, true); MarkChanged(); })" />
                     </label>
                 </div>
+                }
             </div>
 
             <div class="planet-grid">
@@ -600,6 +615,7 @@ else
         if (!firstRender) return;
 
         _accessGranted = await AdminAccess.IsUnlockedAsync();
+        if (_accessGranted) Store.BeginEditing();
         _accessChecked = true;
         StateHasChanged();
     }
@@ -629,6 +645,7 @@ else
 
             _adminPassword = "";
             _accessGranted = true;
+            Store.BeginEditing();
         }
         finally
         {
@@ -637,6 +654,33 @@ else
     }
 
     private void GoHome() => Nav.NavigateTo("/");
+
+    private bool _publishing;
+    private string _publishStatus = "";
+
+    private void ApplyImportedMonth(AppDB draft)
+    {
+        Store.SetDb(draft);
+        LoadByDate();
+        MarkChanged();
+    }
+
+    private async Task PublishCalendar()
+    {
+        if (Store.Db is null) return;
+        _publishing = true; _publishStatus = "";
+        var changesBeingPublished = _changeCount;
+        try
+        {
+            foreach (var day in Store.Db.AstroEventsDB) CalendarImporter.DetectOverrides(day);
+            CalendarImporter.ValidateDraft(Store.Db);
+            await Store.SaveSnapshotAsync($"Calendar {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC", true);
+            _changeCount -= changesBeingPublished; _hasChanges = _changeCount > 0;
+            _publishStatus = IsLt ? "Pakeitimai paskelbti." : "Changes published.";
+        }
+        catch (Exception ex) { _publishStatus = ex.Message; }
+        finally { _publishing = false; }
+    }
 
     private bool _loading = true;
     private string _error = string.Empty;
@@ -705,6 +749,8 @@ else
     {
         _hasChanges = true;
         _changeCount++;
+        if (Store.Db is not null)
+            foreach (var day in _eventsForDay ?? new()) CalendarImporter.DetectOverrides(day);
     }
 
     protected override async Task OnInitializedAsync()
@@ -965,9 +1011,10 @@ else
 
             // Persist via your existing snapshot mechanism
             var label = $"Interpretations {DateTime.UtcNow:yyyy-MM-dd HH:mm}";
-            await Store.SaveSnapshotAsync(label, setDefault: true);
+            CalendarImporter.ValidateDraft(db);
+            await Store.SaveSnapshotAsync(label, setDefault: false);
 
-            _interpStatus = "✓ Saved (new default snapshot).";
+            _interpStatus = "Saved as a private backup. Use Publish changes when ready.";
         }
         catch (Exception ex)
         {
@@ -1029,6 +1076,7 @@ else
         if (int.TryParse(e.Value?.ToString(), out int n) && n >= 1 && n <= 30)
         {
             ev.MoonDay.NewMoonDay = n;
+            ev.MoonDay.UpdateLegacySequence();
             MarkChanged();
         }
     }
@@ -1076,7 +1124,7 @@ else
         int maxDay = _is29Cycle ? 29 : 30;
 
         var monthEvents = Editor.Db.AstroEventsDB
-            .Where(e => e.Date.Year == year && e.Date.Month == month)
+            .Where(e => e.Date.Year == year && e.Date.Month == month && e.Astronomy is null)
             .OrderBy(e => e.Date)
             .ToList();
 
@@ -1115,6 +1163,8 @@ else
                 e.MoonDay.IsTripleMoonDay = isTripleDay;
                 changed++;
             }
+
+            e.MoonDay.UpdateLegacySequence();
 
             // skip happens on the day BEFORE triple day
             bool isSkipDay = _tripleDayOfMonth != 0 && e.Date.Day == (_tripleDayOfMonth - 1);
@@ -1360,6 +1410,7 @@ else
             // IMPORTANT:
             // In Blazor WASM, injected `Http` is configured for the *static site* (HostEnvironment.BaseAddress).
             // Your API lives on ApiBaseUrl, so use the AstroApiClient wrapper.
+            CalendarImporter.ValidateDraft(db);
             await Api.CreateSnapshotAsync(json, _snapshotLabel, _snapshotMakeDefault);
 
             _snapStatus = "Snapshot created.";
@@ -1437,6 +1488,9 @@ else
         try
         {
             await Api.SetDefaultSnapshotAsync(id);
+            await Store.LoadSnapshotAsync(id);
+            LoadByDate();
+            _hasChanges = false; _changeCount = 0;
             _snapStatus = $"Snapshot {id} is now DEFAULT.";
             await RefreshSnapshots();
         }

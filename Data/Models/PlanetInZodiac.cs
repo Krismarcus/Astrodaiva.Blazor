@@ -1,4 +1,4 @@
-﻿using Astrodaiva.Data.Enums;
+using Astrodaiva.Data.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Astrodaiva.Data.Models
@@ -32,7 +32,7 @@ namespace Astrodaiva.Data.Models
         public ZodiacSign PreviousZodiacSign
         {
             get => previousZodiacSign;
-            private set => SetProperty(ref previousZodiacSign, value);
+            set => SetProperty(ref previousZodiacSign, value);
         }
         
         public bool IsRetrograde

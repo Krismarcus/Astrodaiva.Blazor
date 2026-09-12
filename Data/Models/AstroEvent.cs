@@ -1,4 +1,4 @@
-﻿using Astrodaiva.Data.Enums;
+using Astrodaiva.Data.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Collections.Generic;
@@ -13,6 +13,7 @@ namespace Astrodaiva.Data.Models
     {
         [ObservableProperty]
         private DateTime date;
+        public Astrodaiva.Blazor.Integration.AstronomyMetadata? Astronomy { get; set; }
         public bool IsNewMonthStart => Date.Day == 1;
         [ObservableProperty]
         private PlanetInZodiac sunInZodiac;

@@ -45,6 +45,7 @@ builder.Services.AddScoped<AstroDbStore>();
 builder.Services.AddScoped<AstroDataService>();
 builder.Services.AddScoped<AstroDbEditService>();
 builder.Services.AddScoped<AdminAccessService>();
+builder.Services.AddScoped<VisitorTimeZone>();
 
 var host = builder.Build();
 
