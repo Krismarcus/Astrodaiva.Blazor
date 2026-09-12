@@ -2,6 +2,7 @@ using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Astrodaiva.Api.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,28 @@ public class ImportController(AstroDbContext db) : ControllerBase
         var snapshot = await Current();
         Response.Headers.ETag = $"\"{Revision(snapshot)}\"";
         Response.Headers.CacheControl = "no-cache";
+        return snapshot is null ? NotFound() : Content(PublicCalendar(snapshot.AppDbJson), "application/json");
+    }
+
+    [HttpGet("admin-default")]
+    public async Task<IActionResult> GetAdminDefaultSnapshot()
+    {
+        var snapshot = await Current();
+        Response.Headers.CacheControl = "no-store";
+        Response.Headers.ETag = $"\"{Revision(snapshot)}\"";
         return snapshot is null ? NotFound() : Content(snapshot.AppDbJson, "application/json");
+    }
+
+    private static string PublicCalendar(string json)
+    {
+        var root = JsonNode.Parse(json)!.AsObject();
+        var hidden = root["HiddenYears"]?.AsArray().Select(x => x!.GetValue<int>()).ToHashSet() ?? new();
+        if (hidden.Count == 0) return json;
+        foreach (var name in new[] { "AstroEventsDB", "AstronomyContext" })
+            if (root[name] is JsonArray days)
+                for (var i = days.Count - 1; i >= 0; i--)
+                    if (hidden.Contains(DateTime.Parse(days[i]!["Date"]!.GetValue<string>()).Year)) days.RemoveAt(i);
+        return root.ToJsonString();
     }
 
     [HttpPost("full-sync")]
@@ -40,6 +62,9 @@ public class ImportController(AstroDbContext db) : ControllerBase
             var dates = events.EnumerateArray().Select(e => DateTime.Parse(e.GetProperty("Date").GetString()!).Date).ToList();
             if (dates.Distinct().Count() != dates.Count)
                 return BadRequest(new { message = "The calendar contains duplicate dates." });
+            if (payload.RootElement.TryGetProperty("HiddenYears", out var hidden) &&
+                (hidden.ValueKind != JsonValueKind.Array || hidden.EnumerateArray().Any(x => !x.TryGetInt32(out var year) || year is < 1 or > 9999)))
+                return BadRequest(new { message = "Hidden years must be valid calendar years." });
         }
         catch (Exception ex) when (ex is JsonException or KeyNotFoundException or FormatException or ArgumentException or InvalidOperationException)
         {
@@ -65,6 +90,16 @@ public class ImportController(AstroDbContext db) : ControllerBase
                      !next.TryGetProperty("Astronomy", out var nextMetadata) || nextMetadata.ValueKind != JsonValueKind.Object))
                     return Conflict(new { message = "This draft would remove imported astronomy. Reload using the updated app before publishing." });
             }
+            // A public, filtered response must never replace the complete private calendar.
+            if (oldDocument.RootElement.TryGetProperty("HiddenYears", out var hiddenYears))
+            {
+                var hidden = hiddenYears.EnumerateArray().Select(x => x.GetInt32()).ToHashSet();
+                if (!newDocument.RootElement.TryGetProperty("HiddenYears", out _) ||
+                    oldDocument.RootElement.GetProperty("AstroEventsDB").EnumerateArray().Any(day =>
+                        hidden.Contains(DateTime.Parse(day.GetProperty("Date").GetString()!).Year) &&
+                        !incoming.ContainsKey(day.GetProperty("Date").GetString()!)))
+                    return Conflict(new { message = "This draft is missing private year data. Reload the full calendar in admin before publishing." });
+            }
         }
         if (request.SetDefault)
             await db.AppDbSnapshots.Where(x => x.IsDefault).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsDefault, false));
@@ -89,6 +124,7 @@ public class ImportController(AstroDbContext db) : ControllerBase
     [HttpGet("snapshots/{id:long}")]
     public async Task<IActionResult> GetSnapshot(long id)
     {
+        Response.Headers.CacheControl = "no-store";
         var snapshot = await db.AppDbSnapshots.FindAsync(id);
         return snapshot is null ? NotFound() : Content(snapshot.AppDbJson, "application/json");
     }

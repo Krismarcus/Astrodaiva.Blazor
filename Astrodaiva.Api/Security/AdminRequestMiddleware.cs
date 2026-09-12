@@ -20,7 +20,7 @@ public sealed class AdminRequestMiddleware(RequestDelegate next)
     public static bool AllowsAnonymousAccess(HttpRequest request)
     {
         if (HttpMethods.IsOptions(request.Method)) return true;
-        if (request.Path.StartsWithSegments("/api/astronomy") || request.Path.StartsWithSegments("/api/import/snapshots")) return false;
+        if (request.Path.StartsWithSegments("/api/astronomy") || request.Path.StartsWithSegments("/api/import/snapshots") || request.Path.StartsWithSegments("/api/import/admin-default")) return false;
         if (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method)) return true;
         return request.Path.Equals("/api/auth/admin/login", StringComparison.OrdinalIgnoreCase);
     }
