@@ -58,7 +58,7 @@
         </div>
         <details class="exact-event-editor"><summary>@(IsLt ? "Redaguoti tikslius įvykius" : "Edit exact events") (@astronomy.Events.Count)</summary>
             <p class="muted">@(IsLt ? "Mėnulio dienų pradžią keiskite aukščiau. Ženklo kaitą keiskite planetos kortelėje." : "Edit lunar-day boundaries above and zodiac transitions in the planet cards.")</p>
-            @foreach (var e in astronomy.Events.Where(e => e.Type is not "lunar-day-start" and not "ingress").ToList())
+            @foreach (var e in astronomy.Events.Where(e => e.Type is not "lunar-day-start" and not "ingress" and not "utc-offset-change").ToList())
             {
                 <div class="exact-event-editor__row">
                     <span>@e.Type · @e.BodyId @e.TargetBodyId</span>
