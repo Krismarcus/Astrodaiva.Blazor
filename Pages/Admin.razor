@@ -135,6 +135,7 @@ else
 
 <CalendarImportPanel SelectedDate="@_selectedDate" Applied="ApplyImportedMonth" />
 <div class="admin-publish-bar">
+    <label class="calendar-display-toggle"><input type="checkbox" @bind="Store.Db!.ShowExactEvents" @bind:after="MarkChanged" /> @(IsLt ? "Rodyti tikslius įvykius kalendoriuje" : "Show exact events on the calendar")</label>
     <span>@(IsLt ? "Juodraštis. Redagavimo laiko juosta: Europe/Vilnius." : "Draft. Editing time zone: Europe/Vilnius.")</span>
     <button type="button" class="btn btn-primary" disabled="@(_publishing || !_hasChanges)" @onclick="PublishCalendar">@(IsLt ? "Paskelbti pakeitimus" : "Publish changes")</button>
     @if (!string.IsNullOrEmpty(_publishStatus)) { <span role="status">@_publishStatus</span> }
@@ -491,7 +492,6 @@ else
                 @if (ev.Astronomy is not null)
                 {
                     <ImportedDayEditor Day="ev" Changed="MarkChanged" />
-                    <label>Phase <select value="@ev.MoonPhase" @onchange="e => SetMoonPhase(ev, e)"><option value="1">New Moon</option><option value="2">First Quarter</option><option value="3">Full Moon</option><option value="4">Third Quarter</option></select></label>
                     <label>Solar eclipse @BoolIcon(ev.SunEclipse, v => { ev.SunEclipse = v; MarkChanged(); })</label>
                     <label>Lunar eclipse @BoolIcon(ev.MoonEclipse, v => { ev.MoonEclipse = v; MarkChanged(); })</label>
                 }

@@ -28,6 +28,10 @@ Allow the frontend origin in Cors:AllowedOrigins. The default list now includes 
 
 ## Time-zone behavior
 
+The public calendar keeps its original lunar-day timeline: only actual transition starts appear as HH:mm labels, with the lunar day contained within a three-day date assigned to MiddleMoonDay. A day with no transition displays one lunar-day icon and no time marker. Imported dates use the same New, Middle, Previous and transition fields in admin; detailed segment/event controls are collapsed under Advanced astronomy editing.
+
+Show exact events on the calendar is an admin setting stored with the calendar snapshot and disabled by default. Publish changes applies this display preference; hiding the section keeps its stored data. Import and reset preserve this preference and editorial content.
+
 Browser time-zone detection is automatic. Visitors can override it using Event time zone; the preference stays on their device. Exact events are grouped by their date in the selected zone. Lunar segments are clipped to real civil-day UTC boundaries, including daylight-saving days. Source calculations remain for Vilnius, and activity ratings, authored text, daily phase and planet-sign snapshots remain tied to the Vilnius calendar date. Personal moonrise calculations for a visitor's city are outside this release.
 
 The admin edits in Europe/Vilnius. Ambiguous or nonexistent manual local times are rejected rather than guessed. Imported segments preserve the returned lunar-day numbers, including single-segment dates and the 29 → 1 → 2 sequence. Exact events have stable source IDs, and display uses UTC instants rather than the misleading local-offset spelling of some upstream `*Utc` fields. Legacy records without imported astronomy keep their original Vilnius display.

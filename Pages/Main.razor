@@ -379,7 +379,7 @@ else
             if (!CalendarImporter.Vilnius.IsAmbiguousTime(local) && !CalendarImporter.Vilnius.IsInvalidTime(local))
             {
                 var converted = VisitorZone.Convert(new DateTimeOffset(local, CalendarImporter.Vilnius.GetUtcOffset(local)));
-                timeText = converted.ToString(converted.Date == _current.Date ? "HH:mm:ss" : "MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+                timeText = converted.ToString(converted.Date == _current.Date ? "HH:mm" : "MM-dd HH:mm", CultureInfo.InvariantCulture);
             }
         }
         var transitionTitle = $"{planetName}: {prevName} - {timeText} - {newName}";
@@ -669,25 +669,10 @@ else
         </div>
         <div class="weekday-row">@_current.ToString("dddd", CultureInfo.CurrentCulture)</div>
 
-        @* Moon-day timeline *@
-        @if (_db is not null && CalendarDisplay.SegmentsFor(_db, _current, VisitorZone.Zone) is { Count: > 0 } localSegments)
+        @* Preserve the original timeline for both manual and imported lunar days. *@
+        @if (_db is not null && CalendarDisplay.LunarTimelineFor(_db, _current, VisitorZone.Zone) is { } md)
         {
-            <div class="local-lunar-segments">
-                <span class="muted">@(IsLt ? "Vilniaus Mėnulio dienos" : "Vilnius lunar days") · @VisitorZone.Zone.Id</span>
-                @foreach (var segment in localSegments)
-                {
-                    <button type="button" class="local-lunar-segment" @onclick="() => OpenMoonDayDetails(segment.LunarDayNumber)">
-                        <img src="@($"img/zodiac/{GetMoonDayKey(segment.LunarDayNumber)}.png")" alt="@GetMoonDayName(segment.LunarDayNumber)" />
-                        <strong>@segment.LunarDayNumber</strong>
-                        <span>@VisitorZone.Convert(segment.StartsAtUtc).ToString("HH:mm:ss") – @VisitorZone.Convert(segment.EndsAtUtc).ToString("HH:mm:ss")</span>
-                    </button>
-                }
-            </div>
-        }
-        else if (mo?.MoonDay is not null)
-        {
-            var md = mo.MoonDay!;
-
+            var hasTransition = md.TransitionTime != default && (md.PreviousMoonDay != md.NewMoonDay || md.IsTripleMoonDay);
             var prevIcon = GetMoonDayKey(md.PreviousMoonDay);
             var newIcon  = GetMoonDayKey(md.NewMoonDay);
             var prevTitle = GetMoonDayName(md.PreviousMoonDay);
@@ -698,7 +683,17 @@ else
 
             <div class="moonday-row">
                 <div class="astro-frame astro-frame--moonday">
-                    <div class="md-timeline">
+                    <div class="md-timeline @(hasTransition ? "" : "md-timeline--single") @(md.IsTripleMoonDay ? "md-timeline--triple" : "")">
+                        @if (!hasTransition)
+                        {
+                            <div class="md-side" title="@newTitle">
+                                <button type="button" class="icon-btn" title="@newTitle" @onclick="(() => OpenMoonDayDetails(md.NewMoonDay))">
+                                    <img alt="Current Moon Day" src="@($"img/zodiac/{newIcon}.png")" />
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
                         <div class="md-side md-side--left" title="@prevTitle">
                             <button type="button" class="icon-btn" title="@prevTitle" @onclick="(() => OpenMoonDayDetails(md.PreviousMoonDay))">
                                 <img alt="Previous Moon Day" src="@($"img/zodiac/{prevIcon}.png")" />
@@ -740,6 +735,7 @@ else
                                 <img alt="New Moon Day" src="@($"img/zodiac/{newIcon}.png")" />
                             </button>
                         </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -749,8 +745,10 @@ else
             <div class="moonday-row"><span class="muted">@(IsLt ? "Nėra Mėnulio dienos simbolio" : "No Moon-day symbol")</span></div>
         }
 
-        <LocalAstronomy Db="_db!" Date="_current.Date" />
-        <small class="muted">@(IsLt ? "Planetų ženklai ir fazė: Vilniaus kalendorius" : "Planet signs and phase: Vilnius calendar")</small>
+        @if (_db?.ShowExactEvents == true)
+        {
+            <LocalAstronomy Db="_db!" Date="_current.Date" />
+        }
         @{
             var first = DayEvents.FirstOrDefault();
 

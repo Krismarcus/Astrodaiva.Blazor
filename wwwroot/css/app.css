@@ -1182,6 +1182,9 @@ a {
     gap: var(--space-4);
     align-items: center;
 }
+.md-timeline--single { grid-template-columns: 1fr; min-height: 56px; }
+.md-timeline--triple .md-marker--mid .md-marker-label { left: -2px; transform: translateX(-100%); opacity: 1; animation: none; }
+.md-timeline--triple .md-marker--final .md-marker-label { left: 2px; transform: none; opacity: 1; animation: none; }
 
 .md-side{
     display:flex;
@@ -2944,7 +2947,9 @@ body::before {
 .import-preview th, .import-preview td { padding: .55rem; border-bottom: 1px solid #e9e2f0; vertical-align: top; }
 .import-preview th { position: sticky; top: 0; background: #f3edf9; }
 .import-notice, .override-badge { border-left: 3px solid #805693; padding-left: .75rem; font-size: .875rem; }
-.timezone-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.timezone-settings { padding: .45rem .8rem; background: transparent; margin-block: .35rem; border: 0; font-size: .8rem; }
+.timezone-settings summary { cursor: pointer; text-align: right; }
+.timezone-settings[open] label { margin-top: .65rem; }
 .timezone-settings label { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
 .timezone-settings select { max-width: min(100%, 330px); }
 .timezone-settings select, .segment-editor input, .exact-event-editor input { border: 1px solid #b9a8ca; border-radius: 6px; padding: .45rem; font: inherit; min-width: 0; background: white; color: #352447; }
@@ -2964,6 +2969,10 @@ body::before {
 .segment-editor input[type=number] { width: 5rem; }
 .exact-event-editor { margin-top: 1rem; }
 .exact-event-editor summary { cursor: pointer; }
+.imported-day-editor--compact { margin: 0; padding: 0; border: 0; background: transparent; color: inherit; }
+.imported-day-advanced { margin-top: .65rem; font-size: .875rem; }
+.imported-day-advanced > summary { cursor: pointer; }
+.calendar-display-toggle { display: flex; align-items: center; gap: .5rem; flex-basis: 100%; }
 @media(max-width: 600px) {
     .calendar-import, .timezone-settings, .admin-publish-bar { padding: .75rem; }
     .timezone-settings, .timezone-settings label { align-items: stretch; flex-direction: column; }

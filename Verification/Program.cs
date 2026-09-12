@@ -26,6 +26,9 @@ var imported = CalendarImporter.Preview(original, response, 2026, 9, false);
 Check(original.AstroEventsDB.Count == 0, "preview leaves original untouched");
 Check(imported.Draft.AstroEventsDB.Count == 30 && imported.Draft.AstronomyContext.Count == 4, "only active month becomes editable; four context dates retained");
 var draft = imported.Draft;
+Check(!draft.ShowExactEvents, "exact events are hidden by default for existing calendars");
+var visibleEvents = CalendarImporter.Clone(draft); visibleEvents.ShowExactEvents = true;
+Check(CalendarImporter.Preview(CalendarImporter.Clone(visibleEvents), response, 2026, 9, false).Draft.ShowExactEvents, "display preference survives snapshot roundtrip and month reimport");
 Check(Day(draft, 11).MoonDay.PreviousMoonDay == 29 && Day(draft, 11).MoonDay.MiddleMoonDay == 1 && Day(draft, 11).MoonDay.NewMoonDay == 2, "real 29 → 1 → 2 sequence survives import");
 Check(Day(draft, 6).Astronomy!.Segments.Count == 1, "single lunar segment remains single");
 Check(Day(draft, 3).MoonInZodiac.NewZodiacSign == ZodiacSign.Gemini && Day(draft, 3).MoonInZodiac.PreviousZodiacSign == ZodiacSign.Taurus, "afternoon ingress uses destination sign rather than noon sign");
@@ -45,6 +48,17 @@ var reset = CalendarImporter.Preview(rerun, response, 2026, 9, true).Draft;
 Check(Day(reset, 11).MercuryInZodiac.NewZodiacSign == ZodiacSign.Libra && Day(reset, 11).MoonDay.PreviousMoonDay == 29 && Day(reset, 11).EventText == "My LT title", "explicit reset restores astronomy only");
 CalendarImporter.ValidateDraft(reset);
 var la = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
+var timeline = CalendarDisplay.LunarTimelineFor(reset, new(2026, 9, 10), la)!;
+Check(timeline.PreviousMoonDay == 29 && timeline.MiddleMoonDay == 1 && timeline.NewMoonDay == 2 && timeline.IsTripleMoonDay,
+    "visitor timeline assigns the lunar day contained within the date to the middle");
+Check(timeline.MiddleMoonDayTransitionTime == new DateTime(2026, 9, 10, 20, 27, 0) && timeline.TransitionTime == new DateTime(2026, 9, 10, 20, 58, 43),
+    "timeline contains only actual transition starts in the visitor time zone");
+var singleDay = CalendarDisplay.LunarTimelineFor(reset, new(2026, 9, 6), CalendarImporter.Vilnius)!;
+Check(singleDay.PreviousMoonDay == singleDay.NewMoonDay && singleDay.MiddleMoonDay == 0 && singleDay.TransitionTime == default,
+    "unchanged lunar day has no synthetic midnight transition");
+var legacyOnly = Empty(); legacyOnly.AstroEventsDB.Add(new() { Date = new(2026, 9, 10), MoonDay = new() { NewMoonDay = 29, PreviousMoonDay = 28, TransitionTime = new(2026, 9, 10, 8, 15, 0) } });
+Check(ReferenceEquals(CalendarDisplay.LunarTimelineFor(legacyOnly, new(2026, 9, 10), la), legacyOnly.AstroEventsDB[0].MoonDay),
+    "manual calendar dates retain their original timeline data");
 var september10 = CalendarDisplay.EventsFor(reset, new(2026, 9, 10), la);
 Check(september10.Any(e => e.Type == "moon-phase" && e.PhaseId == "new-moon"), "new moon moves from Sep 11 Vilnius to Sep 10 Los Angeles");
 Check(!CalendarDisplay.EventsFor(reset, new(2026, 9, 11), la).Any(e => e.Type == "moon-phase" && e.PhaseId == "new-moon"), "event is not duplicated on its original date in another zone");

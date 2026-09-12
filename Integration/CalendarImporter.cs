@@ -172,14 +172,7 @@ public static class CalendarImporter
     {
         var segments = day.Astronomy!.Segments;
         if (segments.Count == 0) return;
-        day.MoonDay = new MoonDay
-        {
-            PreviousMoonDay = segments[0].LunarDayNumber, NewMoonDay = segments[^1].LunarDayNumber,
-            MiddleMoonDay = segments.Count > 2 ? segments[1].LunarDayNumber : 0,
-            IsTripleMoonDay = segments.Count > 2,
-            TransitionTime = segments.Count > 1 ? TimeZoneInfo.ConvertTime(segments[^1].StartsAtUtc, Vilnius).DateTime : default,
-            MiddleMoonDayTransitionTime = segments.Count > 2 ? TimeZoneInfo.ConvertTime(segments[1].StartsAtUtc, Vilnius).DateTime : default
-        };
+        day.MoonDay = CalendarDisplay.ProjectLunarDays(segments, Vilnius);
     }
 }
 

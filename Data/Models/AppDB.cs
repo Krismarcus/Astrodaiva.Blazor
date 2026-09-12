@@ -4,6 +4,7 @@ namespace Astrodaiva.Data.Models
 {
     public class AppDB
     {
+        public bool ShowExactEvents { get; set; }
         public List<AstroEvent> AstronomyContext { get; set; } = new();
         public ObservableCollection<AstroEvent> AstroEventsDB { get; set; }
         public ObservableCollection<PlanetInZodiacDetails> PlanetInZodiacsDB { get; set; }

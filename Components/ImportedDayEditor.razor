@@ -4,10 +4,44 @@
 
 @if (Day.Astronomy is { } astronomy)
 {
-    <div class="imported-day-editor">
-        <p class="muted">@(IsLt ? "Importuota astronomija. Redagavimo laiko juosta: Europe/Vilnius." : "Imported astronomy. Editing time zone: Europe/Vilnius.")</p>
+    <div class="imported-day-editor imported-day-editor--compact">
+        <div class="moonday-grid">
+            <label class="moonday-field">New:
+                <select value="@Day.MoonDay.NewMoonDay" @onchange="e => ChangeNumber(astronomy.Segments.Count - 1, e)">
+                    @for (var n = 1; n <= 30; n++) { <option value="@n">@n – @Symbol(n)</option> }
+                </select>
+            </label>
+            <label class="moonday-field">Middle:
+                <select value="@Day.MoonDay.MiddleMoonDay" disabled="@(!Day.MoonDay.IsTripleMoonDay)" @onchange="e => ChangeNumber(1, e)">
+                    <option value="0">0 – None</option>
+                    @for (var n = 1; n <= 30; n++) { <option value="@n">@n – @Symbol(n)</option> }
+                </select>
+            </label>
+            <label class="moonday-field">Previous:
+                <select value="@Day.MoonDay.PreviousMoonDay" disabled="@(astronomy.Segments.Count == 1)" @onchange="e => ChangeNumber(0, e)">
+                    @for (var n = 1; n <= 30; n++) { <option value="@n">@n – @Symbol(n)</option> }
+                </select>
+            </label>
+            <label class="moonday-field moonday-field--toggle">Triple:
+                <input type="checkbox" checked="@Day.MoonDay.IsTripleMoonDay" disabled="@(astronomy.Segments.Count == 1)" @onchange="ToggleTriple" />
+            </label>
+            <label class="moonday-field">Phase:
+                <select value="@Day.MoonPhase" @onchange="ChangePhase">
+                    <option value="0">—</option><option value="1">New Moon (1)</option><option value="2">First Quarter (2)</option><option value="3">Full Moon (3)</option><option value="4">Third Quarter (4)</option>
+                </select>
+            </label>
+            <label class="moonday-field moonday-field--time">Transition:
+                <input type="datetime-local" step="1" value="@(astronomy.Segments.Count > 1 ? Local(astronomy.Segments[^1].StartsAtUtc) : "")" disabled="@(astronomy.Segments.Count == 1)" @onchange="e => ChangeBoundary(astronomy.Segments.Count - 1, e)" />
+            </label>
+            <label class="moonday-field moonday-field--time">Middle transition:
+                <input type="datetime-local" step="1" value="@(Day.MoonDay.IsTripleMoonDay ? Local(astronomy.Segments[1].StartsAtUtc) : "")" disabled="@(!Day.MoonDay.IsTripleMoonDay)" @onchange="e => ChangeBoundary(1, e)" />
+            </label>
+        </div>
         @if (astronomy.Overrides.Count > 0) { <p class="override-badge">@(IsLt ? "Rankiniai pakeitimai" : "Manual overrides"): @string.Join(", ", astronomy.Overrides.Select(x => x.Replace("InZodiac", "")))</p> }
         @if (!string.IsNullOrEmpty(_error)) { <p class="admin-error" role="alert">@_error</p> }
+        <details class="imported-day-advanced">
+            <summary>@(IsLt ? "Išsamus astronomijos redagavimas" : "Advanced astronomy editing")</summary>
+            <p class="muted">@(IsLt ? "Redagavimo laiko juosta: Europe/Vilnius." : "Editing time zone: Europe/Vilnius.")</p>
         <div class="segment-editor">
             <strong>@(IsLt ? "Mėnulio dienos" : "Lunar days")</strong>
             @for (var i = 0; i < astronomy.Segments.Count; i++)
@@ -35,6 +69,7 @@
                 </div>
             }
         </details>
+        </details>
     </div>
 }
 
@@ -43,6 +78,31 @@
     [Parameter] public EventCallback Changed { get; set; }
     private string _error = "";
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private static string Symbol(int n) => ((Astrodaiva.Data.Enums.MoonDaySymbol)n).ToString();
+    private async Task ChangePhase(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var phase) || phase is < 0 or > 4) return;
+        Day.MoonPhase = phase; await Changed.InvokeAsync();
+    }
+    private async Task ToggleTriple(ChangeEventArgs args)
+    {
+        var segments = Day.Astronomy!.Segments;
+        if (args.Value is true && segments.Count == 2)
+        {
+            var first = segments[0];
+            var boundary = CalendarImporter.Round(first.StartsAtUtc.AddTicks((first.EndsAtUtc - first.StartsAtUtc).Ticks / 2));
+            if (boundary <= first.StartsAtUtc || boundary >= first.EndsAtUtc) return;
+            segments.Insert(1, new() { LunarDayNumber = first.LunarDayNumber == 30 ? 1 : first.LunarDayNumber + 1, StartsAtUtc = boundary, EndsAtUtc = first.EndsAtUtc });
+            first.EndsAtUtc = boundary;
+            await LunarChanged();
+        }
+        else if (args.Value is false && segments.Count > 2)
+        {
+            segments[0].EndsAtUtc = segments[^1].StartsAtUtc;
+            segments.RemoveRange(1, segments.Count - 2);
+            await LunarChanged();
+        }
+    }
     private static string Local(DateTimeOffset value) => TimeZoneInfo.ConvertTime(value, CalendarImporter.Vilnius).ToString("yyyy-MM-ddTHH:mm:ss");
     private bool ParseTime(object? input, out DateTimeOffset result)
     {

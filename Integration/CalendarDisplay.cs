@@ -4,6 +4,24 @@ namespace Astrodaiva.Blazor.Integration;
 
 public static class CalendarDisplay
 {
+    public static MoonDay? LunarTimelineFor(AppDB db, DateTime date, TimeZoneInfo zone)
+    {
+        var segments = SegmentsFor(db, date, zone);
+        return segments.Count > 0 ? ProjectLunarDays(segments, zone)
+            : db.AstroEventsDB.FirstOrDefault(d => d.Date.Date == date.Date)?.MoonDay;
+    }
+
+    public static MoonDay ProjectLunarDays(IReadOnlyList<LunarSegment> segments, TimeZoneInfo zone) => new()
+    {
+        PreviousMoonDay = segments[0].LunarDayNumber,
+        NewMoonDay = segments[^1].LunarDayNumber,
+        // The interior day starts and ends within this calendar date.
+        MiddleMoonDay = segments.Count > 2 ? segments[1].LunarDayNumber : 0,
+        IsTripleMoonDay = segments.Count > 2,
+        TransitionTime = segments.Count > 1 ? TimeZoneInfo.ConvertTime(segments[^1].StartsAtUtc, zone).DateTime : default,
+        MiddleMoonDayTransitionTime = segments.Count > 2 ? TimeZoneInfo.ConvertTime(segments[1].StartsAtUtc, zone).DateTime : default
+    };
+
     public static IEnumerable<AstroEvent> SourceDays(AppDB db) => db.AstroEventsDB.Where(d => d.Astronomy is not null)
         .Concat(db.AstronomyContext).GroupBy(d => d.Date.Date).Select(g => g.First());
 
