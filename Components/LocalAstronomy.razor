@@ -4,13 +4,11 @@
 @using Astrodaiva.Data.Enums
 @using Astrodaiva.Blazor.Utils
 @using System.Globalization
-@inject VisitorTimeZone VisitorZone
-@implements IDisposable
 
 <section class="local-astronomy" aria-label="@(IsLt ? "Tikslūs įvykiai" : "Exact events")">
     <div class="local-astronomy__heading">
         <strong>@(IsLt ? "Tikslūs įvykiai" : "Exact events")</strong>
-        <span>@VisitorZone.Zone.Id · @Date.ToString("yyyy-MM-dd")</span>
+        <span>@Date.ToString("yyyy-MM-dd")</span>
     </div>
     @if (Events.Count == 0)
     {
@@ -21,7 +19,7 @@
         <ul class="exact-event-list">
             @foreach (var e in Events)
             {
-                <li><time datetime="@e.AtUtc.ToUniversalTime().ToString("O")" title="@VisitorZone.Convert(e.AtUtc).ToString("yyyy-MM-dd HH:mm:ss zzz")">@VisitorZone.Convert(e.AtUtc).ToString("HH:mm:ss")</time><span>@Label(e)</span></li>
+                <li><time datetime="@e.AtUtc.ToUniversalTime().ToString("O")" title="@TimeZoneInfo.ConvertTime(e.AtUtc, CalendarImporter.Vilnius).ToString("yyyy-MM-dd HH:mm:ss")">@TimeZoneInfo.ConvertTime(e.AtUtc, CalendarImporter.Vilnius).ToString("HH:mm:ss")</time><span>@Label(e)</span></li>
             }
         </ul>
     }
@@ -31,10 +29,7 @@
     [Parameter, EditorRequired] public AppDB Db { get; set; } = default!;
     [Parameter] public DateTime Date { get; set; }
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
-    private List<ExactEvent> Events => CalendarDisplay.EventsFor(Db, Date, VisitorZone.Zone);
-    protected override void OnInitialized() => VisitorZone.Changed += OnChanged;
-    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
-    public void Dispose() => VisitorZone.Changed -= OnChanged;
+    private List<ExactEvent> Events => CalendarDisplay.EventsFor(Db, Date, CalendarImporter.Vilnius).Where(e => e.Type != "utc-offset-change").ToList();
 
     private string Body(string? id)
     {
@@ -53,7 +48,6 @@
             "lunar-day-start" => IsLt ? $"Prasideda {e.LunarDayNumber} Mėnulio diena" : $"Lunar day {e.LunarDayNumber} begins",
             "solar-eclipse" => IsLt ? "Saulės užtemimas" : "Solar eclipse",
             "lunar-eclipse" => IsLt ? "Mėnulio užtemimas" : "Lunar eclipse",
-            "utc-offset-change" => IsLt ? "Vilniaus laiko poslinkio kaita" : "Vilnius UTC offset changes",
             _ => e.Type
         };
     }

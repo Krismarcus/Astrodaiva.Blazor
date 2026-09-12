@@ -4,6 +4,8 @@ namespace Astrodaiva.Blazor.Integration;
 
 public static class CalendarDisplay
 {
+    public static DateTime Now => TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, CalendarImporter.Vilnius).DateTime;
+    public static DateTime Today => Now.Date;
     public static MoonDay? LunarTimelineFor(AppDB db, DateTime date, TimeZoneInfo zone)
     {
         var segments = SegmentsFor(db, date, zone);

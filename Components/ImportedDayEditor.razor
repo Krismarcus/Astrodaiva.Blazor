@@ -41,7 +41,6 @@
         @if (!string.IsNullOrEmpty(_error)) { <p class="admin-error" role="alert">@_error</p> }
         <details class="imported-day-advanced">
             <summary>@(IsLt ? "Išsamus astronomijos redagavimas" : "Advanced astronomy editing")</summary>
-            <p class="muted">@(IsLt ? "Redagavimo laiko juosta: Europe/Vilnius." : "Editing time zone: Europe/Vilnius.")</p>
         <div class="segment-editor">
             <strong>@(IsLt ? "Mėnulio dienos" : "Lunar days")</strong>
             @for (var i = 0; i < astronomy.Segments.Count; i++)
@@ -51,7 +50,7 @@
                 <div class="segment-editor__row">
                     <label>@(IsLt ? "Numeris" : "Number")<input type="number" min="1" max="30" value="@segment.LunarDayNumber" @onchange="e => ChangeNumber(index, e)" /></label>
                     <label>@(IsLt ? "Pradžia" : "Starts")<input type="datetime-local" step="1" value="@Local(segment.StartsAtUtc)" disabled="@(index == 0)" @onchange="e => ChangeBoundary(index, e)" /></label>
-                    <span>→ @TimeZoneInfo.ConvertTime(segment.EndsAtUtc, CalendarImporter.Vilnius).ToString("MM-dd HH:mm:ss zzz")</span>
+                    <span>→ @TimeZoneInfo.ConvertTime(segment.EndsAtUtc, CalendarImporter.Vilnius).ToString("MM-dd HH:mm:ss")</span>
                     <button type="button" class="btn" disabled="@(astronomy.Segments.Count == 1)" @onclick="() => RemoveSegment(index)">@(IsLt ? "Pašalinti" : "Remove")</button>
                 </div>
             }
@@ -110,7 +109,7 @@
         if (!DateTime.TryParse(input?.ToString(), CultureInfo.InvariantCulture, DateTimeStyles.None, out var value)) { _error = "Enter a valid date and time."; return false; }
         value = DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
         if (CalendarImporter.Vilnius.IsInvalidTime(value) || CalendarImporter.Vilnius.IsAmbiguousTime(value))
-        { _error = "This Vilnius time is skipped or repeated by daylight saving. Choose an unambiguous time."; return false; }
+        { _error = "This time is not valid. Choose a different time."; return false; }
         result = new DateTimeOffset(value, CalendarImporter.Vilnius.GetUtcOffset(value)).ToUniversalTime();
         return true;
     }
@@ -151,7 +150,7 @@
     private async Task ChangeEventTime(ExactEvent e, ChangeEventArgs args)
     {
         if (!ParseTime(args.Value, out var at)) return;
-        if (at < Day.Astronomy!.Source.StartsAtUtc || at >= Day.Astronomy.Source.EndsAtUtc) { _error = "Keep this event within its Vilnius calendar date."; return; }
+        if (at < Day.Astronomy!.Source.StartsAtUtc || at >= Day.Astronomy.Source.EndsAtUtc) { _error = "Keep this event within its calendar date."; return; }
         e.AtUtc = at; _error = ""; await Changed.InvokeAsync();
     }
     private async Task ChangeTitle(ExactEvent e, ChangeEventArgs args) { e.Title = args.Value?.ToString(); await Changed.InvokeAsync(); }

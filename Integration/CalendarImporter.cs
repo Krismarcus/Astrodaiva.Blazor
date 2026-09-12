@@ -121,7 +121,7 @@ public static class CalendarImporter
             var a = day.Astronomy!;
             ValidateSegments(a.Segments, a.Source.StartsAtUtc, a.Source.EndsAtUtc);
             if (a.Events.Any(e => e.AtUtc < a.Source.StartsAtUtc || e.AtUtc >= a.Source.EndsAtUtc))
-                throw new InvalidOperationException($"An exact event on {day.Date:yyyy-MM-dd} is outside its Vilnius date.");
+                throw new InvalidOperationException($"An exact event on {day.Date:yyyy-MM-dd} is outside its calendar date.");
         }
     }
 

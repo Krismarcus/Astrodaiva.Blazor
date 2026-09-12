@@ -259,7 +259,7 @@
 
 @code {
     private AppDB? _db;
-    private int _year = DateTime.Now.Year;
+    private int _year = CalendarDisplay.Today.Year;
     private List<PlanetRow> _planetRows = new();
     private List<MonthSegment> _monthSegments = new();
     private HashSet<Planet> _visiblePlanets = new();
@@ -332,7 +332,7 @@
     }
 
     private int DaysInSelectedYear => DateTime.IsLeapYear(_year) ? 366 : 365;
-    private bool ShouldShowTodayBeam => _year == DateTime.Today.Year;
+    private bool ShouldShowTodayBeam => _year == CalendarDisplay.Today.Year;
     private double TodayPositionPercentage
     {
         get
@@ -340,7 +340,7 @@
             if (!ShouldShowTodayBeam)
                 return 0;
 
-            var todayCenter = DateTime.Today.DayOfYear - 0.5;
+            var todayCenter = CalendarDisplay.Today.DayOfYear - 0.5;
             return Math.Clamp((todayCenter * 100.0) / DaysInSelectedYear, 0, 100);
         }
     }
@@ -447,7 +447,7 @@
 
     private void GoToToday()
     {
-        _year = DateTime.Today.Year;
+        _year = CalendarDisplay.Today.Year;
         ClearSelection();
         GenerateCalendar();
         _scrollToTodayRequested = true;

@@ -136,7 +136,7 @@ else
 <CalendarImportPanel SelectedDate="@_selectedDate" Applied="ApplyImportedMonth" />
 <div class="admin-publish-bar">
     <label class="calendar-display-toggle"><input type="checkbox" @bind="Store.Db!.ShowExactEvents" @bind:after="MarkChanged" /> @(IsLt ? "Rodyti tikslius įvykius kalendoriuje" : "Show exact events on the calendar")</label>
-    <span>@(IsLt ? "Juodraštis. Redagavimo laiko juosta: Europe/Vilnius." : "Draft. Editing time zone: Europe/Vilnius.")</span>
+    <span>@(IsLt ? "Juodraštis." : "Draft.")</span>
     <button type="button" class="btn btn-primary" disabled="@(_publishing || !_hasChanges)" @onclick="PublishCalendar">@(IsLt ? "Paskelbti pakeitimus" : "Publish changes")</button>
     @if (!string.IsNullOrEmpty(_publishStatus)) { <span role="status">@_publishStatus</span> }
 </div>
@@ -173,7 +173,7 @@ else
                         <thead>
                             <tr>
                                 <th>Id</th>
-                                <th>Created (UTC)</th>
+                                <th>Created</th>
                                 <th>Label</th>
                                 <th>Size</th>
                                 <th></th>
@@ -184,7 +184,7 @@ else
                             {
                         <tr>
                             <td>@s.Id</td>
-                            <td>@s.CreatedUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>@TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(s.CreatedUtc, DateTimeKind.Utc), CalendarImporter.Vilnius).ToString("yyyy-MM-dd HH:mm:ss")</td>
                             <td>
                                 @s.Label
                                 @if (s.IsDefault)
@@ -674,7 +674,7 @@ else
         {
             foreach (var day in Store.Db.AstroEventsDB) CalendarImporter.DetectOverrides(day);
             CalendarImporter.ValidateDraft(Store.Db);
-            await Store.SaveSnapshotAsync($"Calendar {DateTime.UtcNow:yyyy-MM-dd HH:mm} UTC", true);
+            await Store.SaveSnapshotAsync($"Calendar {CalendarDisplay.Now:yyyy-MM-dd HH:mm}", true);
             _changeCount -= changesBeingPublished; _hasChanges = _changeCount > 0;
             _publishStatus = IsLt ? "Pakeitimai paskelbti." : "Changes published.";
         }
@@ -685,7 +685,7 @@ else
     private bool _loading = true;
     private string _error = string.Empty;
 
-    private DateTime _selectedDate = DateTime.Today;
+    private DateTime _selectedDate = CalendarDisplay.Today;
     private List<AstroEvent>? _eventsForDay;
 
     // ----- CHANGE TRACKING -----

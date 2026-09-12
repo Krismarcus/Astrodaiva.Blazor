@@ -26,13 +26,13 @@ Allow the frontend origin in Cors:AllowedOrigins. The default list now includes 
 - Snapshot list/get/delete and set-default now require an admin token. The first/only private snapshot is no longer automatically published. Deleting the published snapshot returns 409; restore a different one first.
 - Restoring uses POST /api/import/snapshots/{id}/set-default with `{ "baseRevision": "..." }`. Publication and restore use database transactions. Older frontend saves that would remove astronomy metadata are rejected.
 
-## Time-zone behavior
+## Calendar display
 
 The public calendar keeps its original lunar-day timeline: only actual transition starts appear as HH:mm labels, with the lunar day contained within a three-day date assigned to MiddleMoonDay. A day with no transition displays one lunar-day icon and no time marker. Imported dates use the same New, Middle, Previous and transition fields in admin; detailed segment/event controls are collapsed under Advanced astronomy editing.
 
 Show exact events on the calendar is an admin setting stored with the calendar snapshot and disabled by default. Publish changes applies this display preference; hiding the section keeps its stored data. Import and reset preserve this preference and editorial content.
 
-Browser time-zone detection is automatic. Visitors can override it using Event time zone; the preference stays on their device. Exact events are grouped by their date in the selected zone. Lunar segments are clipped to real civil-day UTC boundaries, including daylight-saving days. Source calculations remain for Vilnius, and activity ratings, authored text, daily phase and planet-sign snapshots remain tied to the Vilnius calendar date. Personal moonrise calculations for a visitor's city are outside this release.
+Every visitor sees the same Vilnius calendar dates, lunar-day transitions, event times and authored activity ratings. Browser time-zone detection, saved visitor preferences, selectors and explanatory time-zone labels are disabled. Future visitor conversion support remains outside the current UI.
 
 The admin edits in Europe/Vilnius. Ambiguous or nonexistent manual local times are rejected rather than guessed. Imported segments preserve the returned lunar-day numbers, including single-segment dates and the 29 → 1 → 2 sequence. Exact events have stable source IDs, and display uses UTC instants rather than the misleading local-offset spelling of some upstream `*Utc` fields. Legacy records without imported astronomy keep their original Vilnius display.
 
@@ -47,6 +47,8 @@ dotnet build Astrodaiva.Blazor.csproj
 dotnet build Astrodaiva.Api/Astrodaiva.Api.csproj
 dotnet run --project Verification/Astrodaiva.Verification.csproj
 ```
+
+A local browser preview must be started with `--serve --calendar /path/to/published-calendar.json`, using a copy of the published calendar. The preview must never start from an empty calendar with generated astronomy alone, because that hides the administrator’s yearly Good/Bad ratings. Test-only credentials and saves stay in the isolated preview database.
 
 Verification uses a checked-in public calculation fixture and an isolated in-memory SQLite database. It tests the actual controllers and middleware, import roundtrips, override preservation/reset, editorial preservation, time-zone date changes and boundaries, authentication, optimistic publication, and rollback. It does not contact production or modify MySQL. MySQL deployment smoke checks remain necessary for infrastructure-specific behavior.
 

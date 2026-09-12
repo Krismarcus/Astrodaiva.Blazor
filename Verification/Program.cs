@@ -82,6 +82,27 @@ Check(CalendarDisplay.EventsFor(reset, new(2026, 9, 11), CalendarImporter.Vilniu
 
 // The real controllers and admin middleware run against an isolated SQLite database.
 // The calculation transport is a captured response; no test contacts production.
+var yearly = Empty();
+var ratingFields = new[] { "ImportantTasks", "Contracts", "Meetings", "Love", "Buystuff", "Beauty", "Barber", "Gardening", "NewIdeas", "Tech", "Travel" };
+for (var i = 0; i < 365; i++)
+{
+    var day = new AstroEvent { Date = new DateTime(2026, 1, 1).AddDays(i) };
+    for (var f = 0; f < ratingFields.Length; f++)
+        typeof(AstroEvent).GetProperty(ratingFields[f])!.SetValue(day, (i + f) % 2 == 0 ? ActivityQuality.Good : ActivityQuality.Bad);
+    yearly.AstroEventsDB.Add(day);
+}
+var yearlyImport = CalendarImporter.Preview(CalendarImporter.Clone(yearly), response, 2026, 9, false).Draft;
+Check(yearlyImport.AstroEventsDB.Count == 365 && yearly.AstroEventsDB.Zip(yearlyImport.AstroEventsDB).All(pair =>
+    pair.First.Date == pair.Second.Date && ratingFields.All(field => Equals(typeof(AstroEvent).GetProperty(field)!.GetValue(pair.First), typeof(AstroEvent).GetProperty(field)!.GetValue(pair.Second)))),
+    "month import preserves every saved Good/Bad activity rating across the full year");
+var vilniusTimeline = CalendarDisplay.LunarTimelineFor(reset, new(2026, 9, 11), CalendarImporter.Vilnius)!;
+Check(vilniusTimeline.MiddleMoonDayTransitionTime == new DateTime(2026, 9, 11, 6, 27, 0) && vilniusTimeline.TransitionTime == new DateTime(2026, 9, 11, 6, 58, 43),
+    "shared calendar uses original Vilnius transition times");
+if (args.Contains("--calculations-only"))
+{
+    Console.WriteLine($"All {count} calendar checks passed.");
+    return;
+}
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Configuration["CelestialMe:BaseUrl"] = "https://calculation.invalid/";
@@ -100,7 +121,13 @@ await using (var scope = app.Services.CreateAsyncScope())
     var db = scope.ServiceProvider.GetRequiredService<AstroDbContext>(); await db.Database.EnsureCreatedAsync();
     if (args.Contains("--serve"))
     {
-        db.AppDbSnapshots.Add(new() { AppDbJson = JsonSerializer.Serialize(CalendarImporter.Preview(Empty(), response, 2026, 9, false).Draft), Label = "Local verification fixture", IsDefault = true }); await db.SaveChangesAsync();
+        var calendarArgument = Array.IndexOf(args, "--calendar");
+        if (calendarArgument < 0 || calendarArgument + 1 >= args.Length)
+            throw new InvalidOperationException("Local previews require --calendar <published-calendar.json> so saved activity ratings are retained.");
+        var previewJson = await File.ReadAllTextAsync(args[calendarArgument + 1]);
+        var previewCalendar = JsonSerializer.Deserialize<AppDB>(previewJson, CalendarImporter.JsonOptions);
+        if (previewCalendar?.AstroEventsDB is not { Count: > 0 }) throw new InvalidOperationException("The preview calendar contains no saved dates.");
+        db.AppDbSnapshots.Add(new() { AppDbJson = previewJson, Label = "Local copy of published calendar", IsDefault = true }); await db.SaveChangesAsync();
     }
 }
 app.Urls.Add("http://127.0.0.1:5091"); await app.StartAsync();

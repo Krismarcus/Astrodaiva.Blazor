@@ -9,7 +9,7 @@
 
 <section class="calendar-import" aria-label="@(IsLt ? "Astronomijos importas" : "Astronomy import")">
     <div class="calendar-import__toolbar">
-        <div><strong>@(IsLt ? "Importuoti pasirinktą mėnesį" : "Import selected month")</strong><span>@SelectedDate.ToString("MMMM yyyy", CultureInfo.CurrentCulture) · Vilnius</span></div>
+        <div><strong>@(IsLt ? "Importuoti pasirinktą mėnesį" : "Import selected month")</strong><span>@SelectedDate.ToString("MMMM yyyy", CultureInfo.CurrentCulture)</span></div>
         <button type="button" class="btn btn-outline-primary" disabled="@_busy" @onclick="Generate">@(IsLt ? "Importuoti astronomiją" : "Import astronomy")</button>
         @if (_busy) { <button type="button" class="btn" @onclick="Cancel">@(IsLt ? "Atšaukti" : "Cancel")</button> }
     </div>
@@ -28,7 +28,7 @@
             </tbody></table></div>
             @if (_response is not null)
             {
-                <p class="muted">@_response.Location.Label · @_response.Location.LatitudeDeg.ToString(CultureInfo.InvariantCulture), @_response.Location.LongitudeDeg.ToString(CultureInfo.InvariantCulture) · @_response.Location.TimeZoneId</p>
+                <p class="muted">@_response.Location.Label · @_response.Location.LatitudeDeg.ToString(CultureInfo.InvariantCulture), @_response.Location.LongitudeDeg.ToString(CultureInfo.InvariantCulture)</p>
                 @foreach (var notice in _preview.Notices.Where(n => n.Code.Contains("pending") || n.Severity != "info")) { <p class="import-notice">@notice.Message</p> }
             }
             <div class="import-preview__actions"><button type="button" class="btn btn-primary" @onclick="Apply">@(IsLt ? "Pritaikyti ir redaguoti" : "Apply and edit")</button><button type="button" class="btn" @onclick="Discard">@(IsLt ? "Atmesti" : "Discard preview")</button></div>

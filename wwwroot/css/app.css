@@ -2933,13 +2933,13 @@ body::before {
 }
 
 /* Calendar import and local event times reuse the existing violet calendar palette. */
-.calendar-import, .admin-publish-bar, .timezone-settings, .local-astronomy, .imported-day-editor {
+.calendar-import, .admin-publish-bar, .local-astronomy, .imported-day-editor {
     border: 1px solid #d7cde6; border-radius: 12px; padding: 1rem; margin-block: 1rem; background: #fff; color: #352447;
     font-size: 1rem;
 }
 .calendar-import__toolbar, .admin-publish-bar, .import-preview__actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }
 .calendar-import__toolbar > div { flex: 1; min-width: 180px; }
-.calendar-import__toolbar span, .timezone-settings small { display: block; margin-top: .3rem; font-size: .875rem; }
+.calendar-import__toolbar span { display: block; margin-top: .3rem; font-size: .875rem; }
 .import-reset { display: flex; gap: .6rem; align-items: center; margin-block: .85rem; font-size: .875rem; }
 .import-preview { border-top: 1px solid #d7cde6; padding-top: 1rem; }
 .import-preview__table { max-height: 320px; overflow: auto; margin-block: .75rem; }
@@ -2947,12 +2947,7 @@ body::before {
 .import-preview th, .import-preview td { padding: .55rem; border-bottom: 1px solid #e9e2f0; vertical-align: top; }
 .import-preview th { position: sticky; top: 0; background: #f3edf9; }
 .import-notice, .override-badge { border-left: 3px solid #805693; padding-left: .75rem; font-size: .875rem; }
-.timezone-settings { padding: .45rem .8rem; background: transparent; margin-block: .35rem; border: 0; font-size: .8rem; }
-.timezone-settings summary { cursor: pointer; text-align: right; }
-.timezone-settings[open] label { margin-top: .65rem; }
-.timezone-settings label { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
-.timezone-settings select { max-width: min(100%, 330px); }
-.timezone-settings select, .segment-editor input, .exact-event-editor input { border: 1px solid #b9a8ca; border-radius: 6px; padding: .45rem; font: inherit; min-width: 0; background: white; color: #352447; }
+.segment-editor input, .exact-event-editor input { border: 1px solid #b9a8ca; border-radius: 6px; padding: .45rem; font: inherit; min-width: 0; background: white; color: #352447; }
 .local-astronomy { margin-block: .5rem; padding: .8rem; text-align: left; }
 .local-astronomy__heading { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
 .local-astronomy__heading span { font-size: .875rem; }
@@ -2974,9 +2969,7 @@ body::before {
 .imported-day-advanced > summary { cursor: pointer; }
 .calendar-display-toggle { display: flex; align-items: center; gap: .5rem; flex-basis: 100%; }
 @media(max-width: 600px) {
-    .calendar-import, .timezone-settings, .admin-publish-bar { padding: .75rem; }
-    .timezone-settings, .timezone-settings label { align-items: stretch; flex-direction: column; }
-    .timezone-settings select { max-width: 100%; width: 100%; }
+    .calendar-import, .admin-publish-bar { padding: .75rem; }
     .segment-editor__row, .exact-event-editor__row { align-items: stretch; }
     .segment-editor__row label, .exact-event-editor__row label { max-width: 100%; }
     .calendar-import__toolbar .btn, .admin-publish-bar .btn { min-height: 44px; }

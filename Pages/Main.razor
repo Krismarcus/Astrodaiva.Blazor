@@ -1,7 +1,6 @@
 @page "/"
 @inject Astrodaiva.Blazor.Services.AstroDbStore Store
 @inject IJSRuntime JS
-@inject Astrodaiva.Blazor.Services.VisitorTimeZone VisitorZone
 @implements IAsyncDisposable
 @using Astrodaiva.Data
 @using Astrodaiva.Data.Models
@@ -18,7 +17,6 @@
 }
 else
 {
-    <TimeZoneSelector />
     <div class="card split-2">
         <!-- LEFT: calendar -->
         <div class="tabs-panel">
@@ -51,7 +49,7 @@ else
                             var active = d == _selectedDay ? "active" : "";
                             var today = IsToday(d) ? "is-today" : "";
                             var e = _monthEvents.FirstOrDefault(x => x.Date.Day == d);
-                            var localLunarDay = CalendarDisplay.SegmentsFor(_db, new DateTime(_year, _month, d), VisitorZone.Zone).LastOrDefault()?.LunarDayNumber;
+                            var localLunarDay = CalendarDisplay.SegmentsFor(_db, new DateTime(_year, _month, d), CalendarImporter.Vilnius).LastOrDefault()?.LunarDayNumber;
                             string? moonDay = localLunarDay is int lunarNumber ? GetMoonDayKey(lunarNumber) : e?.MoonDay is not null ? GetMoonDayKey(e.MoonDay.NewMoonDay) : null;
                             var q = GetActivityQuality(e, _selectedActivity);
                             var qClass = GetQualityClass(q);
@@ -170,7 +168,7 @@ else
 @code {
     private AppDB? _db;
     private List<AstroEvent> _monthEvents = new();
-    private DateTime _current = DateTime.Today;
+    private DateTime _current = CalendarDisplay.Today;
     private int _year;
     private int _month;
     private int _selectedDay;
@@ -348,7 +346,7 @@ else
     }
 
     private bool IsToday(int day)
-        => _year == DateTime.Today.Year && _month == DateTime.Today.Month && day == DateTime.Today.Day;
+        => _year == CalendarDisplay.Today.Year && _month == CalendarDisplay.Today.Month && day == CalendarDisplay.Today.Day;
 
     private string BuildZodiacOrTransitionBlock(string planetName, PlanetInZodiac? p)
     {
@@ -372,16 +370,7 @@ else
         // transitioning: show previous sign (left) + transition time (center) + new sign (right)
         var prevName = GetSignName((int)p.PreviousZodiacSign);
         var prevIcon = EnumText.GetZodiacKey(p.PreviousZodiacSign);
-        var timeText = p.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture) + " Vilnius";
-        if (DayEvents.FirstOrDefault()?.Astronomy is not null && p.TransitionTime != default)
-        {
-            var local = DateTime.SpecifyKind(p.TransitionTime, DateTimeKind.Unspecified);
-            if (!CalendarImporter.Vilnius.IsAmbiguousTime(local) && !CalendarImporter.Vilnius.IsInvalidTime(local))
-            {
-                var converted = VisitorZone.Convert(new DateTimeOffset(local, CalendarImporter.Vilnius.GetUtcOffset(local)));
-                timeText = converted.ToString(converted.Date == _current.Date ? "HH:mm" : "MM-dd HH:mm", CultureInfo.InvariantCulture);
-            }
-        }
+        var timeText = p.TransitionTime.ToString("HH:mm", CultureInfo.InvariantCulture);
         var transitionTitle = $"{planetName}: {prevName} - {timeText} - {newName}";
 
         return $@"<div class=""astro-label"">{transitionTitle}</div>
@@ -397,8 +386,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        VisitorZone.Changed += OnTimeZoneChanged;
-        await VisitorZone.InitializeAsync();
         Store.Changed += OnStoreChanged;
         _db = await Store.EnsureLoadedAsync();
         _year = _current.Year;
@@ -427,11 +414,9 @@ else
         InvokeAsync(StateHasChanged);
     }
 
-    private void OnTimeZoneChanged() => _ = InvokeAsync(StateHasChanged);
 
     public async ValueTask DisposeAsync()
     {
-        VisitorZone.Changed -= OnTimeZoneChanged;
         Store.Changed -= OnStoreChanged;
         await JS.InvokeVoidAsync("modalLayer.setMobileDayOverlayOpen", false);
     }
@@ -670,7 +655,7 @@ else
         <div class="weekday-row">@_current.ToString("dddd", CultureInfo.CurrentCulture)</div>
 
         @* Preserve the original timeline for both manual and imported lunar days. *@
-        @if (_db is not null && CalendarDisplay.LunarTimelineFor(_db, _current, VisitorZone.Zone) is { } md)
+        @if (_db is not null && CalendarDisplay.LunarTimelineFor(_db, _current, CalendarImporter.Vilnius) is { } md)
         {
             var hasTransition = md.TransitionTime != default && (md.PreviousMoonDay != md.NewMoonDay || md.IsTripleMoonDay);
             var prevIcon = GetMoonDayKey(md.PreviousMoonDay);
