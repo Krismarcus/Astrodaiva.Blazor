@@ -1,0 +1,37 @@
+@using Astrodaiva.Data.Models
+@using Astrodaiva.Blazor.Pages
+@using System.Globalization
+
+<section class="admin-draft-preview">
+    <div class="admin-preview-toolbar">
+        <div>
+            <strong>@(IsLt ? "Juodraščio peržiūra" : "Draft preview")</strong>
+            <p class="muted">@(IsLt ? "Matote neišpublikuotus pakeitimus ir paslėptus metus. Peržiūra nieko nepaskelbia." : "Includes unpublished edits and hidden years. Previewing does not publish anything.")</p>
+            <span class="admin-preview-visibility">@_date.Year · @(Db.HiddenYears.Contains(_date.Year) ? (IsLt ? "Paslėpti paskelbus" : "Hidden after publishing") : (IsLt ? "Rodomi paskelbus" : "Shown after publishing"))</span>
+        </div>
+        <div class="admin-preview-actions">
+            <button type="button" class="btn @(!_yearView ? "btn-primary" : "btn-outline-primary")" aria-pressed="@(!_yearView)" @onclick="() => _yearView = false">@(IsLt ? "Mėnuo" : "Month")</button>
+            <button type="button" class="btn @(_yearView ? "btn-primary" : "btn-outline-primary")" aria-pressed="@_yearView" @onclick="() => _yearView = true">@(IsLt ? "Metai" : "Year")</button>
+            <button type="button" class="btn btn-secondary" @onclick="Close">@(IsLt ? "Grįžti į redagavimą" : "Back to editing")</button>
+        </div>
+    </div>
+    @if (_yearView)
+    {
+        <Year PreviewDb="Db" InitialDate="_date" PreviewDateChanged="UpdateDate" />
+    }
+    else
+    {
+        <Main PreviewDb="Db" InitialDate="_date" PreviewDateChanged="UpdateDate" />
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public AppDB Db { get; set; } = default!;
+    [Parameter] public DateTime InitialDate { get; set; }
+    [Parameter] public EventCallback Close { get; set; }
+    private bool _yearView;
+    private DateTime _date;
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    protected override void OnInitialized() => _date = InitialDate;
+    private void UpdateDate(DateTime date) => _date = date;
+}

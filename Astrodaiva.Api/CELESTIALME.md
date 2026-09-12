@@ -21,12 +21,19 @@ Allow the frontend origin in Cors:AllowedOrigins. The default list now includes 
 ## Routes and access
 
 - POST /api/astronomy/month accepts `{ "year": 2026, "month": 9 }` with an admin token. The backend supplies the service key and location. It fetches the selected month plus two dates on each side to cover visitor time-zone boundaries. The frontend applies only the selected month's astronomy to editable dates; adjacent data is retained separately as display context.
-- GET /api/import/default remains public and returns an ETag representing the published payload. If no snapshot has been published, it returns 404 with ETag `"none"`.
+- GET /api/import/default remains public, excludes dates and astronomy context from HiddenYears, and returns an ETag representing the complete published snapshot. If no snapshot has been published, it returns 404 with ETag `"none"`.
+- GET /api/import/admin-default requires an admin token and returns the complete published calendar, including hidden years, with the same revision and Cache-Control: no-store. Deploy this backend route before the updated frontend; admin loading deliberately fails if the private route is unavailable instead of editing a filtered public calendar.
 - POST /api/import/full-sync accepts the existing label/setDefault/json fields plus baseRevision. Publishing requires the revision from the currently loaded published calendar. A stale or missing revision returns 409. Non-default saves remain private and do not update the published revision.
 - Snapshot list/get/delete and set-default now require an admin token. The first/only private snapshot is no longer automatically published. Deleting the published snapshot returns 409; restore a different one first.
 - Restoring uses POST /api/import/snapshots/{id}/set-default with `{ "baseRevision": "..." }`. Publication and restore use database transactions. Older frontend saves that would remove astronomy metadata are rejected.
 
 ## Calendar display
+
+Show import settings hides or reveals the import panel, reset controls, exact-event display preference, and advanced astronomy editors together. The switch is off by default and retained while navigating within the current browser session. Existing manual day editors remain visible.
+
+Years on the live app lists all saved years. Show after publishing controls each year's draft visibility; Live now shows its published state. Preview draft opens the same month calendar and year timeline inside admin, including hidden years and unpublished edits. Closing preview returns to editing. Previewing never saves or publishes, and public pages use an independent copy of the published calendar. Drafts survive navigation within the app; use a private backup to retain them across a full reload.
+
+Visibility is saved in the snapshot's HiddenYears list. No years are hidden on upgrade. Publication changes visibility atomically, and rollback restores the prior snapshot's settings. The public API omits hidden dates and boundary context; authenticated admin reads keep their full data and ratings. Public month/day/year navigation skips hidden years, and hiding all years shows an unavailable message. Startup never displays static fallback calendar dates when current visibility cannot be verified; the local file supplies interpretation text only. Already-open visitor pages update when reloaded. Saved calendars from older clients that omit hidden year data are rejected on publication.
 
 The public calendar keeps its original lunar-day timeline: only actual transition starts appear as HH:mm labels, with the lunar day contained within a three-day date assigned to MiddleMoonDay. A day with no transition displays one lunar-day icon and no time marker. Imported dates use the same New, Middle, Previous and transition fields in admin; detailed segment/event controls are collapsed under Advanced astronomy editing.
 

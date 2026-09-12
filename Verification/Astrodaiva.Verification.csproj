@@ -8,6 +8,8 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
     <Compile Include="../Integration/*.cs" Link="Integration/%(Filename)%(Extension)" />
+    <Compile Include="../Services/AstroDbStore.cs" Link="Services/AstroDbStore.cs" />
+    <Compile Include="../Services/AstroApiClient.cs" Link="Services/AstroApiClient.cs" />
     <Compile Include="../Data/Models/*.cs" Link="Models/%(Filename)%(Extension)" />
     <Compile Include="../Data/Enum/*.cs" Link="Enums/%(Filename)%(Extension)" />
     <Content Update="Fixtures/*.json" CopyToOutputDirectory="PreserveNewest" />

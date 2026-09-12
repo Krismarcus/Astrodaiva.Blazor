@@ -67,6 +67,11 @@ else if (!_accessGranted)
 }
 else
 {
+@if (_showDraftPreview && Store.Db is not null)
+{
+    <AdminDraftPreview Db="Store.Db" InitialDate="_previewDate" Close="CloseDraftPreview" />
+}
+<div hidden="@_showDraftPreview">
 <h2 class="admin-title">Admin – AstroEvents</h2>
 
 
@@ -133,9 +138,16 @@ else
 
 </div>
 
-<CalendarImportPanel SelectedDate="@_selectedDate" Applied="ApplyImportedMonth" />
-<div class="admin-publish-bar">
+<div class="admin-import-switch">
+    <label><input type="checkbox" @bind="Store.ShowImportSettings" aria-controls="admin-import-settings" aria-expanded="@Store.ShowImportSettings" /> @(IsLt ? "Rodyti importo nustatymus" : "Show import settings")</label>
+</div>
+<div id="admin-import-settings" hidden="@(!Store.ShowImportSettings)">
+    <CalendarImportPanel SelectedDate="@_selectedDate" Applied="ApplyImportedMonth" />
     <label class="calendar-display-toggle"><input type="checkbox" @bind="Store.Db!.ShowExactEvents" @bind:after="MarkChanged" /> @(IsLt ? "Rodyti tikslius įvykius kalendoriuje" : "Show exact events on the calendar")</label>
+</div>
+<CalendarYearSettings Db="Store.Db!" PublishedDb="Store.PublishedDb" Changed="MarkChanged" PreviewRequested="PreviewYear" />
+<div class="admin-publish-bar">
+    <button type="button" class="btn btn-outline-primary" @onclick="PreviewSelectedDate">@(IsLt ? "Juodraščio peržiūra" : "Preview draft")</button>
     <span>@(IsLt ? "Juodraštis." : "Draft.")</span>
     <button type="button" class="btn btn-primary" disabled="@(_publishing || !_hasChanges)" @onclick="PublishCalendar">@(IsLt ? "Paskelbti pakeitimus" : "Publish changes")</button>
     @if (!string.IsNullOrEmpty(_publishStatus)) { <span role="status">@_publishStatus</span> }
@@ -491,7 +503,7 @@ else
                 <h4>Moon Day</h4>
                 @if (ev.Astronomy is not null)
                 {
-                    <ImportedDayEditor Day="ev" Changed="MarkChanged" />
+                    <ImportedDayEditor Day="ev" Changed="MarkChanged" ShowImportSettings="Store.ShowImportSettings" />
                     <label>Solar eclipse @BoolIcon(ev.SunEclipse, v => { ev.SunEclipse = v; MarkChanged(); })</label>
                     <label>Lunar eclipse @BoolIcon(ev.MoonEclipse, v => { ev.MoonEclipse = v; MarkChanged(); })</label>
                 }
@@ -598,7 +610,7 @@ else
     }
 }
 
-
+</div>
 }
 
 @code {
@@ -612,10 +624,19 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_scrollToPreview)
+        {
+            _scrollToPreview = false;
+            await JS.InvokeVoidAsync("window.scrollTo", 0, 0);
+            await JS.InvokeVoidAsync("document.body.scrollTo", 0, 0);
+        }
         if (!firstRender) return;
 
-        _accessGranted = await AdminAccess.IsUnlockedAsync();
-        if (_accessGranted) Store.BeginEditing();
+        if (await AdminAccess.IsUnlockedAsync())
+        {
+            try { await LoadAdminCalendar(); _accessGranted = true; }
+            catch (Exception ex) { _adminLoginError = ex.Message; }
+        }
         _accessChecked = true;
         StateHasChanged();
     }
@@ -644,9 +665,10 @@ else
             }
 
             _adminPassword = "";
+            await LoadAdminCalendar();
             _accessGranted = true;
-            Store.BeginEditing();
         }
+        catch (Exception ex) { _adminLoginError = ex.Message; }
         finally
         {
             _adminLoginBusy = false;
@@ -689,8 +711,14 @@ else
     private List<AstroEvent>? _eventsForDay;
 
     // ----- CHANGE TRACKING -----
-    private bool _hasChanges = false;
-    private int _changeCount = 0;
+    private bool _hasChanges { get => Store.DraftChangeCount > 0; set { if (!value) Store.DraftChangeCount = 0; } }
+    private int _changeCount { get => Store.DraftChangeCount; set => Store.DraftChangeCount = Math.Max(0, value); }
+    private bool _showDraftPreview;
+    private bool _scrollToPreview;
+    private DateTime _previewDate;
+    private void PreviewSelectedDate() { _previewDate = _selectedDate; _showDraftPreview = true; _scrollToPreview = true; }
+    private void PreviewYear(int year) { _previewDate = new(year, _selectedDate.Month, 1); _showDraftPreview = true; _scrollToPreview = true; }
+    private void CloseDraftPreview() { _showDraftPreview = false; _scrollToPreview = true; }
 
     // ----- SNAPSHOTS (Backups modal) -----
     private bool _showBackups;
@@ -753,15 +781,15 @@ else
             foreach (var day in _eventsForDay ?? new()) CalendarImporter.DetectOverrides(day);
     }
 
-    protected override async Task OnInitializedAsync()
+    private async Task LoadAdminCalendar()
     {
         _loading = true;
         _error = string.Empty;
 
         try
         {
-            // Load startup DB (default snapshot if present, otherwise local JSON)
-            var db = await Editor.EnsureLoadedAsync();
+            await Store.BeginEditingAsync();
+            var db = Store.Db;
 
             if (db?.AstroEventsDB is null || db.AstroEventsDB.Count == 0)
             {
@@ -776,13 +804,11 @@ else
 
             LoadByDate();
 
-            // Clean state
-            _hasChanges = false;
-            _changeCount = 0;
         }
         catch (Exception ex)
         {
-            _error = "Could not load astrodb.json: " + ex.Message;
+            _error = "Could not load admin calendar: " + ex.Message;
+            throw;
         }
 
         _loading = false;
@@ -1402,16 +1428,10 @@ else
                 return;
             }
 
-            var json = JsonSerializer.Serialize(db, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = null // keep PascalCase
-            });
-
-            // IMPORTANT:
-            // In Blazor WASM, injected `Http` is configured for the *static site* (HostEnvironment.BaseAddress).
-            // Your API lives on ApiBaseUrl, so use the AstroApiClient wrapper.
             CalendarImporter.ValidateDraft(db);
-            await Api.CreateSnapshotAsync(json, _snapshotLabel, _snapshotMakeDefault);
+            var changesBeingSaved = _changeCount;
+            await Store.SaveSnapshotAsync(_snapshotLabel, _snapshotMakeDefault);
+            if (_snapshotMakeDefault) _changeCount -= changesBeingSaved;
 
             _snapStatus = "Snapshot created.";
             await RefreshSnapshots(); // so DEFAULT badge updates immediately
@@ -1443,8 +1463,7 @@ else
             // refresh UI to current date
             LoadByDate();
 
-            _hasChanges = false;
-            _changeCount = 0;
+            _changeCount = 1;
         }
         catch (Exception ex)
         {
@@ -1489,6 +1508,7 @@ else
         {
             await Api.SetDefaultSnapshotAsync(id);
             await Store.LoadSnapshotAsync(id);
+            Store.AcceptPublishedDraft();
             LoadByDate();
             _hasChanges = false; _changeCount = 0;
             _snapStatus = $"Snapshot {id} is now DEFAULT.";

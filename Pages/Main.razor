@@ -15,6 +15,10 @@
 {
     <div class="card">@(IsLt ? "Kraunama astro duomenų bazė…" : "Loading astro database…")</div>
 }
+else if (AvailableYears.Length == 0)
+{
+    <div class="card calendar-empty">@(IsLt ? "Kalendorius šiuo metu nepasiekiamas." : "The calendar is currently unavailable.")</div>
+}
 else
 {
     <div class="card split-2">
@@ -22,9 +26,9 @@ else
         <div class="tabs-panel">
             <div class="calendar-shell">
                 <div class="month-header month-header--inside">
-                    <button type="button" class="nav-btn" @onclick="PrevMonth">◀</button>
+                    <button type="button" class="nav-btn" disabled="@(CalendarVisibility.Move(_current, -1, AvailableYears, true) is null)" @onclick="PrevMonth">◀</button>
                     <div class="month-title">@_current.ToString("MMMM yyyy", CultureInfo.CurrentCulture)</div>
-                    <button type="button" class="nav-btn" @onclick="NextMonth">▶</button>
+                    <button type="button" class="nav-btn" disabled="@(CalendarVisibility.Move(_current, 1, AvailableYears, true) is null)" @onclick="NextMonth">▶</button>
                 </div>
 
                 <div class="weekday-header">
@@ -120,7 +124,7 @@ else
                             class="mobile-overlay__nav-btn"
                             aria-label="@(IsLt ? "Ankstesnė diena" : "Previous day")"
                             title="@(IsLt ? "Ankstesnė diena" : "Previous day")"
-                            @onclick="(() => MoveSelectedDay(-1))">
+                            disabled="@(CalendarVisibility.Move(_current, -1, AvailableYears, false) is null)" @onclick="(() => MoveSelectedDay(-1))">
                         ‹
                     </button>
 
@@ -136,7 +140,7 @@ else
                             class="mobile-overlay__nav-btn"
                             aria-label="@(IsLt ? "Kita diena" : "Next day")"
                             title="@(IsLt ? "Kita diena" : "Next day")"
-                            @onclick="(() => MoveSelectedDay(1))">
+                            disabled="@(CalendarVisibility.Move(_current, 1, AvailableYears, false) is null)" @onclick="(() => MoveSelectedDay(1))">
                         ›
                     </button>
                 </div>
@@ -166,6 +170,11 @@ else
 }
 
 @code {
+    [Parameter] public AppDB? PreviewDb { get; set; }
+    [Parameter] public DateTime? InitialDate { get; set; }
+    [Parameter] public EventCallback<DateTime> PreviewDateChanged { get; set; }
+    private int[] AvailableYears => CalendarVisibility.Years(_db, PreviewDb is not null);
+
     private AppDB? _db;
     private List<AstroEvent> _monthEvents = new();
     private DateTime _current = CalendarDisplay.Today;
@@ -386,8 +395,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        Store.Changed += OnStoreChanged;
-        _db = await Store.EnsureLoadedAsync();
+        if (PreviewDb is null) Store.Changed += OnStoreChanged;
+        _db = PreviewDb ?? await Store.EnsurePublicLoadedAsync();
+        _current = CalendarVisibility.Nearest(InitialDate ?? CalendarDisplay.Today, AvailableYears);
         _year = _current.Year;
         _month = _current.Month;
         _selectedDay = _current.Day;
@@ -409,7 +419,9 @@ else
 
     private void OnStoreChanged()
     {
-        _db = Store.Db;
+        _db = Store.PublishedDb;
+        var date = CalendarVisibility.Nearest(_current, AvailableYears);
+        _year = date.Year; _month = date.Month; _selectedDay = date.Day;
         RecomputeMonth();
         InvokeAsync(StateHasChanged);
     }
@@ -438,6 +450,7 @@ else
         if (_selectedDay < 1) _selectedDay = 1;
         if (_selectedDay > dim) _selectedDay = dim;
         _current = new DateTime(_year, _month, _selectedDay);
+        if (PreviewDb is not null) _ = PreviewDateChanged.InvokeAsync(_current);
     }
 
     private void RecomputeMonthEvents()
@@ -473,6 +486,7 @@ else
     {
         _selectedDay = day;
         _current = new DateTime(_year, _month, _selectedDay);
+        if (PreviewDb is not null) _ = PreviewDateChanged.InvokeAsync(_current);
 
         // Always set true; CSS shows only on ≤900px
         _overlayOpen = true;
@@ -482,7 +496,7 @@ else
 
     private async Task PrevMonth()
     {
-        var d = new DateTime(_year, _month, 1).AddMonths(-1);
+        if (CalendarVisibility.Move(_current, -1, AvailableYears, true) is not { } d) return;
         _year = d.Year; _month = d.Month; _selectedDay = 1;
         RecomputeMonth();
         _overlayOpen = false;
@@ -491,7 +505,7 @@ else
 
     private async Task NextMonth()
     {
-        var d = new DateTime(_year, _month, 1).AddMonths(1);
+        if (CalendarVisibility.Move(_current, 1, AvailableYears, true) is not { } d) return;
         _year = d.Year; _month = d.Month; _selectedDay = 1;
         RecomputeMonth();
         _overlayOpen = false;
@@ -502,7 +516,7 @@ else
 
     private async Task MoveSelectedDay(int offsetDays)
     {
-        var next = _current.AddDays(offsetDays);
+        if (CalendarVisibility.Move(_current, offsetDays, AvailableYears, false) is not { } next) return;
         _year = next.Year;
         _month = next.Month;
         _selectedDay = next.Day;

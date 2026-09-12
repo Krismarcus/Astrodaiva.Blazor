@@ -2968,6 +2968,30 @@ body::before {
 .imported-day-advanced { margin-top: .65rem; font-size: .875rem; }
 .imported-day-advanced > summary { cursor: pointer; }
 .calendar-display-toggle { display: flex; align-items: center; gap: .5rem; flex-basis: 100%; }
+[hidden] { display: none !important; }
+.admin-import-switch, .admin-year-settings, .admin-preview-toolbar {
+    margin-block: 1rem; padding: 1rem; border: 1px solid #d7cde6; border-radius: 12px;
+    background: #fff; color: #352447; font-size: 1rem;
+}
+.admin-import-switch label, .admin-year-row label { display: inline-flex; align-items: center; gap: .6rem; cursor: pointer; }
+.admin-import-switch input, .admin-year-row input { width: 18px; height: 18px; accent-color: #805693; }
+.admin-year-settings > summary { cursor: pointer; font-weight: 700; padding-block: .25rem; }
+.admin-year-settings .muted, .admin-preview-toolbar .muted { font-size: .875rem; line-height: 1.5; }
+.admin-year-settings__list { display: grid; gap: .5rem; }
+.admin-year-row { display: grid; grid-template-columns: 4rem 1fr 9rem auto; align-items: center; gap: 1rem; border-top: 1px solid #e9e2f0; padding-block: .75rem; }
+.admin-preview-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; background: #f8f4fc; }
+.admin-preview-toolbar p { margin: .35rem 0; }
+.admin-preview-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.admin-preview-visibility { font-size: .875rem; font-weight: 600; }
+.admin-draft-preview { min-width: 0; }
+.calendar-empty { text-align: center; padding: 2rem; }
+.nav-btn:disabled, .year-arrow:disabled, .year-tool-button:disabled, .mobile-overlay__nav-btn:disabled { opacity: .35; cursor: default; }
+@media(max-width: 700px) {
+    .admin-year-row { grid-template-columns: 3rem 1fr; gap: .6rem; }
+    .admin-year-row > .muted { grid-column: 2; }
+    .admin-year-row > .btn { grid-column: 2; justify-self: start; }
+    .admin-preview-actions .btn, .admin-year-row .btn { min-height: 44px; }
+}
 @media(max-width: 600px) {
     .calendar-import, .admin-publish-bar { padding: .75rem; }
     .segment-editor__row, .exact-event-editor__row { align-items: stretch; }

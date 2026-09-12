@@ -54,6 +54,17 @@ public class AstroApiClient
         return await response.Content.ReadFromJsonAsync<List<SnapshotItemDto>>() ?? new();
     }
 
+    public async Task<DefaultSnapshotResult> GetAdminDefaultSnapshotAsync()
+    {
+        using var request = CreateAdminRequest(HttpMethod.Get, "api/import/admin-default");
+        using var response = await _http.SendAsync(request);
+        var revision = response.Headers.ETag?.Tag.Trim('"');
+        if (response.StatusCode == HttpStatusCode.NotFound && revision == "none")
+            return DefaultSnapshotResult.NoSnapshot(revision);
+        await EnsureSuccess(response);
+        return DefaultSnapshotResult.Success(await response.Content.ReadAsStringAsync(), revision);
+    }
+
     public async Task<string> GetSnapshotJsonAsync(long id)
     {
         using var request = CreateAdminRequest(HttpMethod.Get, $"api/import/snapshots/{id}");

@@ -7,17 +7,23 @@
 @using System.Globalization
 @using Astrodaiva.Blazor.Utils
 
+@if (_db is null || AvailableYears.Length == 0)
+{
+    <div class="card calendar-empty">@(IsLt ? "Kalendorius šiuo metu nepasiekiamas." : "The calendar is currently unavailable.")</div>
+}
+else
+{
 <div class="year-topbar">
     <div class="year-topbar__inner">
         <div class="year-topbar__eyebrow">@(IsLt ? "Metų planetų judėjimas" : "Year planetary timeline")</div>
         <div class="year-switcher">
-            <button class="year-arrow" @onclick="PrevYear" aria-label="@(IsLt ? "Ankstesni metai" : "Previous year")">&#8592;</button>
+            <button class="year-arrow" disabled="@(!AvailableYears.Any(year => year < _year))" @onclick="PrevYear" aria-label="@(IsLt ? "Ankstesni metai" : "Previous year")">&#8592;</button>
             <span class="year-label">@_year</span>
-            <button class="year-arrow" @onclick="NextYear" aria-label="@(IsLt ? "Kiti metai" : "Next year")">&#8594;</button>
+            <button class="year-arrow" disabled="@(!AvailableYears.Any(year => year > _year))" @onclick="NextYear" aria-label="@(IsLt ? "Kiti metai" : "Next year")">&#8594;</button>
         </div>
 
         <div class="year-toolbar" aria-label="@(IsLt ? "Metų rodinio valdikliai" : "Year view controls")">
-            <button type="button" class="year-tool-button" @onclick="GoToToday">
+            <button type="button" class="year-tool-button" disabled="@(!AvailableYears.Contains(CalendarDisplay.Today.Year))" @onclick="GoToToday">
                 <span class="year-tool-button__icon" aria-hidden="true">◎</span>
                 @(IsLt ? "Šiandien" : "Today")
             </button>
@@ -257,7 +263,14 @@
     }
 </div>
 
+}
+
 @code {
+    [Parameter] public AppDB? PreviewDb { get; set; }
+    [Parameter] public DateTime? InitialDate { get; set; }
+    [Parameter] public EventCallback<DateTime> PreviewDateChanged { get; set; }
+    private int[] AvailableYears => CalendarVisibility.Years(_db, PreviewDb is not null);
+
     private AppDB? _db;
     private int _year = CalendarDisplay.Today.Year;
     private List<PlanetRow> _planetRows = new();
@@ -399,9 +412,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Store.Changed += OnStoreChanged;
+        if (PreviewDb is null) Store.Changed += OnStoreChanged;
         _visiblePlanets = PlanetsOrder.ToHashSet();
-        _db = await Store.EnsureLoadedAsync();
+        _db = PreviewDb ?? await Store.EnsurePublicLoadedAsync();
+        _year = CalendarVisibility.Nearest(InitialDate ?? CalendarDisplay.Today, AvailableYears).Year;
         GenerateCalendar();
     }
 
@@ -418,7 +432,8 @@
 
     private void OnStoreChanged()
     {
-        _db = Store.Db;
+        _db = Store.PublishedDb;
+        _year = CalendarVisibility.Nearest(new DateTime(_year, 1, 1), AvailableYears).Year;
         ClearSelection();
         GenerateCalendar();
         InvokeAsync(StateHasChanged);
@@ -431,7 +446,9 @@
 
     private void PrevYear()
     {
-        _year--;
+        if (!AvailableYears.Any(year => year < _year)) return;
+        _year = AvailableYears.Last(year => year < _year);
+        NotifyPreviewDate();
         ClearSelection();
         GenerateCalendar();
         StateHasChanged();
@@ -439,15 +456,24 @@
 
     private void NextYear()
     {
-        _year++;
+        if (!AvailableYears.Any(year => year > _year)) return;
+        _year = AvailableYears.First(year => year > _year);
+        NotifyPreviewDate();
         ClearSelection();
         GenerateCalendar();
         StateHasChanged();
     }
 
+    private void NotifyPreviewDate()
+    {
+        if (PreviewDb is not null) _ = PreviewDateChanged.InvokeAsync(new DateTime(_year, InitialDate?.Month ?? 1, 1));
+    }
+
     private void GoToToday()
     {
+        if (!AvailableYears.Contains(CalendarDisplay.Today.Year)) return;
         _year = CalendarDisplay.Today.Year;
+        NotifyPreviewDate();
         ClearSelection();
         GenerateCalendar();
         _scrollToTodayRequested = true;

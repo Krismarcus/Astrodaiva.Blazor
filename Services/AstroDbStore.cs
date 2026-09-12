@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Astrodaiva.Data.Models;
+using Astrodaiva.Blazor.Integration;
 
 namespace Astrodaiva.Blazor.Services;
 
@@ -8,7 +9,7 @@ namespace Astrodaiva.Blazor.Services;
 ///
 /// Load order:
 /// 1) Default snapshot from API (if present and quick)
-/// 2) Local wwwroot/data/astrodb.json fallback (fast, always available on GH Pages)
+/// 2) Local interpretation library, without calendar dates whose visibility cannot be verified.
 /// </summary>
 public class AstroDbStore
 {
@@ -27,7 +28,34 @@ public class AstroDbStore
     }
 
     private bool _editing;
-    public void BeginEditing() => _editing = true;
+    public int DraftChangeCount { get; set; }
+    public bool ShowImportSettings { get; set; }
+    public AppDB? PublishedDb { get; private set; }
+    public async Task BeginEditingAsync()
+    {
+        if (_editing) return;
+        var result = await _api.GetAdminDefaultSnapshotAsync();
+        var full = result.Json is null ? new AppDB { AstroEventsDB = new(), MoonDayDetailsDB = new(), PlanetInZodiacsDB = new(), PlanetInRetrogradeDetailsDB = new() }
+            : Deserialize(result.Json) ?? throw new InvalidOperationException("Could not load the full admin calendar.");
+        await MergeMissingEnglishInterpretationsAsync(full);
+        _editing = true;
+        Db = full;
+        PublishedDb = CalendarVisibility.PublicCopy(full);
+        _api.AcceptPublishedRevision(result.Revision);
+        Changed?.Invoke();
+    }
+
+    public async Task<AppDB?> EnsurePublicLoadedAsync()
+    {
+        await EnsureLoadedAsync();
+        return PublishedDb;
+    }
+
+    public void AcceptPublishedDraft()
+    {
+        if (Db is not null) PublishedDb = CalendarVisibility.PublicCopy(Db);
+        Changed?.Invoke();
+    }
     public AppDB? Db { get; private set; }
     public bool IsLoaded => Db is not null;
 
@@ -79,11 +107,19 @@ public class AstroDbStore
         // stalled fetch can otherwise leave the app on the boot screen forever.
         try
         {
-            Db = await LoadLocalFallbackAsync();
+            var fallback = await LoadLocalFallbackAsync();
+            // Calendar dates come only from the API, where year visibility is enforced.
+            if (PublishedDb is null && !_editing && fallback is not null)
+            {
+                Db = CalendarImporter.Clone(fallback);
+                Db.AstroEventsDB.Clear();
+                Db.AstronomyContext.Clear();
+                PublishedDb = Db;
+            }
         }
         catch
         {
-            Db = null;
+            if (!_editing && PublishedDb is null) Db = null;
         }
 
         Changed?.Invoke();
@@ -159,10 +195,9 @@ public class AstroDbStore
 
     private async Task<bool> TryApplyApiSnapshotAsync(string? json, string? revision)
     {
-        if (_editing && Db is not null) return true;
         if (string.IsNullOrWhiteSpace(json))
         {
-            if (revision == "none") _api.AcceptPublishedRevision(revision);
+            if (!_editing && revision == "none") _api.AcceptPublishedRevision(revision);
             return false;
         }
 
@@ -172,9 +207,12 @@ public class AstroDbStore
 
         await MergeMissingEnglishInterpretationsAsync(apiDb);
 
-        if (_editing && Db is not null) return true;
-        Db = apiDb;
-        _api.AcceptPublishedRevision(revision);
+        PublishedDb = apiDb;
+        if (!_editing)
+        {
+            Db = apiDb;
+            _api.AcceptPublishedRevision(revision);
+        }
         _serverUnavailableNotified = false;
         Changed?.Invoke();
         ServerAvailable?.Invoke();
@@ -334,7 +372,14 @@ public class AstroDbStore
             PropertyNamingPolicy = null
         });
 
-        return await _api.CreateSnapshotAsync(json, label, setDefault);
+        var result = await _api.CreateSnapshotAsync(json, label, setDefault);
+        // Use the exact submitted snapshot; edits made during the request remain drafts.
+        if (setDefault)
+        {
+            PublishedDb = CalendarVisibility.PublicCopy(Deserialize(json)!);
+            Changed?.Invoke();
+        }
+        return result;
     }
 
     public async Task LoadSnapshotAsync(long id)

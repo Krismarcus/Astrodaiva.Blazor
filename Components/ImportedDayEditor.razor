@@ -37,9 +37,9 @@
                 <input type="datetime-local" step="1" value="@(Day.MoonDay.IsTripleMoonDay ? Local(astronomy.Segments[1].StartsAtUtc) : "")" disabled="@(!Day.MoonDay.IsTripleMoonDay)" @onchange="e => ChangeBoundary(1, e)" />
             </label>
         </div>
-        @if (astronomy.Overrides.Count > 0) { <p class="override-badge">@(IsLt ? "Rankiniai pakeitimai" : "Manual overrides"): @string.Join(", ", astronomy.Overrides.Select(x => x.Replace("InZodiac", "")))</p> }
+        @if (ShowImportSettings && astronomy.Overrides.Count > 0) { <p class="override-badge">@(IsLt ? "Rankiniai pakeitimai" : "Manual overrides"): @string.Join(", ", astronomy.Overrides.Select(x => x.Replace("InZodiac", "")))</p> }
         @if (!string.IsNullOrEmpty(_error)) { <p class="admin-error" role="alert">@_error</p> }
-        <details class="imported-day-advanced">
+        <details class="imported-day-advanced" hidden="@(!ShowImportSettings)">
             <summary>@(IsLt ? "Išsamus astronomijos redagavimas" : "Advanced astronomy editing")</summary>
         <div class="segment-editor">
             <strong>@(IsLt ? "Mėnulio dienos" : "Lunar days")</strong>
@@ -75,6 +75,7 @@
 @code {
     [Parameter, EditorRequired] public AstroEvent Day { get; set; } = default!;
     [Parameter] public EventCallback Changed { get; set; }
+    [Parameter] public bool ShowImportSettings { get; set; }
     private string _error = "";
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
     private static string Symbol(int n) => ((Astrodaiva.Data.Enums.MoonDaySymbol)n).ToString();

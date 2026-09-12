@@ -1,0 +1,33 @@
+@using Astrodaiva.Data.Models
+@using System.Globalization
+
+<details class="admin-year-settings">
+    <summary>@(IsLt ? "Metai viešame kalendoriuje" : "Years on the live app")</summary>
+    <p class="muted">@(IsLt ? "Paslėptų metų duomenys išlieka redaguojami. Matomumas pasikeis tik paskelbus pakeitimus." : "Hidden years remain editable. Visibility changes only after you publish.")</p>
+    <div class="admin-year-settings__list">
+        @foreach (var year in CalendarVisibility.Years(Db, true))
+        {
+            var live = CalendarVisibility.Years(PublishedDb).Contains(year);
+            <div class="admin-year-row" @key="year">
+                <strong>@year</strong>
+                <label><input type="checkbox" checked="@(!Db.HiddenYears.Contains(year))" @onchange="args => SetVisible(year, args.Value is true)" /> @(IsLt ? "Rodyti paskelbus" : "Show after publishing")</label>
+                <span class="muted">@(IsLt ? "Dabar:" : "Live now:") @(live ? (IsLt ? "rodomi" : "shown") : (IsLt ? "paslėpti" : "hidden"))</span>
+                <button type="button" class="btn btn-outline-primary" @onclick="() => PreviewRequested.InvokeAsync(year)">@(IsLt ? "Peržiūrėti juodraštį" : "Preview draft")</button>
+            </div>
+        }
+    </div>
+</details>
+
+@code {
+    [Parameter, EditorRequired] public AppDB Db { get; set; } = default!;
+    [Parameter] public AppDB? PublishedDb { get; set; }
+    [Parameter] public EventCallback Changed { get; set; }
+    [Parameter] public EventCallback<int> PreviewRequested { get; set; }
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private async Task SetVisible(int year, bool visible)
+    {
+        Db.HiddenYears.RemoveAll(value => value == year);
+        if (!visible) Db.HiddenYears.Add(year);
+        await Changed.InvokeAsync();
+    }
+}

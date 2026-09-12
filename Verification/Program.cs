@@ -98,6 +98,18 @@ Check(yearlyImport.AstroEventsDB.Count == 365 && yearly.AstroEventsDB.Zip(yearly
 var vilniusTimeline = CalendarDisplay.LunarTimelineFor(reset, new(2026, 9, 11), CalendarImporter.Vilnius)!;
 Check(vilniusTimeline.MiddleMoonDayTransitionTime == new DateTime(2026, 9, 11, 6, 27, 0) && vilniusTimeline.TransitionTime == new DateTime(2026, 9, 11, 6, 58, 43),
     "shared calendar uses original Vilnius transition times");
+var visibilityDraft = CalendarImporter.Clone(yearlyImport);
+visibilityDraft.AstroEventsDB.Add(new AstroEvent { Date = new(2028, 2, 29), Barber = ActivityQuality.Bad });
+visibilityDraft.HiddenYears.Add(2026);
+var publicCopy = CalendarVisibility.PublicCopy(visibilityDraft);
+Check(CalendarVisibility.Years(publicCopy).SequenceEqual(new[] { 2028 }) && CalendarVisibility.Years(visibilityDraft, true).SequenceEqual(new[] { 2026, 2028 }), "hidden years remain available in draft preview only");
+Check(visibilityDraft.AstroEventsDB.Count == 366 && publicCopy.AstroEventsDB.Count == 1 && publicCopy.AstronomyContext.Count == 0, "visibility filtering preserves draft dates and removes hidden context");
+publicCopy.AstroEventsDB[0].Barber = ActivityQuality.Good;
+Check(visibilityDraft.AstroEventsDB.Last().Barber == ActivityQuality.Bad, "public and draft calendar data do not share mutable ratings");
+Check(CalendarVisibility.Move(new(2026, 12, 31), 1, new[] { 2026, 2028 }, true) == new DateTime(2028, 1, 1) && CalendarVisibility.Move(new(2028, 1, 1), -1, new[] { 2026, 2028 }, false) == new DateTime(2026, 12, 31), "month and day navigation skip unavailable years in both directions");
+Check(CalendarVisibility.Move(new(2026, 1, 1), -1, new[] { 2026 }, true) is null && CalendarVisibility.Move(new(2026, 12, 31), 1, new[] { 2026 }, false) is null && CalendarVisibility.Move(new(2026, 9, 1), 1, Array.Empty<int>(), true) is null, "calendar navigation stops at available boundaries including an empty calendar");
+Check(CalendarVisibility.Nearest(new(2028, 2, 29), new[] { 2026 }) == new DateTime(2026, 2, 28), "opening a hidden leap year chooses a valid visible date");
+Check(CalendarImporter.Preview(visibilityDraft, response, 2026, 9, false).Draft.HiddenYears.SequenceEqual(new[] { 2026 }), "import preserves year visibility settings");
 if (args.Contains("--calculations-only"))
 {
     Console.WriteLine($"All {count} calendar checks passed.");
@@ -130,13 +142,14 @@ await using (var scope = app.Services.CreateAsyncScope())
         db.AppDbSnapshots.Add(new() { AppDbJson = previewJson, Label = "Local copy of published calendar", IsDefault = true }); await db.SaveChangesAsync();
     }
 }
-app.Urls.Add("http://127.0.0.1:5091"); await app.StartAsync();
+app.Urls.Add(args.Contains("--serve") ? "http://127.0.0.1:5091" : "http://127.0.0.1:0"); await app.StartAsync();
 if (args.Contains("--serve"))
 {
     Console.WriteLine("Verification backend listening at http://127.0.0.1:5091. Test admin password: local-preview-only");
     await app.WaitForShutdownAsync(); return;
 }
-using var http = new HttpClient { BaseAddress = new("http://127.0.0.1:5091") };
+using var http = new HttpClient { BaseAddress = new(app.Urls.Single()) };
+Check((await http.GetAsync("api/import/admin-default")).StatusCode == HttpStatusCode.Unauthorized, "full calendar including hidden years requires admin authentication");
 Check((await http.GetAsync("api/import/snapshots")).StatusCode == HttpStatusCode.Unauthorized, "snapshot listing requires admin authentication");
 Check((await http.PostAsJsonAsync("api/astronomy/month", new { year = 2026, month = 9 })).StatusCode == HttpStatusCode.Unauthorized, "calculation import requires admin authentication");
 var login = await http.PostAsJsonAsync("api/auth/admin/login", new { password = "local-preview-only" });
@@ -167,9 +180,57 @@ Check((await http.PostAsJsonAsync("api/import/full-sync", new { label = "Old bro
 http.DefaultRequestHeaders.Authorization = null;
 Check((await http.GetAsync($"api/import/snapshots/{firstPublishId}")).StatusCode == HttpStatusCode.Unauthorized, "individual backups remain private");
 Check((await http.GetAsync("api/import/default")).IsSuccessStatusCode, "published calendar stays publicly readable");
+
+// Exercise public filtering and real client-store isolation against the same controllers.
+http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginData.RootElement.GetProperty("token").GetString());
+var hiddenPayload = CalendarImporter.Clone(freshPayload);
+hiddenPayload.AstroEventsDB.Add(new AstroEvent { Date = new(2025, 12, 31), Barber = ActivityQuality.Bad, EventText = "Private legacy year" });
+hiddenPayload.AstroEventsDB.Add(new AstroEvent { Date = new(2027, 1, 1), Barber = ActivityQuality.Good });
+hiddenPayload.HiddenYears = new() { 2025, 2026 };
+var hiddenPublish = await http.PostAsJsonAsync("api/import/full-sync", new { label = "Hidden years", setDefault = true, json = JsonSerializer.Serialize(hiddenPayload), baseRevision = revision });
+Check(hiddenPublish.IsSuccessStatusCode, "year visibility publishes with the calendar revision");
+var filteredResponse = await http.GetAsync("api/import/default");
+var filteredCalendar = JsonSerializer.Deserialize<AppDB>(await filteredResponse.Content.ReadAsStringAsync())!;
+Check(filteredCalendar.AstroEventsDB.Count == 1 && filteredCalendar.AstroEventsDB[0].Date.Year == 2027 && filteredCalendar.AstronomyContext.Count == 0, "public endpoint removes hidden years and their astronomy context");
+var adminResponse = await http.GetAsync("api/import/admin-default");
+var adminCalendar = JsonSerializer.Deserialize<AppDB>(await adminResponse.Content.ReadAsStringAsync())!;
+Check(adminCalendar.AstroEventsDB.Count == 32 && adminCalendar.AstroEventsDB.Single(d => d.Date.Year == 2025).Barber == ActivityQuality.Bad && adminResponse.Headers.CacheControl!.NoStore && adminResponse.Headers.ETag!.Tag == filteredResponse.Headers.ETag!.Tag, "admin receives complete saved data without caching and the same publication revision");
+var incompletePrivate = CalendarImporter.Clone(hiddenPayload);
+incompletePrivate.AstroEventsDB.Remove(incompletePrivate.AstroEventsDB.Single(d => d.Date.Year == 2025));
+Check((await http.PostAsJsonAsync("api/import/full-sync", new { label = "Incomplete calendar", setDefault = true, json = JsonSerializer.Serialize(incompletePrivate), baseRevision = adminResponse.Headers.ETag!.Tag.Trim('"') })).StatusCode == HttpStatusCode.Conflict, "publishing cannot silently discard hidden legacy dates");
+var invalidYears = JsonSerializer.Serialize(hiddenPayload).Replace("[2025,2026]", "[0,10000]");
+Check((await http.PostAsJsonAsync("api/import/full-sync", new { label = "Invalid years", setDefault = false, json = invalidYears })).StatusCode == HttpStatusCode.BadRequest, "invalid visibility years are rejected");
+var storeApi = new Astrodaiva.Blazor.Services.AstroApiClient(http);
+storeApi.SetAdminToken(loginData.RootElement.GetProperty("token").GetString());
+using var localLibrary = new HttpClient(new LibraryHandler(JsonSerializer.Serialize(Empty()))) { BaseAddress = new("https://local.invalid/") };
+var store = new Astrodaiva.Blazor.Services.AstroDbStore(localLibrary, storeApi);
+await store.EnsurePublicLoadedAsync(); await store.BeginEditingAsync();
+store.Db!.HiddenYears.Clear();
+store.Db.AstroEventsDB.Single(d => d.Date.Year == 2027).Barber = ActivityQuality.Bad;
+store.DraftChangeCount = 2;
+Check(store.PublishedDb!.AstroEventsDB.Count == 1 && store.PublishedDb.AstroEventsDB[0].Barber == ActivityQuality.Good, "admin visibility and rating edits do not leak into public views");
+await store.RetryDefaultSnapshotAsync(); await store.BeginEditingAsync();
+Check(store.Db.HiddenYears.Count == 0 && store.DraftChangeCount == 2, "public refresh and returning to admin preserve the current draft");
+await store.SaveSnapshotAsync("Private edited draft", false);
+Check((await http.GetFromJsonAsync<AppDB>("api/import/default"))!.AstroEventsDB.Count == 1, "saving a private draft does not change live year visibility");
+await store.SaveSnapshotAsync("Show all years", true);
+Check(store.PublishedDb!.AstroEventsDB.Count == 32 && (await http.GetFromJsonAsync<AppDB>("api/import/default"))!.AstroEventsDB.Count == 32, "publishing makes selected years visible in both API and client");
+store.Db.HiddenYears = new() { 2025, 2026, 2027 };
+await store.SaveSnapshotAsync("Hide all years", true);
+Check(store.PublishedDb!.AstroEventsDB.Count == 0 && store.Db.AstroEventsDB.Count == 32 && (await http.GetFromJsonAsync<AppDB>("api/import/default"))!.AstroEventsDB.Count == 0, "all years can be hidden while their full data remains editable");
+var draftRevision = storeApi.PublishedRevision;
+await http.PostAsJsonAsync($"api/import/snapshots/{firstPublishId}/set-default", new { baseRevision = draftRevision });
+await store.RetryDefaultSnapshotAsync();
+Check(storeApi.PublishedRevision == draftRevision && store.Db.HiddenYears.Count == 3 && store.PublishedDb!.AstroEventsDB.Count == 30, "a live refresh cannot silently rebase a stale admin draft");
+try { await store.SaveSnapshotAsync("Stale admin publish", true); Check(false, "stale client draft rejected"); }
+catch (InvalidOperationException) { Check(true, "client rejects stale publication after another admin changes the live calendar"); }
 await app.StopAsync(); await app.DisposeAsync(); await connection.DisposeAsync();
 Console.WriteLine($"All {count} checks passed.");
 
+sealed class LibraryHandler(string json) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json) });
+}
 sealed class FixtureClientFactory(string fixture) : IHttpClientFactory
 {
     public HttpClient CreateClient(string name) => new(new FixtureHandler(fixture));
