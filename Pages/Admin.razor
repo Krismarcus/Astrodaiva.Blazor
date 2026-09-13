@@ -147,6 +147,7 @@ else
 </div>
 <CalendarYearSettings Db="Store.Db!" PublishedDb="Store.PublishedDb" Changed="MarkChanged" PreviewRequested="PreviewYear" />
 <div class="admin-publish-bar">
+    <label class="calendar-display-toggle"><input type="checkbox" @bind="Store.Db!.ShowAspectSymbols" @bind:after="MarkChanged" /> @(IsLt ? "Rodyti planetų aspektų simbolius" : "Show aspect symbols")</label>
     <button type="button" class="btn btn-outline-primary" @onclick="PreviewSelectedDate">@(IsLt ? "Juodraščio peržiūra" : "Preview draft")</button>
     <span>@(IsLt ? "Juodraštis." : "Draft.")</span>
     <button type="button" class="btn btn-primary" disabled="@(_publishing || !_hasChanges)" @onclick="PublishCalendar">@(IsLt ? "Paskelbti pakeitimus" : "Publish changes")</button>
@@ -446,7 +447,7 @@ else
                 var key = ev.Date.Date;
                 bool editorOpen = _openEventTextEditors.Contains(key);
                 bool hasText = HasEventText(ev);
-                bool noEventChecked = !editorOpen && !hasText; // if empty AND editor not open -> No Event
+                bool noEventChecked = ev.HideEventText || (!editorOpen && !hasText);
             }
 
             <div class="eventtext-box">
@@ -461,14 +462,18 @@ else
                     </label>
                 </div>
 
-                @if (editorOpen || hasText)
+                @if (ev.HideEventText && hasText)
+                {
+                    <p class="muted">@(IsLt ? "Tekstas išsaugotas, bet paslėptas kalendoriuje." : "Your saved text is hidden from the calendar.")</p>
+                }
+                @if (!noEventChecked)
                 {
                     <div class="eventtext-grid">
                         <label class="eventtext-field">
                             <span>Title LT</span>
                             <input class="eventtext-input"
                                    value="@ev.EventText"
-                                   @onchange="(e) => SetEventText(ev, e)"
+                                   @oninput="(e) => SetEventText(ev, e)"
                                    placeholder="Įvykio pavadinimas..." />
                         </label>
 
@@ -476,7 +481,7 @@ else
                             <span>Title EN</span>
                             <input class="eventtext-input"
                                    value="@ev.EventTextEn"
-                                   @onchange="(e) => SetEventTextEn(ev, e)"
+                                   @oninput="(e) => SetEventTextEn(ev, e)"
                                    placeholder="Event title..." />
                         </label>
 
@@ -484,7 +489,7 @@ else
                             <span>Description LT</span>
                             <textarea class="eventtext-editor eventtext-editor--description"
                                       value="@ev.EventDescription"
-                                      @onchange="(e) => SetEventDescription(ev, e)"
+                                      @oninput="(e) => SetEventDescription(ev, e)"
                                       placeholder="Išsamus įvykio aprašymas..."></textarea>
                         </label>
 
@@ -492,7 +497,7 @@ else
                             <span>Description EN</span>
                             <textarea class="eventtext-editor eventtext-editor--description"
                                       value="@ev.EventDescriptionEn"
-                                      @onchange="(e) => SetEventDescriptionEn(ev, e)"
+                                      @oninput="(e) => SetEventDescriptionEn(ev, e)"
                                       placeholder="Detailed event description..."></textarea>
                         </label>
                     </div>
@@ -1660,19 +1665,16 @@ else
         bool noEvent = e.Value is bool b && b;
         var key = ev.Date.Date;
 
+        if (ev.HideEventText != noEvent)
+        {
+            ev.HideEventText = noEvent;
+            MarkChanged();
+        }
+
         if (noEvent)
         {
-            // Hide editor + force empty string
+            // Hide the entire public frame while retaining authored content.
             _openEventTextEditors.Remove(key);
-
-            if (HasEventText(ev))
-            {
-                ev.EventText = "";
-                ev.EventTextEn = "";
-                ev.EventDescription = "";
-                ev.EventDescriptionEn = "";
-                MarkChanged();
-            }
         }
         else
         {

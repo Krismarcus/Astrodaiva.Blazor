@@ -1183,8 +1183,8 @@ a {
     align-items: center;
 }
 .md-timeline--single { grid-template-columns: 1fr; min-height: 56px; }
-.md-timeline--triple .md-marker--mid .md-marker-label { left: -2px; transform: translateX(-100%); opacity: 1; animation: none; }
-.md-timeline--triple .md-marker--final .md-marker-label { left: 2px; transform: none; opacity: 1; animation: none; }
+.md-timeline--triple { min-height: 84px; }
+.md-timeline--stacked .md-marker--mid .md-marker-label { top: auto; bottom: 22px; }
 
 .md-side{
     display:flex;
@@ -1229,7 +1229,6 @@ a {
     width: 0;
     height: 0;
     pointer-events: none;
-    animation: md-marker-move 0.5s ease-out forwards;
 }
 
 .md-marker-bar {
@@ -1251,15 +1250,11 @@ a {
     position: absolute;
     left: 0;
     top: 22px;
-    transform: translateX(-50%) translateY(-2px);
+    transform: translateX(-50%);
     font-size: 11px;
     line-height: 1;
-    opacity: 0;
-    /* subtle "pop" without affecting alignment */
-    will-change: opacity, transform;
-    transform-origin: center;
-    animation: md-marker-label 180ms ease-out forwards;
-    animation-delay: 0.5s;    
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
     padding: 2px 6px;
     border-radius: var(--radius-tag);
     letter-spacing: .02em;
@@ -1267,23 +1262,14 @@ a {
     color: #074252;
 }
 
-@keyframes md-marker-label{
-    to{ opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-@keyframes md-marker-move{
-    from{ left: 0%; }
-    to{ left: var(--target, 0%); }
-}
-
 /* Middle (triple) Moon-day icon: compact and centered precisely over the middle marker */
 .md-mini{
     position: absolute;
-    top: -16px;
+    top: 50%;
     left: var(--target, 0%);
     width: clamp(22px, 2vw, 30px);
     height: clamp(22px, 2vw, 30px);
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     opacity: .98;
     border-radius: 999px;
     padding: 0;
@@ -2853,7 +2839,7 @@ body::before {
     }
 
     .md-mini {
-        top: -16px;
+        top: 50%;
         width: 30px;
         height: 30px;
     }
@@ -2968,6 +2954,11 @@ body::before {
 .imported-day-advanced { margin-top: .65rem; font-size: .875rem; }
 .imported-day-advanced > summary { cursor: pointer; }
 .calendar-display-toggle { display: flex; align-items: center; gap: .5rem; flex-basis: 100%; }
+.astro-frame--aspects { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .5rem 1rem; padding: .75rem 1rem; }
+.aspect-pair { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; color: #e2e7c2; }
+.aspect-pair img { width: 30px; height: 30px; object-fit: contain; }
+.aspect-pair__planet { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; }
+.aspect-pair__symbol, .aspect-pair__node { font-family: "Segoe UI Symbol", "Apple Symbols", sans-serif; font-size: 1.8rem; line-height: 1; }
 [hidden] { display: none !important; }
 .admin-import-switch, .admin-year-settings, .admin-preview-toolbar {
     margin-block: 1rem; padding: 1rem; border: 1px solid #d7cde6; border-radius: 12px;

@@ -1,9 +1,9 @@
-const CACHE_NAME = "astrodaiva-shell-v20260912-admin-year-visibility-v1";
+const CACHE_NAME = "astrodaiva-shell-v20260913-timeline-labels-v1";
 
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./css/app.css?v=20260912-admin-year-visibility-v1",
+  "./css/app.css?v=20260913-timeline-labels-v1",
   "./manifest.webmanifest",
   "./img/astrodaiva-logo.png",
   "./img/pwa/apple-touch-icon.png",

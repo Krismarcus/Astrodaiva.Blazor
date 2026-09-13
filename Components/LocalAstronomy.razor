@@ -29,7 +29,8 @@
     [Parameter, EditorRequired] public AppDB Db { get; set; } = default!;
     [Parameter] public DateTime Date { get; set; }
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
-    private List<ExactEvent> Events => CalendarDisplay.EventsFor(Db, Date, CalendarImporter.Vilnius).Where(e => e.Type != "utc-offset-change").ToList();
+    // Aspects have their own symbol-only display and independent visibility setting.
+    private List<ExactEvent> Events => CalendarDisplay.EventsFor(Db, Date, CalendarImporter.Vilnius).Where(e => e.Type is not "utc-offset-change" and not "aspect").ToList();
 
     private string Body(string? id)
     {
@@ -41,7 +42,6 @@
         if (!string.IsNullOrWhiteSpace(e.Title)) return e.Title;
         return e.Type switch
         {
-            "aspect" => $"{Body(e.BodyId)} · {Aspect(e.AspectId)} · {Body(e.TargetBodyId)}",
             "ingress" => $"{Body(e.BodyId)} · {(IsLt ? "Zodiako ženklo kaita" : "Zodiac sign change")}",
             "station" => $"{Body(e.BodyId)} · {Motion(e)}",
             "moon-phase" => Phase(e.PhaseId),
@@ -65,11 +65,6 @@
             _ => IsLt ? "Judėjimo krypties kaita" : "Motion changes"
         };
     }
-    private string Aspect(string? id) => (id, IsLt) switch
-    {
-        ("conjunction", true) => "Jungtis", ("opposition", true) => "Opozicija", ("trine", true) => "Trigonas",
-        ("square", true) => "Kvadratūra", ("sextile", true) => "Sekstilis", _ => id ?? ""
-    };
     private string Phase(string? id) => (id, IsLt) switch
     {
         ("new-moon", true) => "Jaunatis", ("full-moon", true) => "Pilnatis", ("first-quarter", true) => "Priešpilnis", ("last-quarter", true) => "Delčia",

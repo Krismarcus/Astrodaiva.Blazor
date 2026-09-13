@@ -14,6 +14,7 @@ namespace Astrodaiva.Data.Models
         [ObservableProperty]
         private DateTime date;
         public Astrodaiva.Blazor.Integration.AstronomyMetadata? Astronomy { get; set; }
+        public bool HideEventText { get; set; }
         public bool IsNewMonthStart => Date.Day == 1;
         [ObservableProperty]
         private PlanetInZodiac sunInZodiac;

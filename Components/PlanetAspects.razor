@@ -1,0 +1,54 @@
+@namespace Astrodaiva.Blazor.Components
+@using Astrodaiva.Blazor.Integration
+@using Astrodaiva.Blazor.Utils
+@using Astrodaiva.Data.Models
+@using Astrodaiva.Data.Enums
+@using Microsoft.AspNetCore.Components
+@using System.Globalization
+
+@if (Db.ShowAspectSymbols)
+{
+    var aspects = AspectDisplay.ForDate(Db, Date);
+    @if (aspects.Count > 0)
+    {
+        <div class="astro-frame astro-frame--aspects" role="group" aria-label="@(IsLt ? "Planetų aspektai" : "Planetary aspects")">
+            @foreach (var aspect in aspects)
+            {
+                <span class="aspect-pair" role="img" aria-label="@AccessibleLabel(aspect)">
+                    @PlanetIcon(aspect.Planet1)
+                    <span class="aspect-pair__symbol" aria-hidden="true">@AspectDisplay.Symbol(aspect.AspectSymbol)</span>
+                    @PlanetIcon(aspect.Planet2)
+                </span>
+            }
+        </div>
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public AppDB Db { get; set; } = default!;
+    [Parameter] public DateTime Date { get; set; }
+    private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private RenderFragment PlanetIcon(Planet planet) => @<span class="aspect-pair__planet" aria-hidden="true">
+        @if (planet is Planet.Rahu or Planet.Ketu)
+        {
+            <span class="aspect-pair__node">@(planet == Planet.Rahu ? "☊" : "☋")</span>
+        }
+        else
+        {
+            <img src="@($"img/zodiac/{planet.ToString().ToLowerInvariant()}.png")" alt="" width="30" height="30" />
+        }
+    </span>;
+    private string AccessibleLabel(Astrodaiva.Data.Models.PlanetEvent aspect)
+    {
+        var name = (aspect.AspectSymbol, IsLt) switch
+        {
+            (AspectSymbol.Conjunction, true) => "jungtis",
+            (AspectSymbol.Opposition, true) => "opozicija",
+            (AspectSymbol.Trine, true) => "trigonas",
+            (AspectSymbol.Square, true) => "kvadratūra",
+            (AspectSymbol.Sextile, true) => "sekstilis",
+            _ => aspect.AspectSymbol.ToString().ToLowerInvariant()
+        };
+        return $"{EnumText.GetPlanetName(aspect.Planet1)} {name} {EnumText.GetPlanetName(aspect.Planet2)}";
+    }
+}

@@ -37,6 +37,7 @@ var again = CalendarImporter.Preview(CalendarImporter.Clone(draft), response, 20
 Check(again.Changes.All(c => !c.Added && c.ChangedFields.Count == 0 && c.PreservedFields.Count == 0), "identical reimport is idempotent after JSON roundtrip");
 var edited = Day(draft, 11);
 edited.EventText = "My LT title"; edited.EventTextEn = "My EN title"; edited.Barber = ActivityQuality.Good;
+edited.EventDescription = "My LT description"; edited.EventDescriptionEn = "My EN description";
 edited.MercuryInZodiac.NewZodiacSign = ZodiacSign.Cancer;
 edited.Astronomy!.Segments[0].LunarDayNumber = 28;
 CalendarImporter.SyncLunarProjection(edited);
@@ -47,6 +48,30 @@ Check(Day(rerun, 11).EventText == "My LT title" && Day(rerun, 11).EventTextEn ==
 var reset = CalendarImporter.Preview(rerun, response, 2026, 9, true).Draft;
 Check(Day(reset, 11).MercuryInZodiac.NewZodiacSign == ZodiacSign.Libra && Day(reset, 11).MoonDay.PreviousMoonDay == 29 && Day(reset, 11).EventText == "My LT title", "explicit reset restores astronomy only");
 CalendarImporter.ValidateDraft(reset);
+var aspectDraft = CalendarImporter.Clone(reset);
+Check(!aspectDraft.ShowAspectSymbols, "aspect symbols are off by default for existing snapshots");
+aspectDraft.ShowAspectSymbols = true;
+Day(aspectDraft, 11).HideEventText = true;
+foreach (var resetAspects in new[] { false, true })
+{
+    var reimportedAspects = CalendarImporter.Preview(CalendarImporter.Clone(aspectDraft), response, 2026, 9, resetAspects).Draft;
+    var authored = Day(reimportedAspects, 11);
+    Check(reimportedAspects.ShowAspectSymbols && authored.HideEventText && authored.EventText == "My LT title" && authored.EventTextEn == "My EN title" && authored.EventDescription == "My LT description" && authored.EventDescriptionEn == "My EN description", $"import preserves hidden event text, both languages, and aspect preference with reset={resetAspects}");
+}
+var hiddenTextPublicCopy = CalendarVisibility.PublicCopy(aspectDraft);
+Check(Day(hiddenTextPublicCopy, 11).HideEventText && Day(hiddenTextPublicCopy, 11).EventTextEn == "My EN title" && !Day(imported.Draft, 12).HideEventText, "No Text visibility survives publication without deleting text or hiding other dates");
+var aspectDay = aspectDraft.AstroEventsDB.First(d => d.Astronomy!.Events.Any(e => e.Type == "aspect"));
+var originalAspects = AspectDisplay.ForDate(aspectDraft, aspectDay.Date);
+Check(originalAspects.Count > 0 && originalAspects.Count == aspectDay.PlanetEvents.Select(e => (e.Planet1, e.Planet2, e.AspectSymbol)).Distinct().Count(), "imported aspects appear once instead of duplicating their legacy projection");
+aspectDay.Astronomy!.Events.RemoveAll(e => e.Type == "aspect");
+Check(AspectDisplay.ForDate(aspectDraft, aspectDay.Date).Count == 0 && aspectDay.PlanetEvents.Count > 0, "deleted imported aspects cannot reappear from stale legacy data");
+var legacyAspects = Empty();
+legacyAspects.AstroEventsDB.Add(new() { Date = new(2026, 9, 12), PlanetEvents = new() {
+    new() { Planet1 = Planet.Sun, Planet2 = Planet.Moon, AspectSymbol = AspectSymbol.Square },
+    new() { Planet1 = Planet.Venus, Planet2 = Planet.Mars, AspectSymbol = AspectSymbol.Trine },
+    new() { Planet1 = Planet.Sun, Planet2 = Planet.Moon, AspectSymbol = AspectSymbol.Other }
+} });
+Check(AspectDisplay.ForDate(legacyAspects, new(2026, 9, 12)).Select(e => AspectDisplay.Symbol(e.AspectSymbol)).SequenceEqual(new[] { "□", "△" }) && AspectDisplay.ForDate(legacyAspects, new(2026, 9, 13)).Count == 0, "legacy aspects use symbols for the selected date and omit unsupported relationships");
 var la = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
 var timeline = CalendarDisplay.LunarTimelineFor(reset, new(2026, 9, 10), la)!;
 Check(timeline.PreviousMoonDay == 29 && timeline.MiddleMoonDay == 1 && timeline.NewMoonDay == 2 && timeline.IsTripleMoonDay,

@@ -264,6 +264,7 @@ else
 
     private List<EventDisplayItem> GetEventDisplayItems()
         => DayEvents
+            .Where(e => !e.HideEventText)
             .Select(BuildEventDisplayItem)
             .Where(item => !string.IsNullOrWhiteSpace(item.Title))
             .ToList();
@@ -272,12 +273,6 @@ else
     {
         var title = LocalizedEventText(e.EventText, e.EventTextEn);
         var description = LocalizedEventText(e.EventDescription, e.EventDescriptionEn);
-
-        if (string.IsNullOrWhiteSpace(title) && e.PlanetEvents is { Count: > 0 })
-        {
-            title = string.Join(", ", e.PlanetEvents.Select(pe =>
-                $"{EnumText.GetPlanetName(pe.Planet1)} {pe.AspectSymbol} {EnumText.GetPlanetName(pe.Planet2)}"));
-        }
 
         if (string.IsNullOrWhiteSpace(title) && !string.IsNullOrWhiteSpace(description))
             title = IsLt ? "Dienos įvykis" : "Day event";
@@ -415,6 +410,7 @@ else
         }
 
         await SyncMobileOverlayLayerAsync();
+        await JS.InvokeVoidAsync("moonTimeline.refresh");
     }
 
     private void OnStoreChanged()
@@ -430,6 +426,7 @@ else
     public async ValueTask DisposeAsync()
     {
         Store.Changed -= OnStoreChanged;
+        await JS.InvokeVoidAsync("moonTimeline.dispose");
         await JS.InvokeVoidAsync("modalLayer.setMobileDayOverlayOpen", false);
     }
 
@@ -787,7 +784,9 @@ else
             </div>
         </div>
 
-        @* Events frame *@
+        <PlanetAspects Db="_db!" Date="_current.Date" />
+
+        @* Manually authored event text and descriptions only. *@
         @if (DayEvents.Any())
         {
             var items = GetEventDisplayItems();

@@ -5,6 +5,7 @@ namespace Astrodaiva.Data.Models
     public class AppDB
     {
         public bool ShowExactEvents { get; set; }
+        public bool ShowAspectSymbols { get; set; }
         public List<int> HiddenYears { get; set; } = new();
         public List<AstroEvent> AstronomyContext { get; set; } = new();
         public ObservableCollection<AstroEvent> AstroEventsDB { get; set; }
