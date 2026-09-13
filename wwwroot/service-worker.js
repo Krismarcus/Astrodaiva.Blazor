@@ -1,4 +1,4 @@
-const CACHE_NAME = "astrodaiva-shell-v20260913-timeline-labels-v1";
+const CACHE_NAME = "astrodaiva-shell-v20260913-retrograde-stations-v1";
 
 const APP_SHELL = [
   "./",

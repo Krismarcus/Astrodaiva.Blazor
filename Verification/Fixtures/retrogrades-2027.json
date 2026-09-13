@@ -1,0 +1,3123 @@
+{
+  "description": "2027 CelestialMe import, Swiss Ephemeris 2.10.03; Europe/Vilnius; daily flags sampled at local civil noon. Reduced from the admin draft exported 2026-09-13. No editorial content.",
+  "days": [
+    {
+      "date": "2027-01-01",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-02",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-03",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-04",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-05",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-06",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-07",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-08",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-09",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-10",
+      "retrogradeAtNoon": [
+        "jupiter",
+        "uranus"
+      ],
+      "stations": [
+        {
+          "bodyId": "mars",
+          "atUtc": "2027-01-10T12:59:17+00:00",
+          "motion": "retrograde"
+        }
+      ]
+    },
+    {
+      "date": "2027-01-11",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-12",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-13",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-14",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-15",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-16",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-17",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-18",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-19",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-20",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-21",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-22",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-23",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-24",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-25",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-26",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-27",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-28",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-29",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-30",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-01-31",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-01",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-02",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-03",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-04",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-05",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-06",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-07",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-08",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter",
+        "uranus"
+      ],
+      "stations": [
+        {
+          "bodyId": "uranus",
+          "atUtc": "2027-02-08T12:29:28+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-02-09",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": [
+        {
+          "bodyId": "mercury",
+          "atUtc": "2027-02-09T17:36:05+00:00",
+          "motion": "retrograde"
+        }
+      ]
+    },
+    {
+      "date": "2027-02-10",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-11",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-12",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-13",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-14",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-15",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-16",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-17",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-18",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-19",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-20",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-21",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-22",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-23",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-24",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-25",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-26",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-27",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-02-28",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-01",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-02",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-03",
+      "retrogradeAtNoon": [
+        "mercury",
+        "mars",
+        "jupiter"
+      ],
+      "stations": [
+        {
+          "bodyId": "mercury",
+          "atUtc": "2027-03-03T12:32:02+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-03-04",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-05",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-06",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-07",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-08",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-09",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-10",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-11",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-12",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-13",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-14",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-15",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-16",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-17",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-18",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-19",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-20",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-21",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-22",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-23",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-24",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-25",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-26",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-27",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-28",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-29",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-30",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-03-31",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-01",
+      "retrogradeAtNoon": [
+        "mars",
+        "jupiter"
+      ],
+      "stations": [
+        {
+          "bodyId": "mars",
+          "atUtc": "2027-04-01T14:08:15+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-04-02",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-03",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-04",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-05",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-06",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-07",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-08",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-09",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-10",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-11",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-12",
+      "retrogradeAtNoon": [
+        "jupiter"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-04-13",
+      "retrogradeAtNoon": [],
+      "stations": [
+        {
+          "bodyId": "jupiter",
+          "atUtc": "2027-04-13T02:11:25+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-04-14",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-15",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-16",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-17",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-18",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-19",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-20",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-21",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-22",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-23",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-24",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-25",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-26",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-27",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-28",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-29",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-04-30",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-05-01",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-05-02",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-05-03",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-05-04",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-05-05",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-05-06",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-05-07",
+      "retrogradeAtNoon": [],
+      "stations": []
+    },
+    {
+      "date": "2027-05-08",
+      "retrogradeAtNoon": [],
+      "stations": [
+        {
+          "bodyId": "pluto",
+          "atUtc": "2027-05-08T12:54:17+00:00",
+          "motion": "retrograde"
+        }
+      ]
+    },
+    {
+      "date": "2027-05-09",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-10",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-11",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-12",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-13",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-14",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-15",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-16",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-17",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-18",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-19",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-20",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-21",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-22",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-23",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-24",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-25",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-26",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-27",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-28",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-29",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-30",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-05-31",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-01",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-02",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-03",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-04",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-05",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-06",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-07",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-08",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-09",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-10",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": [
+        {
+          "bodyId": "mercury",
+          "atUtc": "2027-06-10T18:15:14+00:00",
+          "motion": "retrograde"
+        }
+      ]
+    },
+    {
+      "date": "2027-06-11",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-12",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-13",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-14",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-15",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-16",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-17",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-18",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-19",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-20",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-21",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-22",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-23",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-24",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-25",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-26",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-27",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-28",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-29",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-06-30",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-01",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-02",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-03",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-04",
+      "retrogradeAtNoon": [
+        "mercury",
+        "pluto"
+      ],
+      "stations": [
+        {
+          "bodyId": "mercury",
+          "atUtc": "2027-07-04T19:39:23+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-07-05",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-06",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-07",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-08",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-09",
+      "retrogradeAtNoon": [
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-10",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": [
+        {
+          "bodyId": "neptune",
+          "atUtc": "2027-07-09T22:41:14+00:00",
+          "motion": "retrograde"
+        }
+      ]
+    },
+    {
+      "date": "2027-07-11",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-12",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-13",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-14",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-15",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-16",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-17",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-18",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-19",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-20",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-21",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-22",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-23",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-24",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-25",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-26",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-27",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-28",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-29",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-30",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-07-31",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-01",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-02",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-03",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-04",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-05",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-06",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-07",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-08",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-09",
+      "retrogradeAtNoon": [
+        "neptune",
+        "pluto"
+      ],
+      "stations": [
+        {
+          "bodyId": "saturn",
+          "atUtc": "2027-08-09T18:05:52+00:00",
+          "motion": "retrograde"
+        }
+      ]
+    },
+    {
+      "date": "2027-08-10",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-11",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-12",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-13",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-14",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-15",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-16",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-17",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-18",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-19",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-20",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-21",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-22",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-23",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-24",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-25",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-26",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-27",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-28",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-29",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-30",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-08-31",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-01",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-02",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-03",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-04",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-05",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-06",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-07",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-08",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-09",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-10",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-11",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-12",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-13",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-14",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-15",
+      "retrogradeAtNoon": [
+        "saturn",
+        "neptune",
+        "pluto"
+      ],
+      "stations": [
+        {
+          "bodyId": "uranus",
+          "atUtc": "2027-09-15T09:09:15+00:00",
+          "motion": "retrograde"
+        }
+      ]
+    },
+    {
+      "date": "2027-09-16",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-17",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-18",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-19",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-20",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-21",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-22",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-23",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-24",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-25",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-26",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-27",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-28",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-29",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-09-30",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-01",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-02",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-03",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-04",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-05",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-06",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-07",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": [
+        {
+          "bodyId": "mercury",
+          "atUtc": "2027-10-07T14:37:04+00:00",
+          "motion": "retrograde"
+        }
+      ]
+    },
+    {
+      "date": "2027-10-08",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-09",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-10",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-11",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-12",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-13",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-14",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-15",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-16",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-17",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune",
+        "pluto"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-18",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": [
+        {
+          "bodyId": "pluto",
+          "atUtc": "2027-10-18T03:52:31+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-10-19",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-20",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-21",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-22",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-23",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-24",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-25",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-26",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-27",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-28",
+      "retrogradeAtNoon": [
+        "mercury",
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": [
+        {
+          "bodyId": "mercury",
+          "atUtc": "2027-10-28T14:10:38+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-10-29",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-30",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-10-31",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-01",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-02",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-03",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-04",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-05",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-06",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-07",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-08",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-09",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-10",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-11",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-12",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-13",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-14",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-15",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-16",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-17",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-18",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-19",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-20",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-21",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-22",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-23",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-24",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-25",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-26",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-27",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-28",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-29",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-11-30",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-01",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-02",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-03",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-04",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-05",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-06",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-07",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-08",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-09",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-10",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-11",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-12",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-13",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-14",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus",
+        "neptune"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-15",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": [
+        {
+          "bodyId": "neptune",
+          "atUtc": "2027-12-15T09:06:21+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-12-16",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-17",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-18",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-19",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-20",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-21",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-22",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-23",
+      "retrogradeAtNoon": [
+        "saturn",
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-24",
+      "retrogradeAtNoon": [
+        "uranus"
+      ],
+      "stations": [
+        {
+          "bodyId": "saturn",
+          "atUtc": "2027-12-24T02:47:01+00:00",
+          "motion": "direct"
+        }
+      ]
+    },
+    {
+      "date": "2027-12-25",
+      "retrogradeAtNoon": [
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-26",
+      "retrogradeAtNoon": [
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-27",
+      "retrogradeAtNoon": [
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-28",
+      "retrogradeAtNoon": [
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-29",
+      "retrogradeAtNoon": [
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-30",
+      "retrogradeAtNoon": [
+        "uranus"
+      ],
+      "stations": []
+    },
+    {
+      "date": "2027-12-31",
+      "retrogradeAtNoon": [
+        "uranus"
+      ],
+      "stations": []
+    }
+  ]
+}

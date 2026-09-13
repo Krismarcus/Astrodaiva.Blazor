@@ -53,15 +53,12 @@
     }
     private string Motion(ExactEvent e)
     {
-        var motion = e.Direction;
-        if (e.Extra?.TryGetValue("motion", out var value) == true && value.ValueKind == System.Text.Json.JsonValueKind.String)
-            motion = value.GetString();
-        return (motion, IsLt) switch
+        return (RetrogradeDisplay.StationState(e), IsLt) switch
         {
-            ("retrograde", true) => "Prasideda retrogradinis judėjimas",
-            ("retrograde", false) => "Retrograde begins",
-            ("direct", true) => "Prasideda tiesioginis judėjimas",
-            ("direct", false) => "Direct motion begins",
+            (true, true) => "Prasideda retrogradinis judėjimas",
+            (true, false) => "Retrograde begins",
+            (false, true) => "Prasideda tiesioginis judėjimas",
+            (false, false) => "Direct motion begins",
             _ => IsLt ? "Judėjimo krypties kaita" : "Motion changes"
         };
     }

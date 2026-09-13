@@ -6,6 +6,7 @@
 @using Astrodaiva.Data.Models
 @using System.Globalization
 @using Astrodaiva.Blazor.Utils
+@using Astrodaiva.Blazor.Integration
 
 @if (_db is null || AvailableYears.Length == 0)
 {
@@ -643,76 +644,16 @@ else
 
     private List<RetrogradeSegment> GetRetrogradeSegments(Planet planet)
     {
-        var segments = new List<RetrogradeSegment>();
-        var activeAstroEvents = _db?.AstroEventsDB?
-            .Where(e => e.Date.Year == _year)
-            .OrderBy(e => e.Date)
-            .ToList();
-
-        if (activeAstroEvents == null || activeAstroEvents.Count == 0)
-            return segments;
-
-        bool? lastRetrograde = null;
-        DateTime? startDate = null;
-
-        foreach (var astroEvent in activeAstroEvents)
-        {
-            bool? current = GetPlanetRetrogradeState(astroEvent, planet);
-            if (current == null) continue;
-
-            if (lastRetrograde == null || current != lastRetrograde)
-            {
-                if (startDate != null && lastRetrograde == true)
-                {
-                    segments.Add(CreateRetrogradeSegment(startDate.Value, astroEvent.Date.AddDays(-1)));
-                }
-
-                if (current == true)
-                    startDate = astroEvent.Date;
-
-                lastRetrograde = current;
-            }
-        }
-
-        if (startDate != null && lastRetrograde == true)
-        {
-            var lastEvent = activeAstroEvents.Last();
-            segments.Add(CreateRetrogradeSegment(startDate.Value, lastEvent.Date));
-        }
-
-        return segments;
-    }
-
-    private RetrogradeSegment CreateRetrogradeSegment(DateTime startDate, DateTime endDate)
-    {
+        if (_db is null) return new();
         var startOfYear = new DateTime(_year, 1, 1);
-        var daysFromStart = (startDate - startOfYear).Days;
-        var duration = (endDate - startDate).Days + 1;
-
-        var leftPosition = (daysFromStart * 100.0) / DaysInSelectedYear;
-        var widthPercentage = (duration * 100.0) / DaysInSelectedYear;
-
-        return new RetrogradeSegment
+        return RetrogradeDisplay.ForYear(_db, _year, planet).Select(period => new RetrogradeSegment
         {
-            StartDate = startDate,
-            EndDate = endDate,
-            WidthPercentage = widthPercentage,
-            LeftPosition = leftPosition
-        };
+            StartDate = period.StartDate,
+            EndDate = period.EndDate,
+            WidthPercentage = (period.EndsAt - period.StartsAt).TotalDays * 100.0 / DaysInSelectedYear,
+            LeftPosition = (period.StartsAt - startOfYear).TotalDays * 100.0 / DaysInSelectedYear
+        }).ToList();
     }
-
-    private bool? GetPlanetRetrogradeState(AstroEvent e, Planet planet) => planet switch
-    {
-        Planet.Mercury => e.MercuryInZodiac?.IsRetrograde,
-        Planet.Venus => e.VenusInZodiac?.IsRetrograde,
-        Planet.Mars => e.MarsInZodiac?.IsRetrograde,
-        Planet.Jupiter => e.JupiterInZodiac?.IsRetrograde,
-        Planet.Saturn => e.SaturnInZodiac?.IsRetrograde,
-        Planet.Uranus => e.UranusInZodiac?.IsRetrograde,
-        Planet.Neptune => e.NeptuneInZodiac?.IsRetrograde,
-        Planet.Pluto => e.PlutoInZodiac?.IsRetrograde,
-        _ => null // Sun/Nodes/Selena/Lilith usually not used for retrograde bars
-    };
 
     private List<EclipseSegment> GetEclipseSegments()
     {

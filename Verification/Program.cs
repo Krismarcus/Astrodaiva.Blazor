@@ -135,6 +135,7 @@ Check(CalendarVisibility.Move(new(2026, 12, 31), 1, new[] { 2026, 2028 }, true) 
 Check(CalendarVisibility.Move(new(2026, 1, 1), -1, new[] { 2026 }, true) is null && CalendarVisibility.Move(new(2026, 12, 31), 1, new[] { 2026 }, false) is null && CalendarVisibility.Move(new(2026, 9, 1), 1, Array.Empty<int>(), true) is null, "calendar navigation stops at available boundaries including an empty calendar");
 Check(CalendarVisibility.Nearest(new(2028, 2, 29), new[] { 2026 }) == new DateTime(2026, 2, 28), "opening a hidden leap year chooses a valid visible date");
 Check(CalendarImporter.Preview(visibilityDraft, response, 2026, 9, false).Draft.HiddenYears.SequenceEqual(new[] { 2026 }), "import preserves year visibility settings");
+RetrogradeChecks.Run(Check);
 if (args.Contains("--calculations-only"))
 {
     Console.WriteLine($"All {count} calendar checks passed.");
