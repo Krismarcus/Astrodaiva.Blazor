@@ -1,0 +1,30 @@
+@using Astrodaiva.Data.Enums
+@using Astrodaiva.Data.Models
+@using Astrodaiva.Blazor.Utils
+@using System.Globalization
+
+<span class="planet-motion-icon">
+    <img class="planet-icon" alt="@EnumText.GetPlanetName(Planet)" src="@($"img/zodiac/{Planet.ToString().ToLowerInvariant()}.png")" width="40" height="40" />
+    @if (Day is not null && RetrogradeDisplay.ForDay(Day, Planet) is { Count: > 0 } periods)
+    {
+        var label = Label(periods);
+        <span class="planet-retrograde-badge" role="img" aria-label="@label" title="@label">℞</span>
+    }
+</span>
+
+@code {
+    [Parameter] public Planet Planet { get; set; }
+    [Parameter] public AstroEvent? Day { get; set; }
+
+    private string Label(List<RetrogradePeriod> periods)
+    {
+        var lt = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+        var label = $"{EnumText.GetPlanetName(Planet)} · {(lt ? "Retrogradinis judėjimas" : "Retrograde")}";
+        // A date can contain only part of a retrograde period. Keep exact boundaries
+        // accessible without treating the API's noon snapshot as a full-day state.
+        var times = periods.Where(p => p.StartsAtStation || p.EndsAtStation).Select(p =>
+            $"{(p.StartsAtStation ? p.StartsAt.ToString("HH:mm") : "00:00")}–{(p.EndsAtStation ? p.EndsAt.ToString("HH:mm") : "24:00")}");
+        var detail = string.Join(", ", times);
+        return detail.Length > 0 ? $"{label} · {detail} (Europe/Vilnius)" : label;
+    }
+}

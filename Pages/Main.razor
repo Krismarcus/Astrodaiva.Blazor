@@ -61,7 +61,8 @@ else
 
                             <button @key="d"
                                     type="button"
-                                    class="daycard @active @today"
+                                    class="daycard @active @today @(e?.SunEclipse == true ? "is-solar-eclipse" : "") @(e?.MoonEclipse == true ? "is-lunar-eclipse" : "")"
+                                    aria-description="@(e?.SunEclipse == true ? (IsLt ? "Saulės užtemimas" : "Solar eclipse") : e?.MoonEclipse == true ? (IsLt ? "Mėnulio užtemimas" : "Lunar eclipse") : null)"
                                     title="@($"{_current:MMMM yyyy}")"
                                     @onclick="@(() => SelectDay(d))">
                                 <span class="daycard-day">@d</span>
@@ -770,15 +771,15 @@ else
 
             <div class="planet-grid planet-grid--bottom">
                 <button type="button" class="planet-cell planet-cell--clickable" title="Mercury" @onclick="(() => OpenPlanetInZodiacDetails(first?.MercuryInZodiac))">
-                    <img class="planet-icon" alt="Mercury" src="img/zodiac/mercury.png" width="40" height="40" />
+                    <PlanetDayIcon Planet="Planet.Mercury" Day="first" />
                     <span class="planet-zodiac">@((MarkupString)mercuryBlock)</span>
                 </button>
                 <button type="button" class="planet-cell planet-cell--clickable" title="Venus" @onclick="(() => OpenPlanetInZodiacDetails(first?.VenusInZodiac))">
-                    <img class="planet-icon" alt="Venus" src="img/zodiac/venus.png" width="40" height="40" />
+                    <PlanetDayIcon Planet="Planet.Venus" Day="first" />
                     <span class="planet-zodiac">@((MarkupString)venusBlock)</span>
                 </button>
                 <button type="button" class="planet-cell planet-cell--clickable" title="Mars" @onclick="(() => OpenPlanetInZodiacDetails(first?.MarsInZodiac))">
-                    <img class="planet-icon" alt="Mars" src="img/zodiac/mars.png" width="40" height="40" />
+                    <PlanetDayIcon Planet="Planet.Mars" Day="first" />
                     <span class="planet-zodiac">@((MarkupString)marsBlock)</span>
                 </button>
             </div>

@@ -74,6 +74,9 @@ static class RetrogradeChecks
             var period = RetrogradeDisplay.ForYear(db, 2027, Planet.Mercury).Single();
             check(period.StartsAt == new DateTime(2027, 2, 9, hour, 0, 0) && period.EndsAt == new DateTime(2027, 2, 10, hour, 0, 0),
                 $"{hour}:00 stations neither add nor subtract a calendar day");
+            check(RetrogradeDisplay.ForDay(db.AstroEventsDB[0], Planet.Mercury).Single().StartsAt == period.StartsAt
+                && RetrogradeDisplay.ForDay(db.AstroEventsDB[1], Planet.Mercury).Single().EndsAt == period.EndsAt,
+                $"day badges include both {hour}:00 station dates independently of noon flags");
         }
 
         var midnight = Empty();
@@ -83,6 +86,9 @@ static class RetrogradeChecks
         check(midnightPeriod.StartDate == new DateTime(2027, 2, 9) && midnightPeriod.EndDate == new DateTime(2027, 2, 10)
             && midnightPeriod.EndsAtStation && (midnightPeriod.EndsAt - midnightPeriod.StartsAt).TotalDays == 1,
             "midnight stations have exact labels without adding a full day to the bar");
+        check(RetrogradeDisplay.ForDay(midnight.AstroEventsDB[0], Planet.Mercury).Count == 1
+            && RetrogradeDisplay.ForDay(midnight.AstroEventsDB[1], Planet.Mercury).Count == 0,
+            "day badge appears for a midnight start but not a midnight direct station");
 
         var shortPeriod = Empty();
         shortPeriod.AstroEventsDB.Add(Day(new(2027, 2, 9), Planet.Mercury, false,
@@ -107,6 +113,10 @@ static class RetrogradeChecks
         overridden.AstroEventsDB[0].Astronomy!.Overrides.Add("MercuryInZodiac");
         check(RetrogradeDisplay.ForYear(overridden, 2027, Planet.Mercury).Count == 0,
             "manual planet overrides take precedence over imported stations");
+        check(RetrogradeDisplay.ForDay(overridden.AstroEventsDB[0], Planet.Mercury).Count == 0
+            && RetrogradeDisplay.ForDay(manual.AstroEventsDB[1], Planet.Mercury).Count == 1
+            && RetrogradeDisplay.ForDay(manual.AstroEventsDB[0], Planet.Mercury).Count == 0,
+            "day badges respect manual retrograde marks and imported-data overrides");
         shortPeriod.AstroEventsDB[0].Astronomy!.Source.Events = CalendarImporter.Clone(shortPeriod.AstroEventsDB[0].Astronomy!.Events);
         shortPeriod.AstroEventsDB[0].Astronomy!.Events.Clear();
         check(RetrogradeDisplay.ForYear(shortPeriod, 2027, Planet.Mercury).Count == 0,

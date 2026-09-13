@@ -16,12 +16,18 @@ public static class RetrogradeDisplay
     }
 
     public static List<RetrogradePeriod> ForYear(AppDB db, int year, Planet planet)
+        => BuildPeriods(db.AstroEventsDB.Where(d => d.Date.Year == year), planet);
+
+    public static List<RetrogradePeriod> ForDay(AstroEvent day, Planet planet)
+        => BuildPeriods(new[] { day }, planet);
+
+    private static List<RetrogradePeriod> BuildPeriods(IEnumerable<AstroEvent> days, Planet planet)
     {
         var periods = new List<RetrogradePeriod>();
         if (planet is < Planet.Mercury or > Planet.Pluto) return periods;
         var bodyId = CalendarImporter.BodyIds[(int)planet];
 
-        foreach (var day in db.AstroEventsDB.Where(d => d.Date.Year == year).OrderBy(d => d.Date))
+        foreach (var day in days.OrderBy(d => d.Date))
         {
             var start = day.Date.Date;
             var end = start.AddDays(1);

@@ -11,10 +11,10 @@
     var aspects = AspectDisplay.ForDate(Db, Date);
     @if (aspects.Count > 0)
     {
-        <div class="astro-frame astro-frame--aspects" role="group" aria-label="@(IsLt ? "Planetų aspektai" : "Planetary aspects")">
+        <div class="planet-aspect-frames" role="group" aria-label="@(IsLt ? "Planetų aspektai" : "Planetary aspects")">
             @foreach (var aspect in aspects)
             {
-                <span class="aspect-pair" role="img" aria-label="@AccessibleLabel(aspect)">
+                <span class="astro-frame aspect-pair" role="img" aria-label="@AccessibleLabel(aspect)" title="@AccessibleLabel(aspect)">
                     @PlanetIcon(aspect.Planet1)
                     <span class="aspect-pair__symbol" aria-hidden="true">@AspectDisplay.Symbol(aspect.AspectSymbol)</span>
                     @PlanetIcon(aspect.Planet2)

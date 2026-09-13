@@ -459,6 +459,17 @@ a {
     border-color: rgba(255,255,255,.34);
 }
 
+/* Eclipse shading stays behind the existing number, lunar artwork and rating dot. */
+.daycard.is-solar-eclipse::before {
+    background: linear-gradient(145deg, transparent 10%, rgba(3,19,27,.61) 70%, rgba(1,8,16,.92));
+    box-shadow: inset 7px 0 14px rgba(212,180,120,.16);
+}
+
+.daycard.is-lunar-eclipse::before {
+    background: linear-gradient(150deg, transparent 0%, rgba(78,54,77,.40) 40%, rgba(50,31,62,.90));
+    box-shadow: inset 7px 0 13px rgba(210,162,173,.14);
+}
+
 .daycard:active {
     transform: translateY(0) scale(.985);
 }
@@ -2954,11 +2965,30 @@ body::before {
 .imported-day-advanced { margin-top: .65rem; font-size: .875rem; }
 .imported-day-advanced > summary { cursor: pointer; }
 .calendar-display-toggle { display: flex; align-items: center; gap: .5rem; flex-basis: 100%; }
-.astro-frame--aspects { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .5rem 1rem; padding: .75rem 1rem; }
-.aspect-pair { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; color: #e2e7c2; }
-.aspect-pair img { width: 30px; height: 30px; object-fit: contain; }
-.aspect-pair__planet { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; }
-.aspect-pair__symbol, .aspect-pair__node { font-family: "Segoe UI Symbol", "Apple Symbols", sans-serif; font-size: 1.8rem; line-height: 1; }
+.planet-motion-icon { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+.planet-retrograde-badge {
+    position: absolute; right: -5px; bottom: -1px; z-index: 1;
+    padding: 2px 3px; border: 1px solid rgba(231,214,161,.65); border-radius: 6px;
+    background: #173f4c; color: #f5e8bc; box-shadow: 0 2px 4px rgba(0,0,0,.14);
+    font: 13px/1 Georgia, "Times New Roman", serif;
+}
+.planet-aspect-frames { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 108px), 1fr)); gap: 10px; width: 100%; }
+.astro-frame.aspect-pair {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    gap: .4rem; min-height: 67px; min-width: 0; padding: 10px 8px 15px;
+    border-radius: 17px; color: #e7d6a1;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 18px rgba(7,66,82,.10);
+}
+.aspect-pair::after { content: ""; position: absolute; left: 32%; right: 32%; bottom: 9px; height: 1px; background: rgba(231,214,161,.38); }
+.aspect-pair img { width: 27px; height: 27px; object-fit: contain; }
+.aspect-pair__planet { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; flex: none; }
+.aspect-pair__symbol, .aspect-pair__node { font-family: "Segoe UI Symbol", "Apple Symbols", sans-serif; font-size: 1.65rem; line-height: 1; }
+@media(max-width: 480px) {
+    .planet-aspect-frames { grid-template-columns: repeat(auto-fit, minmax(min(100%, 86px), 1fr)); gap: 7px; }
+    .astro-frame.aspect-pair { gap: 4px; padding-inline: 5px; min-height: 61px; }
+    .aspect-pair img, .aspect-pair__planet { width: 23px; height: 23px; }
+    .aspect-pair__symbol, .aspect-pair__node { font-size: 1.4rem; }
+}
 [hidden] { display: none !important; }
 .admin-import-switch, .admin-year-settings, .admin-preview-toolbar {
     margin-block: 1rem; padding: 1rem; border: 1px solid #d7cde6; border-radius: 12px;
