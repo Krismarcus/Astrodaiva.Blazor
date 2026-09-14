@@ -50,8 +50,7 @@ else
                         else
                         {
                             var d = day.Value;
-                            var active = d == _selectedDay ? "active" : "";
-                            var today = IsToday(d) ? "is-today" : "";
+                            var isToday = IsToday(d);
                             var e = _monthEvents.FirstOrDefault(x => x.Date.Day == d);
                             var cardMoonDay = CalendarDisplay.LunarTimelineFor(_db, new DateTime(_year, _month, d), CalendarImporter.Vilnius);
                             var moonDayNumber = cardMoonDay?.NewMoonDay;
@@ -63,7 +62,9 @@ else
 
                             <button @key="d"
                                     type="button"
-                                    class="daycard @active @today @(isFirstMoonDay ? "is-first-moon-day" : "") @(e?.SunEclipse == true ? "is-solar-eclipse" : "") @(e?.MoonEclipse == true ? "is-lunar-eclipse" : "")"
+                                    class="daycard @(isToday ? "is-today" : "") @(isFirstMoonDay ? "is-first-moon-day" : "") @(e?.SunEclipse == true ? "is-solar-eclipse" : "") @(e?.MoonEclipse == true ? "is-lunar-eclipse" : "")"
+                                    aria-current="@(isToday ? "date" : null)"
+                                    aria-pressed="@(d == _selectedDay ? "true" : "false")"
                                     aria-description="@(e?.SunEclipse == true ? (IsLt ? "Saulės užtemimas" : "Solar eclipse") : e?.MoonEclipse == true ? (IsLt ? "Mėnulio užtemimas" : "Lunar eclipse") : isFirstMoonDay ? (IsLt ? "Pirmoji Mėnulio diena" : "First moon day") : null)"
                                     title="@($"{_current:MMMM yyyy}")"
                                     @onclick="@(() => SelectDay(d))">

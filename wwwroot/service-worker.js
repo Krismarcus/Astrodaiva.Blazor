@@ -1,9 +1,9 @@
-const CACHE_NAME = "astrodaiva-shell-v20260914-first-moon-day-v1";
+const CACHE_NAME = "astrodaiva-shell-v20260914-today-frame-v1";
 
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./css/app.css?v=20260914-first-moon-day-v1",
+  "./css/app.css?v=20260914-today-frame-v1",
   "./manifest.webmanifest",
   "./img/astrodaiva-logo.png",
   "./img/pwa/apple-touch-icon.png",
