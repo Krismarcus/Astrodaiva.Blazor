@@ -53,16 +53,18 @@ else
                             var active = d == _selectedDay ? "active" : "";
                             var today = IsToday(d) ? "is-today" : "";
                             var e = _monthEvents.FirstOrDefault(x => x.Date.Day == d);
-                            var localLunarDay = CalendarDisplay.SegmentsFor(_db, new DateTime(_year, _month, d), CalendarImporter.Vilnius).LastOrDefault()?.LunarDayNumber;
-                            string? moonDay = localLunarDay is int lunarNumber ? GetMoonDayKey(lunarNumber) : e?.MoonDay is not null ? GetMoonDayKey(e.MoonDay.NewMoonDay) : null;
+                            var cardMoonDay = CalendarDisplay.LunarTimelineFor(_db, new DateTime(_year, _month, d), CalendarImporter.Vilnius);
+                            var moonDayNumber = cardMoonDay?.NewMoonDay;
+                            var isFirstMoonDay = moonDayNumber == 1 || cardMoonDay is { IsTripleMoonDay: true, MiddleMoonDay: 1 };
+                            string? moonDay = moonDayNumber is int lunarNumber ? GetMoonDayKey(lunarNumber) : null;
                             var q = GetActivityQuality(e, _selectedActivity);
                             var qClass = GetQualityClass(q);
                             var showIndicator = q == ActivityQuality.Good || q == ActivityQuality.Bad;
 
                             <button @key="d"
                                     type="button"
-                                    class="daycard @active @today @(e?.SunEclipse == true ? "is-solar-eclipse" : "") @(e?.MoonEclipse == true ? "is-lunar-eclipse" : "")"
-                                    aria-description="@(e?.SunEclipse == true ? (IsLt ? "Saulės užtemimas" : "Solar eclipse") : e?.MoonEclipse == true ? (IsLt ? "Mėnulio užtemimas" : "Lunar eclipse") : null)"
+                                    class="daycard @active @today @(isFirstMoonDay ? "is-first-moon-day" : "") @(e?.SunEclipse == true ? "is-solar-eclipse" : "") @(e?.MoonEclipse == true ? "is-lunar-eclipse" : "")"
+                                    aria-description="@(e?.SunEclipse == true ? (IsLt ? "Saulės užtemimas" : "Solar eclipse") : e?.MoonEclipse == true ? (IsLt ? "Mėnulio užtemimas" : "Lunar eclipse") : isFirstMoonDay ? (IsLt ? "Pirmoji Mėnulio diena" : "First moon day") : null)"
                                     title="@($"{_current:MMMM yyyy}")"
                                     @onclick="@(() => SelectDay(d))">
                                 <span class="daycard-day">@d</span>

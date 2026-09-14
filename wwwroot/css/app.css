@@ -459,7 +459,12 @@ a {
     border-color: rgba(255,255,255,.34);
 }
 
-/* Eclipse shading stays behind the existing number, lunar artwork and rating dot. */
+/* Lunar highlights stay behind the number, artwork and rating dot. Eclipse shading takes precedence. */
+.daycard.is-first-moon-day::before {
+    background: linear-gradient(145deg, transparent 10%, rgba(255,255,255,.30) 55%, rgba(255,255,255,.84));
+    box-shadow: inset 7px 0 14px rgba(255,255,255,.22);
+}
+
 .daycard.is-solar-eclipse::before {
     background: linear-gradient(145deg, transparent 10%, rgba(3,19,27,.61) 70%, rgba(1,8,16,.92));
     box-shadow: inset 7px 0 14px rgba(212,180,120,.16);
