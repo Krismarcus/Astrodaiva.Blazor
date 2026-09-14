@@ -492,6 +492,10 @@ a {
         0 10px 22px rgba(7,66,82,.12);
 }
 
+.daycard.is-today .daycard-day {
+    color: #e8d6a1;
+}
+
 .daycard-day {
     font-weight: 800;
     font-size: var(--DayNumSize);
