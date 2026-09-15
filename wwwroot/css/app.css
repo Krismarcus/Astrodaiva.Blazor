@@ -2884,22 +2884,42 @@ body::before {
     padding: 2px 3px; color: #f5e8bc;
     font: 13px/1 Georgia, "Times New Roman", serif;
 }
-.planet-aspect-frames { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 108px), 1fr)); gap: 10px; width: 100%; }
-.astro-frame.aspect-pair {
-    position: relative; display: inline-flex; align-items: center; justify-content: center;
-    gap: .4rem; min-height: 67px; min-width: 0; padding: 10px 8px 15px;
-    border-radius: 17px; color: #e7d6a1;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 18px rgba(7,66,82,.10);
+.planet-aspect-section { width: 100%; min-width: 0; container-type: inline-size; }
+.planet-aspect-frames {
+    --aspect-step: 20px; --aspect-spine: 28px; --aspect-line: #7b9d92;
+    position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--aspect-spine) minmax(0, 1fr);
+    width: 100%; list-style: none; padding: 0; margin: 0; isolation: isolate;
 }
-.aspect-pair::after { content: ""; position: absolute; left: 32%; right: 32%; bottom: 9px; height: 1px; background: rgba(231,214,161,.38); }
-.aspect-pair img { width: 27px; height: 27px; object-fit: contain; }
-.aspect-pair__planet { display: inline-flex; align-items: center; justify-content: center; width: 27px; height: 27px; flex: none; }
-.aspect-pair__symbol, .aspect-pair__node { font-family: "Segoe UI Symbol", "Apple Symbols", sans-serif; font-size: 1.65rem; line-height: 1; }
-@media(max-width: 480px) {
-    .planet-aspect-frames { grid-template-columns: repeat(auto-fit, minmax(min(100%, 86px), 1fr)); gap: 7px; }
-    .astro-frame.aspect-pair { gap: 4px; padding-inline: 5px; min-height: 61px; }
-    .aspect-pair img, .aspect-pair__planet { width: 23px; height: 23px; }
-    .aspect-pair__symbol, .aspect-pair__node { font-size: 1.4rem; }
+.planet-aspect-frames::before { content: ""; position: absolute; left: calc(50% - .5px); top: var(--aspect-step); bottom: var(--aspect-step); width: 1px; background: var(--aspect-line); z-index: -1; }
+.planet-aspect-item { display: contents; }
+.astro-frame.aspect-pair {
+    position: relative; display: flex; align-items: center; justify-content: center; align-self: center;
+    gap: 8px; height: 32px; width: 100%; max-width: 165px; min-width: 0; padding: 4px 7px;
+    border-radius: 9px; color: #e7d6a1; box-shadow: none; z-index: 1;
+}
+.planet-aspect-item--left .aspect-pair { grid-column: 1; justify-self: end; }
+.planet-aspect-item--right .aspect-pair { grid-column: 3; justify-self: start; }
+.planet-aspect-item--left .aspect-pair__time { order: 2; }
+.aspect-pair__time { font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1; letter-spacing: .015em; }
+.aspect-pair__icons { display: inline-flex; align-items: center; justify-content: center; gap: 4px; flex: none; }
+.aspect-pair img { width: 20px; height: 20px; object-fit: contain; display: block; }
+.aspect-pair__planet { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex: none; }
+.aspect-pair__symbol, .aspect-pair__node { font-family: "Segoe UI Symbol", "Apple Symbols", sans-serif; font-size: 20px; line-height: 1; }
+.aspect-pair__symbol { width: 16px; text-align: center; }
+.planet-aspect-anchor { grid-column: 2; align-self: stretch; position: relative; display: grid; place-items: center; }
+.planet-aspect-anchor::before { content: ""; position: absolute; top: calc(50% - .5px); width: 50%; height: 1px; background: var(--aspect-line); }
+.planet-aspect-item--left .planet-aspect-anchor::before { left: 0; }
+.planet-aspect-item--right .planet-aspect-anchor::before { right: 0; }
+.planet-aspect-dot { position: relative; width: 5px; height: 5px; border-radius: 50%; background: #426e69; }
+@container (max-width: 300px) {
+    .planet-aspect-frames { --aspect-spine: 24px; }
+    .astro-frame.aspect-pair { gap: 5px; padding-inline: 5px; }
+    .aspect-pair img, .aspect-pair__planet { width: 18px; height: 18px; }
+}
+@container (max-width: 250px) {
+    .planet-aspect-frames { --aspect-step: 28px; }
+    .astro-frame.aspect-pair { flex-direction: column; height: 48px; gap: 3px; }
+    .planet-aspect-item--left .aspect-pair__time { order: 0; }
 }
 [hidden] { display: none !important; }
 .admin-import-switch, .admin-year-settings, .admin-preview-toolbar {

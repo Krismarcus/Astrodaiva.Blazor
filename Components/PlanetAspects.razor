@@ -11,16 +11,34 @@
     var aspects = AspectDisplay.ForDate(Db, Date);
     @if (aspects.Count > 0)
     {
-        <div class="planet-aspect-frames" role="group" aria-label="@(IsLt ? "Planetų aspektai" : "Planetary aspects")">
-            @foreach (var aspect in aspects)
-            {
-                <span class="astro-frame aspect-pair" role="img" aria-label="@AccessibleLabel(aspect)" title="@AccessibleLabel(aspect)">
-                    @PlanetIcon(aspect.Planet1)
-                    <span class="aspect-pair__symbol" aria-hidden="true">@AspectDisplay.Symbol(aspect.AspectSymbol)</span>
-                    @PlanetIcon(aspect.Planet2)
-                </span>
-            }
-        </div>
+        <section class="planet-aspect-section" aria-label="@(IsLt ? "Planetų aspektai" : "Planetary aspects")">
+            <ol class="planet-aspect-frames" role="list" style="@($"grid-template-rows: repeat({aspects.Count + 1}, var(--aspect-step));")">
+                @for (var index = 0; index < aspects.Count; index++)
+                {
+                    var aspect = aspects[index];
+                    var row = $"grid-row: {index + 1} / span 2;";
+                    var label = AccessibleLabel(aspect);
+                    <li class="planet-aspect-item @(index % 2 == 0 ? "planet-aspect-item--left" : "planet-aspect-item--right")" aria-label="@label">
+                        <span class="astro-frame aspect-pair" style="@row" title="@label">
+                            @if (aspect.LocalTime is { } local)
+                            {
+                                <time class="aspect-pair__time" datetime="@local.ToString("O", CultureInfo.InvariantCulture)">@local.ToString("HH:mm", CultureInfo.InvariantCulture)</time>
+                            }
+                            else
+                            {
+                                <span class="aspect-pair__time" aria-label="@TimeUnavailable">—</span>
+                            }
+                            <span class="aspect-pair__icons" aria-hidden="true">
+                                @PlanetIcon(aspect.Planet1)
+                                <span class="aspect-pair__symbol">@AspectDisplay.Symbol(aspect.AspectSymbol)</span>
+                                @PlanetIcon(aspect.Planet2)
+                            </span>
+                        </span>
+                        <span class="planet-aspect-anchor" style="@row" aria-hidden="true"><span class="planet-aspect-dot"></span></span>
+                    </li>
+                }
+            </ol>
+        </section>
     }
 }
 
@@ -28,6 +46,7 @@
     [Parameter, EditorRequired] public AppDB Db { get; set; } = default!;
     [Parameter] public DateTime Date { get; set; }
     private bool IsLt => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "lt";
+    private string TimeUnavailable => IsLt ? "Laikas nenurodytas" : "Time unavailable";
     private RenderFragment PlanetIcon(Planet planet) => @<span class="aspect-pair__planet" aria-hidden="true">
         @if (planet is Planet.Rahu or Planet.Ketu)
         {
@@ -35,10 +54,10 @@
         }
         else
         {
-            <img src="@($"img/zodiac/{planet.ToString().ToLowerInvariant()}.png")" alt="" width="30" height="30" />
+            <img src="@($"img/zodiac/{planet.ToString().ToLowerInvariant()}.png")" alt="" width="20" height="20" />
         }
     </span>;
-    private string AccessibleLabel(Astrodaiva.Data.Models.PlanetEvent aspect)
+    private string AccessibleLabel(AspectOccurrence aspect)
     {
         var name = (aspect.AspectSymbol, IsLt) switch
         {
@@ -49,6 +68,9 @@
             (AspectSymbol.Sextile, true) => "sekstilis",
             _ => aspect.AspectSymbol.ToString().ToLowerInvariant()
         };
-        return $"{EnumText.GetPlanetName(aspect.Planet1)} {name} {EnumText.GetPlanetName(aspect.Planet2)}";
+        var time = aspect.LocalTime is { } local
+            ? $"{local.ToString("HH:mm:ss zzz", CultureInfo.InvariantCulture)} ({(IsLt ? "Vilniaus laikas" : "Vilnius time")})"
+            : TimeUnavailable;
+        return $"{EnumText.GetPlanetName(aspect.Planet1)} {name} {EnumText.GetPlanetName(aspect.Planet2)} · {time}";
     }
 }
