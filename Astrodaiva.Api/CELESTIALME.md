@@ -7,12 +7,12 @@ The Blazor admin page imports the selected calendar month into an editable draft
 Set these in the backend hosting environment, never in Blazor's wwwroot configuration:
 
 ```
-CelestialMe__BaseUrl=https://diamonds-office-pc.tailbb41ad.ts.net:10000/celestialme-api/
+CelestialMe__BaseUrl=https://api.astrotrading.net/
 CelestialMe__ApiKey=<service credential from your secret manager>
 CelestialMe__ProviderPlaceId=593116
 ```
 
-ProviderPlaceId defaults to Vilnius (593116). This release accepts the Europe/Vilnius calculation zone. The actual coordinates returned by GeoNames are shown in the import preview. The supplied private-test credential expires on 2026-09-25 at 23:59:59 UTC; replace it before expiry. No service credential is included in source or frontend assets.
+ProviderPlaceId defaults to Vilnius (593116). This release accepts the Europe/Vilnius calculation zone. The actual coordinates returned by GeoNames are shown in the import preview. The supplied deployment-test credential expires on 2027-09-30 UTC; rotate it before expiry or broader rollout. The backend defaults to the HTTPS base URL above when CelestialMe:BaseUrl is absent; an explicit hosting setting takes precedence. No service credential is included in source or frontend assets.
 
 The current hosting setup uses an ASP.NET Core API and MySQL, with a separate Blazor WebAssembly frontend. Deploy both updated projects together. The frontend needs the new API routes and ETag header for publishing; a missing ETag cannot authorize a publish. Preserve the existing database connection and Admin settings. No database schema migration is required for this release: imported astronomy, provenance, boundary context and override baselines are retained in the versioned JSON snapshots.
 
@@ -63,4 +63,14 @@ A local browser preview must be started with `--serve --calendar /path/to/publis
 
 Verification uses a checked-in public calculation fixture and an isolated in-memory SQLite database. It tests the actual controllers and middleware, import roundtrips, override preservation/reset, editorial preservation, time-zone date changes and boundaries, authentication, optimistic publication, and rollback. It does not contact production or modify MySQL. MySQL deployment smoke checks remain necessary for infrastructure-specific behavior.
 
-The test service still has the hosting and calculation-profile limitations documented by its provider, including the Selena compatibility notice. This implementation displays pending compatibility notices in previews. Production availability, provider licensing readiness and credential rotation remain deployment responsibilities.
+The DigitalOcean provider uses DiamondAstrology with Astronomy Engine, replacing the earlier Swiss Ephemeris calculation backend. The Selena compatibility notice remains visible in import previews. Provider distribution terms remain pending according to the handoff; this integration makes no licensing assumptions. The provider is a small shared instance with a 60-request/minute per-key limit, not an uptime guarantee. Imports do not automatically retry errors; 429 responses retain Retry-After and support diagnostics retain X-Request-Id as X-Upstream-Request-Id.
+
+## DigitalOcean provider migration (2026-09-30)
+
+The existing AstroDiva endpoint, Bearer authentication, schema version 1.0, fourteen planet IDs, and twelve sign IDs are compatible with `https://api.astrotrading.net/`. Keep the Blazor frontend pointed at the Astrodaiva backend; only that backend stores and sends the provider key. Update both `CelestialMe__BaseUrl` and `CelestialMe__ApiKey` on Render, then redeploy. Do not copy the handoff document into the repository because it contains a live credential.
+
+This is a provider connection update, not an automatic reimport or scheduled sync. Existing published dates, private snapshots, manual ratings and copy remain in the Astrodaiva database. Admin imports retain preview, manual editing, override preservation and explicit publication. No database migration or calendar layout change is required.
+
+The captured `Verification/Fixtures/diamond-september-2026.json` is a calculation-only response for Vilnius, August 30–October 2, 2026, with no credentials or user records. Live validation returned all 34 dates in approximately 13 seconds. September lunar sequences, legacy phases and noon zodiac signs match the previous fixture, while some exact instants change. The September 11 29 → 1 → 2 sequence now transitions at 06:27:28 and 06:58:40 when rounded for storage. A fresh import displays provider differences for review; manual overrides remain protected unless reset is selected.
+
+Migration regression checks cover both provider fixtures, complete-year activity ratings and copy, manual overrides, visibility settings, the triple lunar-day timeline, idempotent reimports, source provenance, the default HTTPS endpoint and error handling. All automated provider calls use a local fake transport; only deliberate live smoke checks contact the provider.

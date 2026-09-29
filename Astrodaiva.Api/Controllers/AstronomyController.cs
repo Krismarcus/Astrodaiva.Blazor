@@ -10,6 +10,8 @@ namespace Astrodaiva.Api.Controllers;
 [Route("api/astronomy")]
 public sealed class AstronomyController(IHttpClientFactory clients, IConfiguration configuration) : ControllerBase
 {
+    public const string DefaultBaseUrl = "https://api.astrotrading.net/";
+
     [HttpPost("month")]
     public async Task<IActionResult> Month(MonthRequest request, CancellationToken cancellationToken)
     {
@@ -17,7 +19,7 @@ public sealed class AstronomyController(IHttpClientFactory clients, IConfigurati
             return BadRequest(new { message = "Choose a month between 1900 and 2100." });
 
         var key = configuration["CelestialMe:ApiKey"];
-        var baseUrl = configuration["CelestialMe:BaseUrl"];
+        var baseUrl = configuration["CelestialMe:BaseUrl"] ?? DefaultBaseUrl;
         if (string.IsNullOrWhiteSpace(key) || !Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri) || uri.Scheme != "https")
             return StatusCode(503, new { message = "Calendar import is not configured. Set CelestialMe:BaseUrl and CelestialMe:ApiKey on the backend." });
 

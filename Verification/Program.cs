@@ -15,6 +15,8 @@ using Microsoft.EntityFrameworkCore;
 var fixturePath = Path.Combine(AppContext.BaseDirectory, "Fixtures", "september-2026.json");
 var fixture = await File.ReadAllTextAsync(fixturePath);
 var response = JsonSerializer.Deserialize<CelestialCalendar>(fixture, CalendarImporter.JsonOptions)!;
+var diamondFixture = await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory, "Fixtures", "diamond-september-2026.json"));
+var diamondResponse = JsonSerializer.Deserialize<CelestialCalendar>(diamondFixture, CalendarImporter.JsonOptions)!;
 var count = 0;
 void Check(bool condition, string name) { if (!condition) throw new Exception("FAILED: " + name); Console.WriteLine("PASS " + name); count++; }
 AppDB Empty() => new() { AstroEventsDB = new(), MoonDayDetailsDB = new(), PlanetInZodiacsDB = new(), PlanetInRetrogradeDetailsDB = new() };
@@ -137,6 +139,8 @@ Check(CalendarVisibility.Nearest(new(2028, 2, 29), new[] { 2026 }) == new DateTi
 Check(CalendarImporter.Preview(visibilityDraft, response, 2026, 9, false).Draft.HiddenYears.SequenceEqual(new[] { 2026 }), "import preserves year visibility settings");
 RetrogradeChecks.Run(Check);
 AspectChecks.Run(Check);
+DiamondMigrationChecks.Run(Check, diamondResponse, yearlyImport);
+await DiamondMigrationChecks.CheckProxyErrors(Check);
 if (args.Contains("--calculations-only"))
 {
     Console.WriteLine($"All {count} calendar checks passed.");
@@ -144,14 +148,13 @@ if (args.Contains("--calculations-only"))
 }
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
-builder.Configuration["CelestialMe:BaseUrl"] = "https://calculation.invalid/";
 builder.Configuration["CelestialMe:ApiKey"] = "test-key-never-sent-to-network";
 builder.Services.AddControllers().AddApplicationPart(typeof(ImportController).Assembly);
 builder.Services.Configure<AdminAuthOptions>(o => { o.Password = "local-preview-only"; o.TokenSigningKey = "local-verification-signing-key-only-2026"; });
 builder.Services.AddSingleton<AdminTokenService>();
 var connection = new SqliteConnection("Data Source=:memory:"); await connection.OpenAsync();
 builder.Services.AddDbContext<AstroDbContext>(o => o.UseSqlite(connection));
-builder.Services.AddSingleton<IHttpClientFactory>(new FixtureClientFactory(fixture));
+builder.Services.AddSingleton<IHttpClientFactory>(new FixtureClientFactory(diamondFixture));
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p.WithOrigins("http://localhost:5088", "http://127.0.0.1:5088").AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("ETag", "Retry-After")));
 var app = builder.Build();
 app.UseCors(); app.UseMiddleware<AdminRequestMiddleware>(); app.MapControllers();
@@ -267,7 +270,10 @@ sealed class FixtureHandler(string fixture) : HttpMessageHandler
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         if (request.Headers.Authorization?.Parameter != "test-key-never-sent-to-network") throw new Exception("Service key missing");
+        if (request.RequestUri != new Uri("https://api.astrotrading.net/v1/consumer/integrations/astrodaiva/calendar") || request.Method != HttpMethod.Post)
+            throw new Exception("Wrong provider endpoint");
         using var body = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(cancellationToken));
+        if (body.RootElement.GetProperty("location").GetProperty("providerPlaceId").GetString() != "593116") throw new Exception("Wrong import location");
         if (body.RootElement.GetProperty("startDate").GetString() != "2026-08-30" || body.RootElement.GetProperty("endDate").GetString() != "2026-10-02") throw new Exception("Incorrect padded month");
         return new(HttpStatusCode.OK) { Content = new StringContent(fixture, System.Text.Encoding.UTF8, "application/json") };
     }
