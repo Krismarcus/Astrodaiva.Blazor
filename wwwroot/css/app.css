@@ -1639,22 +1639,12 @@ a {
     }
 
     .header-actions .lang-switcher {
-        gap: 0;
+        gap: 3px;
         padding: 3px;
         border-radius: var(--radius-selector);
     }
 
-    .header-actions .lang-select {
-        min-width: 62px;
-        padding: 6px 25px 6px 10px;
-        font-size: .84rem;
-    }
-
-    .header-actions .lang-switcher--select::after {
-        right: 9px;
-    }
-
-    .header-actions .lang-btn {
+    .header-actions .lang-switcher .lang-btn {
         min-width: 38px;
         padding: 6px 8px;
         line-height: 1;
@@ -2251,50 +2241,23 @@ body::before {
     position: relative;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 3px;
     padding: 3px;
     border-radius: var(--radius-selector);
     background: rgba(7,66,82,.06);
+    border: 1px solid rgba(7,66,82,.08);
 }
 
-.lang-switcher--select::after {
-    content: "";
-    position: absolute;
-    right: 11px;
-    top: 50%;
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid rgba(255,255,255,.9);
-    transform: translateY(-40%);
-    pointer-events: none;
+.lang-switcher .lang-btn {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: .88rem;
+    letter-spacing: .04em;
 }
 
-.lang-select {
-    appearance: none;
-    -webkit-appearance: none;
-    min-width: 70px;
-    border: 1px solid rgba(7,66,82,.12);
-    border-radius: var(--radius-button);
-    padding: 6px 30px 6px 12px;
-    background: linear-gradient(135deg, #074252 0%, #1f6d77 100%);
-    box-shadow: 0 8px 18px rgba(7,66,82,.22);
-    color: #fff;
-    cursor: pointer;
-    font: inherit;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.lang-select:focus-visible {
-    outline: 2px solid rgba(190,155,98,.55);
+.lang-switcher .lang-btn:focus-visible {
+    outline: 2px solid #074252;
     outline-offset: 2px;
-}
-
-.lang-select option {
-    color: #05303d;
-    background: #fff;
 }
 
 .lang-btn {
@@ -2835,10 +2798,22 @@ body::before {
         border-radius: 12px;
     }
 
-    .lang-select {
-        min-width: 58px;
-        padding: 5px 23px 5px 9px;
-        font-size: .8rem;
+}
+
+@media (max-width: 360px) {
+    .brand-logo {
+        width: 80px;
+    }
+
+    .main-nav {
+        min-width: 94px;
+        flex-basis: 94px;
+    }
+
+    .main-nav__link,
+    .main-nav a {
+        padding-inline: 4px;
+        font-size: .78rem;
     }
 }
 

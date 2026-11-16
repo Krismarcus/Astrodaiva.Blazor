@@ -1,9 +1,9 @@
-const CACHE_NAME = "astrodaiva-shell-v20260914-gold-date-v1";
+const CACHE_NAME = "astrodaiva-shell-v20261116-language-toggle-v2";
 
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./css/app.css?v=20260914-gold-date-v1",
+  "./css/app.css?v=20261116-language-toggle-v2",
   "./manifest.webmanifest",
   "./img/astrodaiva-logo.png",
   "./img/pwa/apple-touch-icon.png",

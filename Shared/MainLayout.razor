@@ -25,14 +25,13 @@
       </div>
 
       <div class="header-actions">
-        <div class="lang-switcher lang-switcher--select">
-          <select class="lang-select"
-                  aria-label="@(IsLt ? "Kalba" : "Language")"
-                  value="@SelectedCulture"
-                  @onchange="OnLanguageChanged">
-            <option value="lt-LT">LT</option>
-            <option value="en-US">EN</option>
-          </select>
+        <div class="lang-switcher" role="group" aria-label="@(IsLt ? "Kalba" : "Language")">
+          <button type="button" class="lang-btn @(IsLt ? "active" : null)"
+                  lang="lt" aria-label="Lietuvių" title="Lietuvių"
+                  aria-pressed="@(IsLt ? "true" : "false")" @onclick="SetLt">LT</button>
+          <button type="button" class="lang-btn @(!IsLt ? "active" : null)"
+                  lang="en" aria-label="English" title="English"
+                  aria-pressed="@(!IsLt ? "true" : "false")" @onclick="SetEn">EN</button>
         </div>
       </div>
     </div>
@@ -80,18 +79,11 @@
     private Task SetLt() => SetCulture("lt-LT");
     private Task SetEn() => SetCulture("en-US");
 
-    private async Task OnLanguageChanged(ChangeEventArgs e)
-    {
-        var culture = e.Value?.ToString();
-        if (string.IsNullOrWhiteSpace(culture) ||
-            string.Equals(culture, SelectedCulture, StringComparison.OrdinalIgnoreCase))
-            return;
-
-        await SetCulture(culture);
-    }
-
     private async Task SetCulture(string culture)
     {
+        if (string.Equals(culture, SelectedCulture, StringComparison.OrdinalIgnoreCase))
+            return;
+
         await JS.InvokeAsync<object>("blazorCulture.set", culture);
         Nav.NavigateTo(Nav.Uri, forceLoad: true);
     }
